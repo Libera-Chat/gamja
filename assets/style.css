@@ -1,0 +1,75 @@
+html, body {
+	height: 100%;
+	padding: 0;
+	margin: 0;
+	overflow: hidden;
+}
+
+body {
+	display: grid;
+	grid-template-rows: auto 40px;
+	grid-template-columns: 200px auto;
+	font-family: monospace;
+}
+
+#sidebar, #log {
+	height: 100%;
+	overflow: auto;
+}
+
+#sidebar {
+	background-color: #e3e3e3;
+	grid-row: 1 / 3;
+}
+
+#sidebar ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 10px;
+}
+#sidebar ul a {
+	display: inline-block;
+	width: 100%;
+}
+
+#log {
+	box-sizing: border-box;
+	padding: 10px;
+}
+
+#composer {
+	grid-column: 2;
+	border-top: 1px solid #e3e3e3;
+}
+#composer input {
+	display: block;
+	height: 100%;
+	width: 100%;
+	box-sizing: border-box;
+	padding: 10px;
+	border: none;
+	background: none;
+}
+#composer.read-only {
+	display: none;
+}
+
+a {
+	color: green;
+}
+#sidebar a, a.timestamp, a.nick {
+	color: #4a4a4a;
+	text-decoration: none;
+}
+#sidebar .active a {
+	color: black;
+}
+#sidebar a:hover, #sidebar a:active,
+a.timestamp:hover, a.timestamp:active,
+a.nick:hover, a.nick:active {
+	text-decoration: underline;
+}
+
+a.nick {
+	color: #f25e0d;
+}
