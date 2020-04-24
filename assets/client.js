@@ -126,30 +126,6 @@ function switchBuffer(buf) {
 	}
 }
 
-function appendMessage(target, date, nickname, text) {
-	var timestamp = document.createElement("a");
-	timestamp.href = "#";
-	timestamp.className = "timestamp";
-	timestamp.innerText = date.toLocaleTimeString(undefined, {
-		timeStyle: "short",
-		hour12: false,
-	});
-
-	var nick = document.createElement("a");
-	nick.href = "#";
-	nick.className = "nick";
-	nick.innerText = nickname;
-
-	var line = document.createElement("div");
-	line.className = "logline";
-	line.appendChild(timestamp);
-	line.appendChild(document.createTextNode(" <"));
-	line.appendChild(nick);
-	line.appendChild(document.createTextNode("> "));
-	line.appendChild(document.createTextNode(text));
-	logElt.appendChild(line);
-}
-
 var serverBuffer = createBuffer(server.name);
 serverBuffer.readOnly = true;
 switchBuffer(serverBuffer);
