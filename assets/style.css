@@ -32,11 +32,6 @@ body {
 	width: 100%;
 }
 
-#log {
-	box-sizing: border-box;
-	padding: 10px;
-}
-
 #composer {
 	grid-column: 2;
 	border-top: 1px solid #e3e3e3;
@@ -70,6 +65,62 @@ a.nick:hover, a.nick:active {
 	text-decoration: underline;
 }
 
-a.nick {
+#log {
+	box-sizing: border-box;
+	padding: 10px;
+	color: #4a4a4a;
+}
+#log .talk {
+	color: black;
+}
+#log .me-tell {
+	color: #b37400;
+}
+#log .nick-1 {
 	color: #f25e0d;
+}
+#log .nick-2 {
+	color: #e43611;
+}
+#log .nick-3 {
+	color: #f98a11;
+}
+#log .nick-4 {
+	color: #b4a700;
+}
+#log .nick-5 {
+	color: #89bd3b;
+}
+#log .nick-6 {
+	color: #4ea847;
+}
+#log .nick-7 {
+	color: #287e52;
+}
+#log .nick-8 {
+	color: #117873;
+}
+#log .nick-9 {
+	color: #0083a7;
+}
+#log .nick-10 {
+	color: #2a6596;
+}
+#log .nick-11 {
+	color: #385189;
+}
+#log .nick-12 {
+	color: #434078;
+}
+#log .nick-13 {
+	color: #5e4279;
+}
+#log .nick-14 {
+	color: #7a447a;
+}
+#log .nick-15 {
+	color: #e92980;
+}
+#log .nick-16 {
+	color: #ec273e;
 }

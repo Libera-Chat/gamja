@@ -15,6 +15,15 @@ var logElt = document.getElementById("log");
 var composerElt = document.getElementById("composer");
 var composerInputElt = document.getElementById("composer-input");
 
+function djb2(s) {
+	var hash = 5381;
+	for (var i = 0; i < s.length; i++) {
+		hash = (hash << 5) + hash + s.charCodeAt(i);
+		hash = hash >>> 0; // convert to uint32
+	}
+	return hash;
+}
+
 function createMessageElement(msg) {
 	var date = new Date();
 
@@ -39,9 +48,11 @@ function createMessageElement(msg) {
 	case "PRIVMSG":
 		var text = msg.params[1];
 
+		line.className += " talk";
+
 		var nick = document.createElement("a");
 		nick.href = "#";
-		nick.className = "nick";
+		nick.className = "nick nick-" + (djb2(msg.prefix.name) % 16 + 1);
 		nick.innerText = msg.prefix.name;
 		nick.onclick = function(event) {
 			event.preventDefault();
