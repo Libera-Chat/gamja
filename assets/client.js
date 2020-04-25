@@ -191,6 +191,9 @@ composerElt.onsubmit = function(event) {
 	}
 	var target = activeBuffer.name;
 	var text = composerInputElt.value;
+	if (!text) {
+		return;
+	}
 	var msg = { command: "PRIVMSG", params: [target, text] };
 	ws.send(formatMessage(msg));
 	msg.prefix = { name: server.nick };
