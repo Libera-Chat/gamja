@@ -24,6 +24,18 @@ function djb2(s) {
 	return hash;
 }
 
+function createNickElement(name) {
+	var nick = document.createElement("a");
+	nick.href = "#";
+	nick.className = "nick nick-" + (djb2(name) % 16 + 1);
+	nick.innerText = name;
+	nick.onclick = function(event) {
+		event.preventDefault();
+		switchBuffer(createBuffer(name));
+	};
+	return nick;
+}
+
 function createMessageElement(msg) {
 	var date = new Date();
 
@@ -49,15 +61,6 @@ function createMessageElement(msg) {
 	case "PRIVMSG":
 		var text = msg.params[1];
 
-		var nick = document.createElement("a");
-		nick.href = "#";
-		nick.className = "nick nick-" + (djb2(msg.prefix.name) % 16 + 1);
-		nick.innerText = msg.prefix.name;
-		nick.onclick = function(event) {
-			event.preventDefault();
-			switchBuffer(createBuffer(msg.prefix.name));
-		};
-
 		var actionPrefix = "\001ACTION ";
 		if (text.startsWith(actionPrefix) && text.endsWith("\001")) {
 			var action = text.slice(actionPrefix.length, -1);
@@ -65,16 +68,24 @@ function createMessageElement(msg) {
 			line.className += " me-tell";
 
 			line.appendChild(document.createTextNode("* "));
-			line.appendChild(nick);
+			line.appendChild(createNickElement(msg.prefix.name));
 			line.appendChild(document.createTextNode(" " + action));
 		} else {
 			line.className += " talk";
 
 			line.appendChild(document.createTextNode("<"));
-			line.appendChild(nick);
+			line.appendChild(createNickElement(msg.prefix.name));
 			line.appendChild(document.createTextNode("> "));
 			line.appendChild(document.createTextNode(text));
 		}
+		break;
+	case "JOIN":
+		line.appendChild(createNickElement(msg.prefix.name));
+		line.appendChild(document.createTextNode(" has joined"));
+		break;
+	case "PART":
+		line.appendChild(createNickElement(msg.prefix.name));
+		line.appendChild(document.createTextNode(" has left"));
 		break;
 	default:
 		line.appendChild(document.createTextNode(" " + msg.command + " " + msg.params.join(" ")));
@@ -191,7 +202,13 @@ ws.onmessage = function(event) {
 		var channel = msg.params[0];
 		if (msg.prefix.name == server.nick) {
 			createBuffer(channel);
+		} else {
+			createBuffer(channel).addMessage(msg);
 		}
+		break;
+	case "PART":
+		var channel = msg.params[0];
+		createBuffer(channel).addMessage(msg);
 		break;
 	default:
 		serverBuffer.addMessage(msg);
