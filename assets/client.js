@@ -11,7 +11,7 @@ var buffers = {};
 var activeBuffer = null;
 
 var bufferListElt = document.querySelector("#buffer-list");
-var logElt = document.querySelector("#log");
+var bufferElt = document.querySelector("#buffer");
 var composerElt = document.querySelector("#composer");
 var composerInputElt = document.querySelector("#composer input");
 
@@ -97,7 +97,7 @@ function createBuffer(name) {
 			buf.messages.push(msg);
 
 			if (activeBuffer === buf) {
-				logElt.appendChild(createMessageElement(msg));
+				bufferElt.appendChild(createMessageElement(msg));
 			}
 		},
 	};
@@ -126,9 +126,9 @@ function switchBuffer(buf) {
 
 	buf.li.classList.add("active");
 
-	logElt.innerHTML = "";
+	bufferElt.innerHTML = "";
 	for (var msg of buf.messages) {
-		logElt.appendChild(createMessageElement(msg));
+		bufferElt.appendChild(createMessageElement(msg));
 	}
 
 	composerElt.classList.toggle("read-only", buf.readOnly);

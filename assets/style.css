@@ -12,7 +12,7 @@ body {
 	font-family: monospace;
 }
 
-#sidebar, #log {
+#sidebar, #buffer {
 	height: 100%;
 	overflow: auto;
 }
@@ -65,62 +65,62 @@ a.nick:hover, a.nick:active {
 	text-decoration: underline;
 }
 
-#log {
+#buffer {
 	box-sizing: border-box;
 	padding: 10px;
 	color: #4a4a4a;
 }
-#log .talk {
+#buffer .talk {
 	color: black;
 }
-#log .me-tell {
+#buffer .me-tell {
 	color: #b37400;
 }
-#log .nick-1 {
+#buffer .nick-1 {
 	color: #f25e0d;
 }
-#log .nick-2 {
+#buffer .nick-2 {
 	color: #e43611;
 }
-#log .nick-3 {
+#buffer .nick-3 {
 	color: #f98a11;
 }
-#log .nick-4 {
+#buffer .nick-4 {
 	color: #b4a700;
 }
-#log .nick-5 {
+#buffer .nick-5 {
 	color: #89bd3b;
 }
-#log .nick-6 {
+#buffer .nick-6 {
 	color: #4ea847;
 }
-#log .nick-7 {
+#buffer .nick-7 {
 	color: #287e52;
 }
-#log .nick-8 {
+#buffer .nick-8 {
 	color: #117873;
 }
-#log .nick-9 {
+#buffer .nick-9 {
 	color: #0083a7;
 }
-#log .nick-10 {
+#buffer .nick-10 {
 	color: #2a6596;
 }
-#log .nick-11 {
+#buffer .nick-11 {
 	color: #385189;
 }
-#log .nick-12 {
+#buffer .nick-12 {
 	color: #434078;
 }
-#log .nick-13 {
+#buffer .nick-13 {
 	color: #5e4279;
 }
-#log .nick-14 {
+#buffer .nick-14 {
 	color: #7a447a;
 }
-#log .nick-15 {
+#buffer .nick-15 {
 	color: #e92980;
 }
-#log .nick-16 {
+#buffer .nick-16 {
 	color: #ec273e;
 }
