@@ -87,7 +87,7 @@ function createBuffer(name) {
 	var li = document.createElement("li");
 	li.appendChild(a);
 
-	buf = {
+	var buf = {
 		name: name,
 		li: li,
 		messages: [],
@@ -96,7 +96,7 @@ function createBuffer(name) {
 		addMessage: function(msg) {
 			buf.messages.push(msg);
 
-			if (activeBuffer == buf) {
+			if (activeBuffer === buf) {
 				logElt.appendChild(createMessageElement(msg));
 			}
 		},
