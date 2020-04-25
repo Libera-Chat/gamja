@@ -42,13 +42,12 @@ function createMessageElement(msg) {
 	};
 
 	line.appendChild(timestamp);
+	line.appendChild(document.createTextNode(" "));
 
 	switch (msg.command) {
 	case "NOTICE":
 	case "PRIVMSG":
 		var text = msg.params[1];
-
-		line.className += " talk";
 
 		var nick = document.createElement("a");
 		nick.href = "#";
@@ -59,10 +58,23 @@ function createMessageElement(msg) {
 			switchBuffer(createBuffer(msg.prefix.name));
 		};
 
-		line.appendChild(document.createTextNode(" <"));
-		line.appendChild(nick);
-		line.appendChild(document.createTextNode("> "));
-		line.appendChild(document.createTextNode(text));
+		var actionPrefix = "\001ACTION ";
+		if (text.startsWith(actionPrefix) && text.endsWith("\001")) {
+			var action = text.slice(actionPrefix.length, -1);
+
+			line.className += " me-tell";
+
+			line.appendChild(document.createTextNode("* "));
+			line.appendChild(nick);
+			line.appendChild(document.createTextNode(" " + action));
+		} else {
+			line.className += " talk";
+
+			line.appendChild(document.createTextNode("<"));
+			line.appendChild(nick);
+			line.appendChild(document.createTextNode("> "));
+			line.appendChild(document.createTextNode(text));
+		}
 		break;
 	default:
 		line.appendChild(document.createTextNode(" " + msg.command + " " + msg.params.join(" ")));
