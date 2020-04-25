@@ -167,7 +167,13 @@ ws.onmessage = function(event) {
 		if (target == server.nick) {
 			target = msg.prefix.name;
 		}
-		createBuffer(target).addMessage(msg);
+		var buf;
+		if (target == "*") {
+			buf = serverBuffer;
+		} else {
+			buf = createBuffer(target);
+		}
+		buf.addMessage(msg);
 		break;
 	case "JOIN":
 		var channel = msg.params[0];
