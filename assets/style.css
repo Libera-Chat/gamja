@@ -7,8 +7,8 @@ html, body {
 
 body {
 	display: grid;
-	grid-template-rows: auto 40px;
-	grid-template-columns: 200px auto;
+	grid-template-rows: auto max-content;
+	grid-template-columns: max-content auto;
 	font-family: monospace;
 }
 
@@ -38,7 +38,7 @@ body {
 }
 #composer input {
 	display: block;
-	height: 100%;
+	height: 35px;
 	width: 100%;
 	box-sizing: border-box;
 	padding: 10px;
