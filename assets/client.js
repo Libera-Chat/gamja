@@ -1,7 +1,7 @@
 var server = {
 	name: "chat.freenode.net",
 	url: "ws://localhost:8080",
-	username: "soju-test-user/irc.freenode.net",
+	username: "soju-test-user/chat.freenode.net",
 	realname: "soju-test-user",
 	nick: "soju-test-user",
 	pass: "soju-test-user",
@@ -10,10 +10,10 @@ var server = {
 var buffers = {};
 var activeBuffer = null;
 
-var bufferListElt = document.getElementById("buffer-list");
-var logElt = document.getElementById("log");
-var composerElt = document.getElementById("composer");
-var composerInputElt = document.getElementById("composer-input");
+var bufferListElt = document.querySelector("#buffer-list");
+var logElt = document.querySelector("#log");
+var composerElt = document.querySelector("#composer");
+var composerInputElt = document.querySelector("#composer input");
 
 function djb2(s) {
 	var hash = 5381;
