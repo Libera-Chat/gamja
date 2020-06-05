@@ -1,19 +1,23 @@
 var server = {
 	name: "chat.freenode.net",
-	url: "ws://localhost:8080",
-	username: "soju-test-user/chat.freenode.net",
-	realname: "soju-test-user",
-	nick: "soju-test-user",
-	pass: "soju-test-user",
+	username: null,
+	realname: null,
+	nick: null,
+	pass: null,
 };
+
+var ws = null;
 
 var buffers = {};
 var activeBuffer = null;
+var serverBuffer = null;
 
 var bufferListElt = document.querySelector("#buffer-list");
 var bufferElt = document.querySelector("#buffer");
 var composerElt = document.querySelector("#composer");
 var composerInputElt = document.querySelector("#composer input");
+var connectElt = document.querySelector("#connect");
+var connectFormElt = document.querySelector("#connect form");
 
 function djb2(s) {
 	var hash = 5381;
@@ -160,78 +164,156 @@ function switchBuffer(buf) {
 	}
 }
 
-var serverBuffer = createBuffer(server.name);
-serverBuffer.readOnly = true;
-switchBuffer(serverBuffer);
+function showConnectForm() {
+	setConnectFormDisabled(false);
+	connectElt.style.display = "block";
+}
 
-var ws = new WebSocket(server.url);
-
-ws.onopen = function() {
-	console.log("Connection opened");
-
-	if (server.pass) {
-		ws.send(formatMessage({ command: "PASS", params: [server.pass] }));
+function connect() {
+	try {
+		ws = new WebSocket(server.url);
+	} catch (err) {
+		console.error(err);
+		showConnectForm();
+		return;
 	}
-	ws.send(formatMessage({ command: "NICK", params: [server.nick] }));
-	ws.send(formatMessage({
-		command: "USER",
-		params: [server.username, "0", "*", server.realname],
-	}));
-};
 
-ws.onmessage = function(event) {
-	var msg = parseMessage(event.data);
-	console.log(msg);
+	ws.onopen = function() {
+		console.log("Connection opened");
 
-	switch (msg.command) {
-	case "NOTICE":
-	case "PRIVMSG":
-		var target = msg.params[0];
-		if (target == server.nick) {
-			target = msg.prefix.name;
+		// TODO: wait for RPL_WELCOME
+		connectElt.style.display = "none";
+
+		if (server.pass) {
+			ws.send(formatMessage({ command: "PASS", params: [server.pass] }));
 		}
-		var buf;
-		if (target == "*") {
-			buf = serverBuffer;
-		} else {
-			buf = createBuffer(target);
-		}
-		buf.addMessage(msg);
-		break;
-	case "JOIN":
-		var channel = msg.params[0];
-		if (msg.prefix.name == server.nick) {
-			createBuffer(channel);
-		} else {
+		ws.send(formatMessage({ command: "NICK", params: [server.nick] }));
+		ws.send(formatMessage({
+			command: "USER",
+			params: [server.username, "0", "*", server.realname],
+		}));
+	};
+
+	ws.onmessage = function(event) {
+		var msg = parseMessage(event.data);
+		console.log(msg);
+
+		switch (msg.command) {
+		case "NOTICE":
+		case "PRIVMSG":
+			var target = msg.params[0];
+			if (target == server.nick) {
+				target = msg.prefix.name;
+			}
+			var buf;
+			if (target == "*") {
+				buf = serverBuffer;
+			} else {
+				buf = createBuffer(target);
+			}
+			buf.addMessage(msg);
+			break;
+		case "JOIN":
+			var channel = msg.params[0];
+			if (msg.prefix.name == server.nick) {
+				createBuffer(channel);
+			} else {
+				createBuffer(channel).addMessage(msg);
+			}
+			break;
+		case "PART":
+			var channel = msg.params[0];
 			createBuffer(channel).addMessage(msg);
+			break;
+		default:
+			serverBuffer.addMessage(msg);
 		}
-		break;
-	case "PART":
-		var channel = msg.params[0];
-		createBuffer(channel).addMessage(msg);
+	};
+
+	ws.onclose = function() {
+		console.log("Connection closed");
+		showConnectForm();
+	};
+
+	ws.onerror = function() {
+		console.error("Connection error");
+	};
+
+	serverBuffer = createBuffer(server.name);
+	serverBuffer.readOnly = true;
+	switchBuffer(serverBuffer);
+}
+
+function sendMessage(msg) {
+	ws.send(formatMessage(msg));
+}
+
+function executeCommand(s) {
+	var parts = s.split(" ");
+	var cmd = parts[0].toLowerCase().slice(1);
+	var args = parts.slice(1);
+	switch (cmd) {
+	case "join":
+		var channel = args[0];
+		var msg = { command: "JOIN", params: [channel] };
+		sendMessage(msg);
 		break;
 	default:
-		serverBuffer.addMessage(msg);
+		console.error("Unknwon command '" + cmd + "'");
 	}
-};
-
-ws.onclose = function() {
-	console.log("Connection closed");
-};
+}
 
 composerElt.onsubmit = function(event) {
 	event.preventDefault();
+
+	var text = composerInputElt.value;
+	composerInputElt.value = "";
+	if (!text) {
+		return;
+	}
+
+	if (text.startsWith("//")) {
+		text = text.slice(1);
+	} else if (text.startsWith("/")) {
+		executeCommand(text);
+		return;
+	}
+
 	if (!activeBuffer || activeBuffer.readOnly) {
 		return;
 	}
 	var target = activeBuffer.name;
-	var text = composerInputElt.value;
-	if (!text) {
-		return;
-	}
+
 	var msg = { command: "PRIVMSG", params: [target, text] };
-	ws.send(formatMessage(msg));
+	sendMessage(msg);
 	msg.prefix = { name: server.nick };
 	activeBuffer.addMessage(msg);
-	composerInputElt.value = "";
+};
+
+function setConnectFormDisabled(disabled) {
+	connectElt.querySelectorAll("input, button").forEach(function(elt) {
+		elt.disabled = disabled;
+	});
+}
+
+connectFormElt.onsubmit = function(event) {
+	event.preventDefault();
+	setConnectFormDisabled(true);
+
+	server.url = connectFormElt.elements.url.value;
+	server.nick = connectFormElt.elements.nick.value;
+	server.pass = connectFormElt.elements.password.value;
+	server.username = connectFormElt.elements.username.value || server.nick;
+	server.realname = connectFormElt.elements.realname.value || server.nick;
+
+	connect();
+};
+
+window.onkeydown = function(event) {
+	if (activeBuffer && activeBuffer.readOnly && event.key == "/" && document.activeElement != composerInputElt) {
+		// Allow typing commands even in read-only buffers
+		composerElt.classList.remove("read-only");
+		composerInputElt.focus();
+		composerInputElt.value = "";
+	}
 };

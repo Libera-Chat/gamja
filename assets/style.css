@@ -12,7 +12,8 @@ body {
 	font-family: monospace;
 }
 
-#sidebar, #buffer {
+#sidebar, #buffer, #connect {
+	width: 100%;
 	height: 100%;
 	overflow: auto;
 }
@@ -47,6 +48,22 @@ body {
 }
 #composer.read-only {
 	display: none;
+}
+
+#connect {
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 100%;
+	background: white;
+}
+#connect form {
+	margin: 0 auto;
+	max-width: 300px;
+}
+#connect input {
+	box-sizing: border-box;
+	width: 100%;
 }
 
 a {

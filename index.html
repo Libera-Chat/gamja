@@ -22,6 +22,42 @@
 			<input type="text" placeholder="Type a message">
 		</form>
 
+		<section id="connect">
+			<form>
+				<h2>Connect to IRC</h2>
+
+				<label for="connect-url">URL:</label><br/>
+				<input type="url" name="url" id="connect-url" value="ws://localhost:8080"/>
+				<br/><br/>
+
+				<label for="connect-nick">Nickname:</label><br/>
+				<input type="username" name="nick" id="connect-nick" autofocus required/>
+				<br/><br/>
+
+				<label for="connect-password">Password:</label><br/>
+				<input type="password" name="password" id="connect-password"/>
+				<br/><br/>
+
+				<details>
+					<summary>More options</summary>
+
+					<br/>
+
+					<label for="connect-username">Username:</label><br/>
+					<input type="username" name="username" id="connect-username" placeholder="Same as nickname"/>
+					<br/><br/>
+
+					<label for="connect-realname">Real name:</label><br/>
+					<input type="text" name="realname" id="connect-realname" placeholder="Same as nickname"/>
+					<br/>
+				</details>
+
+				<br/>
+
+				<button>Connect</button>
+			</form>
+		</section>
+
 		<script src="assets/irc.js"></script>
 		<script src="assets/client.js"></script>
 	</body>
