@@ -61,7 +61,10 @@ body {
 	margin: 0 auto;
 	max-width: 300px;
 }
-#connect input {
+#connect input[type="text"],
+#connect input[type="username"],
+#connect input[type="password"],
+#connect input[type="url"] {
 	box-sizing: border-box;
 	width: 100%;
 }

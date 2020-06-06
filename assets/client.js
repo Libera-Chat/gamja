@@ -314,6 +314,14 @@ connectFormElt.onsubmit = function(event) {
 	server.username = connectFormElt.elements.username.value || server.nick;
 	server.realname = connectFormElt.elements.realname.value || server.nick;
 
+	if (localStorage) {
+		if (connectFormElt.elements["remember-me"].checked) {
+			localStorage.setItem("server", JSON.stringify(server));
+		} else {
+			localStorage.removeItem("server");
+		}
+	}
+
 	connect();
 };
 
@@ -325,3 +333,19 @@ window.onkeydown = function(event) {
 		composerInputElt.value = "";
 	}
 };
+
+if (localStorage && localStorage.getItem("server")) {
+	server = JSON.parse(localStorage.getItem("server"));
+	connectFormElt.elements.url.value = server.url;
+	connectFormElt.elements.nick.value = server.nick;
+	connectFormElt.elements.password.value = server.pass;
+	if (server.username != server.nick) {
+		connectFormElt.elements.username.value = server.username;
+	}
+	if (server.realname != server.nick) {
+		connectFormElt.elements.realname.value = server.realname;
+	}
+	connectFormElt.elements["remember-me"].checked = true;
+	setConnectFormDisabled(true);
+	connect();
+}
