@@ -277,8 +277,20 @@ function executeCommand(s) {
 		break;
 	case "join":
 		var channel = args[0];
-		var msg = { command: "JOIN", params: [channel] };
-		sendMessage(msg);
+		if (!channel) {
+			console.error("Missing channel name");
+			return;
+		}
+		sendMessage({ command: "JOIN", params: [channel] });
+		break;
+	case "part":
+		// TODO: part reason
+		if (!activeBuffer || activeBuffer.readOnly) {
+			console.error("Not in a channel");
+			return;
+		}
+		var channel = activeBuffer.name;
+		sendMessage({ command: "PART", params: [channel] });
 		break;
 	default:
 		console.error("Unknwon command '" + cmd + "'");
