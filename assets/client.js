@@ -225,6 +225,13 @@ function connect() {
 			var channel = msg.params[0];
 			createBuffer(channel).addMessage(msg);
 			break;
+		case "NICK":
+			var newNick = msg.params[0];
+			if (msg.prefix.name == server.nick) {
+				server.nick = newNick;
+			}
+			// TODO: append message to all buffers the user is a member of
+			break;
 		default:
 			serverBuffer.addMessage(msg);
 		}
