@@ -269,6 +269,9 @@ function executeCommand(s) {
 	var cmd = parts[0].toLowerCase().slice(1);
 	var args = parts.slice(1);
 	switch (cmd) {
+	case "quit":
+		disconnect();
+		break;
 	case "join":
 		var channel = args[0];
 		var msg = { command: "JOIN", params: [channel] };
