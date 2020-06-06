@@ -200,6 +200,10 @@ function connect() {
 			console.log("Registration complete");
 			connectElt.style.display = "none";
 			break;
+		case ERR_PASSWDMISMATCH:
+			console.error("Password mismatch");
+			disconnect();
+			break;
 		case "NOTICE":
 		case "PRIVMSG":
 			var target = msg.params[0];
@@ -250,6 +254,10 @@ function connect() {
 	serverBuffer = createBuffer(server.name);
 	serverBuffer.readOnly = true;
 	switchBuffer(serverBuffer);
+}
+
+function disconnect() {
+	ws.close(1000);
 }
 
 function sendMessage(msg) {

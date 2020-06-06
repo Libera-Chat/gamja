@@ -1,4 +1,5 @@
 const RPL_WELCOME = "001";
+const ERR_PASSWDMISMATCH = "464";
 
 function parsePrefix(s) {
 	var prefix = {
