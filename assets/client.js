@@ -181,9 +181,6 @@ function connect() {
 	ws.onopen = function() {
 		console.log("Connection opened");
 
-		// TODO: wait for RPL_WELCOME
-		connectElt.style.display = "none";
-
 		if (server.pass) {
 			ws.send(formatMessage({ command: "PASS", params: [server.pass] }));
 		}
@@ -199,6 +196,10 @@ function connect() {
 		console.log(msg);
 
 		switch (msg.command) {
+		case RPL_WELCOME:
+			console.log("Registration complete");
+			connectElt.style.display = "none";
+			break;
 		case "NOTICE":
 		case "PRIVMSG":
 			var target = msg.params[0];

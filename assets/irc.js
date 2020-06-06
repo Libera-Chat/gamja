@@ -1,3 +1,5 @@
+const RPL_WELCOME = "001";
+
 function parsePrefix(s) {
 	var prefix = {
 		name: null,
