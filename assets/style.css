@@ -85,6 +85,10 @@ a.nick:hover, a.nick:active {
 	text-decoration: underline;
 }
 
+details summary {
+	cursor: default;
+}
+
 #buffer {
 	box-sizing: border-box;
 	padding: 10px;
