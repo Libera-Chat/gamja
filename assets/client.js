@@ -270,6 +270,9 @@ function executeCommand(s) {
 	var args = parts.slice(1);
 	switch (cmd) {
 	case "quit":
+		if (localStorage) {
+			localStorage.removeItem("server");
+		}
 		disconnect();
 		break;
 	case "join":
