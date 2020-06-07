@@ -194,7 +194,7 @@ function connect() {
 
 	ws.onmessage = function(event) {
 		var msg = parseMessage(event.data);
-		console.log(msg);
+		console.log("Received:", msg);
 
 		switch (msg.command) {
 		case RPL_WELCOME:
@@ -273,6 +273,7 @@ function disconnect() {
 
 function sendMessage(msg) {
 	ws.send(formatMessage(msg));
+	console.log("Sent:", msg);
 }
 
 function executeCommand(s) {
