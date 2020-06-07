@@ -1,5 +1,5 @@
 var server = {
-	name: "chat.freenode.net",
+	name: "server",
 	username: null,
 	realname: null,
 	nick: null,
