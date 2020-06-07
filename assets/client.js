@@ -4,6 +4,7 @@ var server = {
 	realname: null,
 	nick: null,
 	pass: null,
+	autojoin: [],
 };
 
 var ws = null;
@@ -182,13 +183,13 @@ function connect() {
 		console.log("Connection opened");
 
 		if (server.pass) {
-			ws.send(formatMessage({ command: "PASS", params: [server.pass] }));
+			sendMessage({ command: "PASS", params: [server.pass] });
 		}
-		ws.send(formatMessage({ command: "NICK", params: [server.nick] }));
-		ws.send(formatMessage({
+		sendMessage({ command: "NICK", params: [server.nick] });
+		sendMessage({
 			command: "USER",
 			params: [server.username, "0", "*", server.realname],
-		}));
+		});
 	};
 
 	ws.onmessage = function(event) {
@@ -199,6 +200,13 @@ function connect() {
 		case RPL_WELCOME:
 			console.log("Registration complete");
 			connectElt.style.display = "none";
+
+			if (server.autojoin.length > 0) {
+				sendMessage({
+					command: "JOIN",
+					params: [server.autojoin.join(",")],
+				});
+			}
 			break;
 		case ERR_PASSWDMISMATCH:
 			console.error("Password mismatch");
@@ -220,10 +228,13 @@ function connect() {
 			break;
 		case "JOIN":
 			var channel = msg.params[0];
-			if (msg.prefix.name == server.nick) {
-				createBuffer(channel);
-			} else {
-				createBuffer(channel).addMessage(msg);
+			var buf = createBuffer(channel);
+			if (msg.prefix.name != server.nick) {
+				buf.addMessage(msg);
+			}
+			if (channel == server.autojoin[0]) {
+				// TODO: only switch once right after connect
+				switchBuffer(buf);
 			}
 			break;
 		case "PART":
@@ -353,6 +364,15 @@ connectFormElt.onsubmit = function(event) {
 	server.username = connectFormElt.elements.username.value || server.nick;
 	server.realname = connectFormElt.elements.realname.value || server.nick;
 
+	server.autojoin = [];
+	connectFormElt.elements.autojoin.value.split(",").forEach(function(ch) {
+		ch = ch.trim();
+		if (!ch) {
+			return;
+		}
+		server.autojoin.push(ch);
+	});
+
 	if (localStorage) {
 		if (connectFormElt.elements["remember-me"].checked) {
 			localStorage.setItem("server", JSON.stringify(server));
@@ -392,5 +412,8 @@ if (localStorage && localStorage.getItem("server")) {
 	if (params.server) {
 		connectFormElt.elements.url.value = params.server;
 		document.querySelector("#connect-url-container").style.display = "none";
+	}
+	if (params.channels) {
+		connectFormElt.elements.autojoin.value = params.channels;
 	}
 }
