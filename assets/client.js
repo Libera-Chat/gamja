@@ -410,10 +410,19 @@ if (localStorage && localStorage.getItem("server")) {
 	connect();
 } else {
 	var params = parseQueryString();
+
 	if (params.server) {
-		connectFormElt.elements.url.value = params.server;
 		document.querySelector("#connect-url-container").style.display = "none";
+		connectFormElt.elements.url.value = params.server;
+	} else if (!connectFormElt.elements.url.value) {
+		var host = window.location.host || "localhost:8080";
+		var proto = "wss:";
+		if (window.location.protocol != "https:") {
+			proto = "ws:";
+		}
+		connectFormElt.elements.url.value = proto + "//" + host + "/socket";
 	}
+
 	if (params.channels) {
 		connectFormElt.elements.autojoin.value = params.channels;
 	}
