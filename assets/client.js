@@ -330,6 +330,19 @@ function setConnectFormDisabled(disabled) {
 	});
 }
 
+function parseQueryString() {
+	var query = window.location.search.substring(1);
+	var params = {};
+	query.split('&').forEach(function(s) {
+		if (!s) {
+			return;
+		}
+		var pair = s.split('=');
+		params[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || "");
+	});
+	return params;
+}
+
 connectFormElt.onsubmit = function(event) {
 	event.preventDefault();
 	setConnectFormDisabled(true);
@@ -374,4 +387,10 @@ if (localStorage && localStorage.getItem("server")) {
 	connectFormElt.elements["remember-me"].checked = true;
 	setConnectFormDisabled(true);
 	connect();
+} else {
+	var params = parseQueryString();
+	if (params.server) {
+		connectFormElt.elements.url.value = params.server;
+		document.querySelector("#connect-url-container").style.display = "none";
+	}
 }
