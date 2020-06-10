@@ -1,4 +1,5 @@
 const RPL_WELCOME = "001";
+const RPL_TOPIC = "332";
 const ERR_PASSWDMISMATCH = "464";
 
 function parsePrefix(s) {

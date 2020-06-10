@@ -92,6 +92,10 @@ function createMessageElement(msg) {
 		line.appendChild(createNickElement(msg.prefix.name));
 		line.appendChild(document.createTextNode(" has left"));
 		break;
+	case "TOPIC":
+		line.appendChild(createNickElement(msg.prefix.name));
+		line.appendChild(document.createTextNode(" changed the topic to: " + msg.params[1]));
+		break;
 	default:
 		line.appendChild(document.createTextNode(" " + msg.command + " " + msg.params.join(" ")));
 	}
@@ -118,8 +122,9 @@ function createBuffer(name) {
 	var buf = {
 		name: name,
 		li: li,
-		messages: [],
 		readOnly: false,
+		topic: null,
+		messages: [],
 
 		addMessage: function(msg) {
 			buf.messages.push(msg);
@@ -208,6 +213,16 @@ function connect() {
 				});
 			}
 			break;
+		case RPL_TOPIC:
+			var channel = msg.params[1];
+			var topic = msg.params[2];
+
+			var buf = buffers[channel];
+			if (!buf) {
+				break;
+			}
+			buf.topic = topic;
+			break;
 		case ERR_PASSWDMISMATCH:
 			console.error("Password mismatch");
 			disconnect();
@@ -247,6 +262,16 @@ function connect() {
 				server.nick = newNick;
 			}
 			// TODO: append message to all buffers the user is a member of
+			break;
+		case "TOPIC":
+			var channel = msg.params[0];
+			var topic = msg.params[1];
+			var buf = buffers[channel];
+			if (!buf) {
+				break;
+			}
+			buf.topic = topic;
+			buf.addMessage(msg);
 			break;
 		default:
 			serverBuffer.addMessage(msg);
