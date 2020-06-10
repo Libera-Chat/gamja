@@ -1,5 +1,7 @@
 const RPL_WELCOME = "001";
 const RPL_TOPIC = "332";
+const RPL_NAMREPLY = "353";
+const RPL_ENDOFNAMES = "366";
 const ERR_PASSWDMISMATCH = "464";
 
 function parsePrefix(s) {
@@ -105,4 +107,21 @@ function formatMessage(msg) {
 	}
 	s += "\r\n";
 	return s;
+}
+
+function parseMembership(s) {
+	// TODO: use the PREFIX token from RPL_ISUPPORT
+	const STD_MEMBERSHIPS = "~&@%+";
+
+	var i;
+	for (i = 0; i < s.length; i++) {
+		if (STD_MEMBERSHIPS.indexOf(s[i]) < 0) {
+			break;
+		}
+	}
+
+	return {
+		prefix: s.slice(0, i),
+		nick: s.slice(i),
+	};
 }

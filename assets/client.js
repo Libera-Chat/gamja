@@ -92,6 +92,12 @@ function createMessageElement(msg) {
 		line.appendChild(createNickElement(msg.prefix.name));
 		line.appendChild(document.createTextNode(" has left"));
 		break;
+	case "NICK":
+		var newNick = msg.params[0];
+		line.appendChild(createNickElement(msg.prefix.name));
+		line.appendChild(document.createTextNode(" is now known as "));
+		line.appendChild(createNickElement(newNick));
+		break;
 	case "TOPIC":
 		line.appendChild(createNickElement(msg.prefix.name));
 		line.appendChild(document.createTextNode(" changed the topic to: " + msg.params[1]));
@@ -124,6 +130,7 @@ function createBuffer(name) {
 		li: li,
 		readOnly: false,
 		topic: null,
+		members: {},
 		messages: [],
 
 		addMessage: function(msg) {
@@ -223,6 +230,22 @@ function connect() {
 			}
 			buf.topic = topic;
 			break;
+		case RPL_NAMREPLY:
+			var channel = msg.params[2];
+			var members = msg.params.slice(3);
+
+			var buf = buffers[channel];
+			if (!buf) {
+				break;
+			}
+
+			members.forEach(function(s) {
+				var member = parseMembership(s);
+				buf.members[member.nick] = member.prefix;
+			});
+			break;
+		case RPL_ENDOFNAMES:
+			break;
 		case ERR_PASSWDMISMATCH:
 			console.error("Password mismatch");
 			disconnect();
@@ -244,6 +267,7 @@ function connect() {
 		case "JOIN":
 			var channel = msg.params[0];
 			var buf = createBuffer(channel);
+			buf.members[msg.prefix.name] = null;
 			if (msg.prefix.name != server.nick) {
 				buf.addMessage(msg);
 			}
@@ -254,14 +278,23 @@ function connect() {
 			break;
 		case "PART":
 			var channel = msg.params[0];
-			createBuffer(channel).addMessage(msg);
+			var buf = createBuffer(channel);
+			delete buf.members[msg.prefix.name];
+			buf.addMessage(msg);
 			break;
 		case "NICK":
 			var newNick = msg.params[0];
 			if (msg.prefix.name == server.nick) {
 				server.nick = newNick;
 			}
-			// TODO: append message to all buffers the user is a member of
+			for (var name in buffers) {
+				var buf = buffers[name];
+				if (buf.members[msg.prefix.name] !== undefined) {
+					buf.members[newNick] = buf.members[msg.prefix.name];
+					delete buf.members[msg.prefix.name];
+					buf.addMessage(msg);
+				}
+			}
 			break;
 		case "TOPIC":
 			var channel = msg.params[0];
@@ -333,6 +366,10 @@ function executeCommand(s) {
 		var target = args[0];
 		var text = args.slice(1).join(" ");
 		sendMessage({ command: "PRIVMSG", params: [target, text] });
+		break;
+	case "nick":
+		var newNick = args[0];
+		sendMessage({ command: "NICK", params: [newNick] });
 		break;
 	default:
 		console.error("Unknwon command '" + cmd + "'");
