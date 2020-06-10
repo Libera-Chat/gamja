@@ -304,6 +304,11 @@ function executeCommand(s) {
 		var channel = activeBuffer.name;
 		sendMessage({ command: "PART", params: [channel] });
 		break;
+	case "msg":
+		var target = args[0];
+		var text = args.slice(1).join(" ");
+		sendMessage({ command: "PRIVMSG", params: [target, text] });
+		break;
 	default:
 		console.error("Unknwon command '" + cmd + "'");
 	}
