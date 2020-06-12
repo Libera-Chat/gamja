@@ -10,7 +10,7 @@ var server = {
 
 // Static list of capabilities that are always requested when supported by the
 // server
-const permanentCaps = ["message-tags", "server-time"];
+const permanentCaps = ["message-tags", "server-time", "multi-prefix"];
 
 var ws = null;
 var registered = false;
