@@ -603,7 +603,6 @@ if (localStorage && localStorage.getItem("server")) {
 	server = JSON.parse(localStorage.getItem("server"));
 	connectFormElt.elements.url.value = server.url;
 	connectFormElt.elements.nick.value = server.nick;
-	connectFormElt.elements.password.value = server.pass;
 	if (server.username != server.nick) {
 		connectFormElt.elements.username.value = server.username;
 	}
@@ -617,7 +616,6 @@ if (localStorage && localStorage.getItem("server")) {
 	var params = parseQueryString();
 
 	if (params.server) {
-		document.querySelector("#connect-url-container").style.display = "none";
 		connectFormElt.elements.url.value = params.server;
 	} else if (!connectFormElt.elements.url.value) {
 		var host = window.location.host || "localhost:8080";
