@@ -13,6 +13,46 @@ const ERR_SASLTOOLONG = "905";
 const ERR_SASLABORTED = "906";
 const ERR_SASLALREADY = "907";
 
+var tagsEscape = {
+	";": "\\:",
+	" ": "\\s",
+	"\\": "\\\\",
+	"\r": "\\r",
+	"\n": "\\n",
+};
+
+function parseTags(s) {
+	var tags = {};
+	s.split(";").forEach(function(s) {
+		if (!s) {
+			return;
+		}
+		var parts = s.split("=", 2);
+		if (parts.length != 2) {
+			throw new Error("expected an equal sign in tag");
+		}
+		var k = parts[0];
+		var v = parts[1];
+		for (var ch in tagsEscape) {
+			v = v.replaceAll(tagsEscape[ch], ch);
+		}
+		tags[k] = v;
+	});
+	return tags;
+}
+
+function formatTags(tags) {
+	var l = [];
+	for (var k in tags) {
+		var v = tags[k];
+		for (var ch in tagsEscape) {
+			v = v.replaceAll(ch, tagsEscape[ch]);
+		}
+		l.push(k + "=" + v);
+	}
+	return l.join(";");
+}
+
 function parsePrefix(s) {
 	var prefix = {
 		name: null,
@@ -54,17 +94,22 @@ function parseMessage(s) {
 	}
 
 	var msg = {
+		tags: {},
 		prefix: null,
 		command: null,
 		params: [],
 	};
 
 	if (s.startsWith("@")) {
-		// TODO: parse tags
+		var i = s.indexOf(" ");
+		if (i < 0) {
+			throw new Error("expected a space after tags");
+		}
+		msg.tags = parseTags(s.slice(1, i));
+		s = s.slice(i + 1);
 	}
 
 	if (s.startsWith(":")) {
-		var parts = s.split(" ", 2);
 		var i = s.indexOf(" ");
 		if (i < 0) {
 			throw new Error("expected a space after prefix");
@@ -103,6 +148,9 @@ function parseMessage(s) {
 function formatMessage(msg) {
 	var s = "";
 	// TODO: format tags
+	if (msg.tags && Object.keys(msg.tags).length > 0) {
+		s += "@" + formatTags(msg.tags) + " ";
+	}
 	if (msg.prefix) {
 		s += ":" + formatPrefix(msg.prefix) + " ";
 	}
