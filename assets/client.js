@@ -223,8 +223,12 @@ function handleCap(msg) {
 				capEnd = false;
 			}
 
+			if (availableCaps["message-tags"] !== undefined) {
+				reqCaps.push("message-tags");
+			}
+
 			if (reqCaps.length > 0) {
-				sendMessage({ command: "CAP", params: ["REQ"].concat(reqCaps) });
+				sendMessage({ command: "CAP", params: ["REQ", reqCaps.join(" ")] });
 			}
 
 			if (!registered && capEnd) {
