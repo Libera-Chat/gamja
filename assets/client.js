@@ -560,6 +560,7 @@ connectFormElt.onsubmit = function(event) {
 	server.nick = connectFormElt.elements.nick.value;
 	server.username = connectFormElt.elements.username.value || server.nick;
 	server.realname = connectFormElt.elements.realname.value || server.nick;
+	server.pass = connectFormElt.elements.pass.value;
 
 	server.saslPlain = null;
 	if (connectFormElt.elements.password.value) {
