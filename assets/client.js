@@ -8,6 +8,7 @@ var server = {
 };
 
 var ws = null;
+var availableCaps = {};
 
 var buffers = {};
 var activeBuffer = null;
@@ -182,6 +183,43 @@ function showConnectForm() {
 	connectElt.style.display = "block";
 }
 
+function addAvailableCaps(s) {
+	var l = s.split(" ");
+	l.forEach(function(s) {
+		var parts = s.split("=");
+		var k = parts[0];
+		var v = null;
+		if (parts.length > 1) {
+			v = parts[1];
+		}
+		availableCaps[k] = v;
+	});
+}
+
+function handleCap(msg) {
+	var subCmd = msg.params[1];
+	var args = msg.params.slice(2);
+	switch (subCmd) {
+	case "LS":
+		addAvailableCaps(args[args.length - 1]);
+		if (args[0] != "*") {
+			console.log("Available server caps:", availableCaps);
+			sendMessage({ command: "CAP", params: ["END"] });
+		}
+		break;
+	case "NEW":
+		addAvailableCaps(args[0]);
+		console.log("Server added available caps:", args[0]);
+		break;
+	case "DEL":
+		args[0].split(" ").forEach(function(k) {
+			delete availableCaps[k];
+		});
+		console.log("Server removed available caps:", args[0]);
+		break;
+	}
+}
+
 function connect() {
 	try {
 		ws = new WebSocket(server.url);
@@ -194,6 +232,7 @@ function connect() {
 	ws.onopen = function() {
 		console.log("Connection opened");
 
+		sendMessage({ command: "CAP", params: ["LS", "302"] });
 		if (server.pass) {
 			sendMessage({ command: "PASS", params: [server.pass] });
 		}
@@ -249,6 +288,9 @@ function connect() {
 		case ERR_PASSWDMISMATCH:
 			console.error("Password mismatch");
 			disconnect();
+			break;
+		case "CAP":
+			handleCap(msg);
 			break;
 		case "NOTICE":
 		case "PRIVMSG":
