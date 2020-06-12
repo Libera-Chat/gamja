@@ -4,11 +4,14 @@ var server = {
 	realname: null,
 	nick: null,
 	pass: null,
+	saslPlain: null,
 	autojoin: [],
 };
 
 var ws = null;
+var registered = false;
 var availableCaps = {};
+var enabledCaps = {};
 
 var buffers = {};
 var activeBuffer = null;
@@ -188,7 +191,7 @@ function addAvailableCaps(s) {
 	l.forEach(function(s) {
 		var parts = s.split("=");
 		var k = parts[0];
-		var v = null;
+		var v = "";
 		if (parts.length > 1) {
 			v = parts[1];
 		}
@@ -204,7 +207,29 @@ function handleCap(msg) {
 		addAvailableCaps(args[args.length - 1]);
 		if (args[0] != "*") {
 			console.log("Available server caps:", availableCaps);
-			sendMessage({ command: "CAP", params: ["END"] });
+
+			var reqCaps = [];
+
+			var saslCap = availableCaps["sasl"];
+			var supportsSaslPlain = (saslCap !== undefined);
+			if (saslCap.length > 0) {
+				supportsSaslPlain = saslCap.split(",").includes("PLAIN");
+			}
+
+			var capEnd = true;
+			if (server.saslPlain && supportsSaslPlain) {
+				// CAP END is deferred after authentication finishes
+				reqCaps.push("sasl");
+				capEnd = false;
+			}
+
+			if (reqCaps.length > 0) {
+				sendMessage({ command: "CAP", params: ["REQ"].concat(reqCaps) });
+			}
+
+			if (!registered && capEnd) {
+				sendMessage({ command: "CAP", params: ["END"] });
+			}
 		}
 		break;
 	case "NEW":
@@ -212,12 +237,44 @@ function handleCap(msg) {
 		console.log("Server added available caps:", args[0]);
 		break;
 	case "DEL":
-		args[0].split(" ").forEach(function(k) {
-			delete availableCaps[k];
+		args[0].split(" ").forEach(function(cap) {
+			delete availableCaps[cap];
+			delete enabledCaps[cap];
 		});
 		console.log("Server removed available caps:", args[0]);
 		break;
+	case "ACK":
+		console.log("Server ack'ed caps:", args[0]);
+		args[0].split(" ").forEach(function(cap) {
+			enabledCaps[cap] = true;
+
+			if (cap == "sasl" && server.saslPlain) {
+				console.log("Starting SASL PLAIN authentication");
+				sendMessage({ command: "AUTHENTICATE", params: ["PLAIN"] });
+			}
+		});
+		break;
+	case "NAK":
+		console.log("Server nak'ed caps:", args[0]);
+		if (!registered) {
+			sendMessage({ command: "CAP", params: ["END"] });
+		}
+		break;
 	}
+}
+
+function handleAuthenticate(msg) {
+	var challengeStr = msg.params[0];
+
+	// For now only PLAIN is supported
+	if (challengeStr != "+") {
+		console.error("Expected an empty challenge, got:", challengeStr);
+		sendMessage({ command: "AUTHENTICATE", params: ["*"] });
+		return;
+	}
+
+	var respStr = btoa("\0" + server.saslPlain.username + "\0" + server.saslPlain.password);
+	sendMessage({ command: "AUTHENTICATE", params: [respStr] });
 }
 
 function connect() {
@@ -249,7 +306,14 @@ function connect() {
 
 		switch (msg.command) {
 		case RPL_WELCOME:
+			if (server.saslPlain && availableCaps["sasl"] === undefined) {
+				console.error("Server doesn't support SASL PLAIN");
+				disconnect();
+				return;
+			}
+
 			console.log("Registration complete");
+			registered = true;
 			connectElt.style.display = "none";
 
 			if (server.autojoin.length > 0) {
@@ -291,6 +355,29 @@ function connect() {
 			break;
 		case "CAP":
 			handleCap(msg);
+			break;
+		case "AUTHENTICATE":
+			handleAuthenticate(msg);
+			break;
+		case RPL_LOGGEDIN:
+			console.log("Logged in");
+			break;
+		case RPL_LOGGEDOUT:
+			console.log("Logged out");
+			break;
+		case RPL_SASLSUCCESS:
+			console.log("SASL authentication success");
+			if (!registered) {
+				sendMessage({ command: "CAP", params: ["END"] });
+			}
+			break;
+		case ERR_NICKLOCKED:
+		case ERR_SASLFAIL:
+		case ERR_SASLTOOLONG:
+		case ERR_SASLABORTED:
+		case ERR_SASLALREADY:
+			console.error("SASL error:", msg);
+			disconnect();
 			break;
 		case "NOTICE":
 		case "PRIVMSG":
@@ -369,6 +456,7 @@ function connect() {
 
 function disconnect() {
 	ws.close(1000);
+	registered = false;
 }
 
 function sendMessage(msg) {
@@ -470,9 +558,16 @@ connectFormElt.onsubmit = function(event) {
 
 	server.url = connectFormElt.elements.url.value;
 	server.nick = connectFormElt.elements.nick.value;
-	server.pass = connectFormElt.elements.password.value;
 	server.username = connectFormElt.elements.username.value || server.nick;
 	server.realname = connectFormElt.elements.realname.value || server.nick;
+
+	server.saslPlain = null;
+	if (connectFormElt.elements.password.value) {
+		server.saslPlain = {
+			username: server.username,
+			password: connectFormElt.elements.password.value,
+		};
+	}
 
 	server.autojoin = [];
 	connectFormElt.elements.autojoin.value.split(",").forEach(function(ch) {

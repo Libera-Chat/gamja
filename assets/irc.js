@@ -3,6 +3,15 @@ const RPL_TOPIC = "332";
 const RPL_NAMREPLY = "353";
 const RPL_ENDOFNAMES = "366";
 const ERR_PASSWDMISMATCH = "464";
+// https://ircv3.net/specs/extensions/sasl-3.1
+const RPL_LOGGEDIN = "900";
+const RPL_LOGGEDOUT = "901";
+const ERR_NICKLOCKED = "902";
+const RPL_SASLSUCCESS = "903";
+const ERR_SASLFAIL = "904";
+const ERR_SASLTOOLONG = "905";
+const ERR_SASLABORTED = "906";
+const ERR_SASLALREADY = "907";
 
 function parsePrefix(s) {
 	var prefix = {
