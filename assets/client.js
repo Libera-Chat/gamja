@@ -8,6 +8,10 @@ var server = {
 	autojoin: [],
 };
 
+// Static list of capabilities that are always requested when supported by the
+// server
+const permanentCaps = ["message-tags", "server-time"];
+
 var ws = null;
 var registered = false;
 var availableCaps = {};
@@ -47,6 +51,9 @@ function createNickElement(name) {
 
 function createMessageElement(msg) {
 	var date = new Date();
+	if (msg.tags["time"]) {
+		date = new Date(msg.tags["time"]);
+	}
 
 	var line = document.createElement("div");
 	line.className = "logline";
@@ -223,9 +230,11 @@ function handleCap(msg) {
 				capEnd = false;
 			}
 
-			if (availableCaps["message-tags"] !== undefined) {
-				reqCaps.push("message-tags");
-			}
+			permanentCaps.forEach(function(cap) {
+				if (availableCaps[cap] !== undefined) {
+					reqCaps.push(cap);
+				}
+			});
 
 			if (reqCaps.length > 0) {
 				sendMessage({ command: "CAP", params: ["REQ", reqCaps.join(" ")] });
