@@ -1,3 +1,5 @@
+import * as irc from "./irc.js";
+
 var server = {
 	name: "server",
 	username: null,
@@ -77,8 +79,8 @@ function createMessageElement(msg) {
 	case "PRIVMSG":
 		var text = msg.params[1];
 
-		var actionPrefix = "\001ACTION ";
-		if (text.startsWith(actionPrefix) && text.endsWith("\001")) {
+		var actionPrefix = "\x01ACTION ";
+		if (text.startsWith(actionPrefix) && text.endsWith("\x01")) {
 			var action = text.slice(actionPrefix.length, -1);
 
 			line.className += " me-tell";
@@ -314,11 +316,11 @@ function connect() {
 	};
 
 	ws.onmessage = function(event) {
-		var msg = parseMessage(event.data);
+		var msg = irc.parseMessage(event.data);
 		console.log("Received:", msg);
 
 		switch (msg.command) {
-		case RPL_WELCOME:
+		case irc.RPL_WELCOME:
 			if (server.saslPlain && availableCaps["sasl"] === undefined) {
 				console.error("Server doesn't support SASL PLAIN");
 				disconnect();
@@ -336,7 +338,7 @@ function connect() {
 				});
 			}
 			break;
-		case RPL_TOPIC:
+		case irc.RPL_TOPIC:
 			var channel = msg.params[1];
 			var topic = msg.params[2];
 
@@ -346,7 +348,7 @@ function connect() {
 			}
 			buf.topic = topic;
 			break;
-		case RPL_NAMREPLY:
+		case irc.RPL_NAMREPLY:
 			var channel = msg.params[2];
 			var members = msg.params.slice(3);
 
@@ -356,13 +358,13 @@ function connect() {
 			}
 
 			members.forEach(function(s) {
-				var member = parseMembership(s);
+				var member = irc.parseMembership(s);
 				buf.members[member.nick] = member.prefix;
 			});
 			break;
-		case RPL_ENDOFNAMES:
+		case irc.RPL_ENDOFNAMES:
 			break;
-		case ERR_PASSWDMISMATCH:
+		case irc.ERR_PASSWDMISMATCH:
 			console.error("Password mismatch");
 			disconnect();
 			break;
@@ -372,23 +374,23 @@ function connect() {
 		case "AUTHENTICATE":
 			handleAuthenticate(msg);
 			break;
-		case RPL_LOGGEDIN:
+		case irc.RPL_LOGGEDIN:
 			console.log("Logged in");
 			break;
-		case RPL_LOGGEDOUT:
+		case irc.RPL_LOGGEDOUT:
 			console.log("Logged out");
 			break;
-		case RPL_SASLSUCCESS:
+		case irc.RPL_SASLSUCCESS:
 			console.log("SASL authentication success");
 			if (!registered) {
 				sendMessage({ command: "CAP", params: ["END"] });
 			}
 			break;
-		case ERR_NICKLOCKED:
-		case ERR_SASLFAIL:
-		case ERR_SASLTOOLONG:
-		case ERR_SASLABORTED:
-		case ERR_SASLALREADY:
+		case irc.ERR_NICKLOCKED:
+		case irc.ERR_SASLFAIL:
+		case irc.ERR_SASLTOOLONG:
+		case irc.ERR_SASLABORTED:
+		case irc.ERR_SASLALREADY:
 			console.error("SASL error:", msg);
 			disconnect();
 			break;
@@ -473,7 +475,7 @@ function disconnect() {
 }
 
 function sendMessage(msg) {
-	ws.send(formatMessage(msg));
+	ws.send(irc.formatMessage(msg));
 	console.log("Sent:", msg);
 }
 

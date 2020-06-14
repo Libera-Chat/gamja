@@ -1,17 +1,17 @@
-const RPL_WELCOME = "001";
-const RPL_TOPIC = "332";
-const RPL_NAMREPLY = "353";
-const RPL_ENDOFNAMES = "366";
-const ERR_PASSWDMISMATCH = "464";
+export const RPL_WELCOME = "001";
+export const RPL_TOPIC = "332";
+export const RPL_NAMREPLY = "353";
+export const RPL_ENDOFNAMES = "366";
+export const ERR_PASSWDMISMATCH = "464";
 // https://ircv3.net/specs/extensions/sasl-3.1
-const RPL_LOGGEDIN = "900";
-const RPL_LOGGEDOUT = "901";
-const ERR_NICKLOCKED = "902";
-const RPL_SASLSUCCESS = "903";
-const ERR_SASLFAIL = "904";
-const ERR_SASLTOOLONG = "905";
-const ERR_SASLABORTED = "906";
-const ERR_SASLALREADY = "907";
+export const RPL_LOGGEDIN = "900";
+export const RPL_LOGGEDOUT = "901";
+export const ERR_NICKLOCKED = "902";
+export const RPL_SASLSUCCESS = "903";
+export const ERR_SASLFAIL = "904";
+export const ERR_SASLTOOLONG = "905";
+export const ERR_SASLABORTED = "906";
+export const ERR_SASLALREADY = "907";
 
 var tagsEscape = {
 	";": "\\:",
@@ -88,7 +88,7 @@ function formatPrefix(prefix) {
 	return prefix.name + "!" + prefix.user + "@" + prefix.host;
 }
 
-function parseMessage(s) {
+export function parseMessage(s) {
 	if (s.endsWith("\r\n")) {
 		s = s.slice(0, s.length - 2);
 	}
@@ -145,7 +145,7 @@ function parseMessage(s) {
 	return msg;
 }
 
-function formatMessage(msg) {
+export function formatMessage(msg) {
 	var s = "";
 	// TODO: format tags
 	if (msg.tags && Object.keys(msg.tags).length > 0) {
@@ -166,7 +166,7 @@ function formatMessage(msg) {
 	return s;
 }
 
-function parseMembership(s) {
+export function parseMembership(s) {
 	// TODO: use the PREFIX token from RPL_ISUPPORT
 	const STD_MEMBERSHIPS = "~&@%+";
 
