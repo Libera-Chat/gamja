@@ -3,75 +3,14 @@
 	<head>
 		<meta charset="utf-8">
 		<title>IRC client</title>
-		<link rel="stylesheet" href="style.css">
+		<link rel="stylesheet" href="/style.css">
 	</head>
 	<body>
-		<section id="sidebar">
-			<ul id="buffer-list">
-				<!--<li class="active"><a href="#">##soju-playground</a></li>-->
-			</ul>
-		</section>
-		<section id="buffer">
-			<!--<div class="logline">
-				<a href="#" class="timestamp">12:27:42</a>
-				&lt;<a href="#" class="nick">emersion</a>&gt;
-				Hi there!
-			</div>-->
-		</section>
-		<form id="composer">
-			<input type="text" placeholder="Type a message">
-		</form>
-
-		<section id="connect">
-			<form>
-				<h2>Connect to IRC</h2>
-
-				<label for="connect-nick">Nickname:</label><br/>
-				<input type="username" name="nick" id="connect-nick" autofocus required/>
-				<br/><br/>
-
-				<label for="connect-password">Password:</label><br/>
-				<input type="password" name="password" id="connect-password"/>
-				<br/><br/>
-
-				<input type="checkbox" name="remember-me" id="connect-remember-me"/>
-				<label for="connect-remember-me">Remember me</label>
-				<br/><br/>
-
-				<details>
-					<summary>Advanced options</summary>
-
-					<br/>
-
-					<label for="connect-url">Server URL:</label><br/>
-					<input type="url" name="url" id="connect-url"/>
-					<br/><br/>
-
-					<label for="connect-username">Username:</label><br/>
-					<input type="username" name="username" id="connect-username" placeholder="Same as nickname"/>
-					<br/><br/>
-
-					<label for="connect-realname">Real name:</label><br/>
-					<input type="text" name="realname" id="connect-realname" placeholder="Same as nickname"/>
-					<br/><br/>
-
-					<label for="connect-pass">Server password:</label><br/>
-					<input type="text" name="pass" id="connect-pass" placeholder="None"/>
-					<br/><br/>
-
-					<label for="connect-autojoin">Auto-join channels:</label><br/>
-					<input type="text" name="autojoin" id="connect-autojoin" placeholder="Comma-separated list of channels"/>
-					<br/>
-				</details>
-
-				<br/>
-
-				<button>Connect</button>
-			</form>
-		</section>
-
 		<script type="module">
-			import "./index.js";
+			import { html, render } from "/lib/index.js";
+			import App from "/components/app.js";
+
+			render(html`<${App}/>`, document.body);
 		</script>
 	</body>
 </html>

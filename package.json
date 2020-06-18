@@ -1,5 +1,9 @@
 {
   "name": "gamja",
+  "dependencies": {
+    "htm": "^3.0.4",
+    "preact": "^10.4.4"
+  },
   "devDependencies": {
     "http-server": "^0.12.3"
   },
