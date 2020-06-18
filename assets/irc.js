@@ -36,6 +36,9 @@ function parseTags(s) {
 		for (var ch in tagsEscape) {
 			v = v.replaceAll(tagsEscape[ch], ch);
 		}
+		if (v.endsWith("\\")) {
+			v = v.slice(0, v.length - 1)
+		}
 		tags[k] = v;
 	});
 	return tags;
