@@ -147,7 +147,10 @@ function createBuffer(name) {
 		messages: [],
 
 		addMessage: function(msg) {
-			buf.messages.push(msg);
+			if (!msg.tags) {
+				msg.tags = {};
+			}
+			// TODO: set time tag if missing
 
 			if (activeBuffer === buf) {
 				bufferElt.appendChild(createMessageElement(msg));
