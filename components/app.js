@@ -261,6 +261,11 @@ export default class App extends Component {
 		this.connect(connectParams);
 	}
 
+	isChannel(name) {
+		// TODO: use the ISUPPORT token if available
+		return irc.STD_CHANNEL_TYPES.indexOf(name[0]) >= 0;
+	}
+
 	executeCommand(s) {
 		var parts = s.split(" ");
 		var cmd = parts[0].toLowerCase().slice(1);
@@ -281,9 +286,8 @@ export default class App extends Component {
 			this.client.send({ command: "JOIN", params: [channel] });
 			break;
 		case "part":
-			// TODO: check whether the buffer is a channel with the ISUPPORT token
 			// TODO: part reason
-			if (!this.state.activeBuffer || this.state.activeBuffer == SERVER_BUFFER) {
+			if (!this.state.activeBuffer || !this.isChannel(this.state.activeBuffer)) {
 				console.error("Not in a channel");
 				return;
 			}
