@@ -114,16 +114,16 @@ export default class App extends Component {
 			msg.tags["time"] = `${YYYY}-${MM}-${DD}T${hh}:${mm}:${ss}.${sss}Z`;
 		}
 
-		var unread = Unread.NONE;
+		var msgUnread = Unread.NONE;
 		if (msg.command == "PRIVMSG" || msg.command == "NOTICE") {
-			unread = Unread.MESSAGE;
+			msgUnread = Unread.MESSAGE;
 		}
 
 		this.createBuffer(bufName);
 		this.setBufferState(bufName, (buf, state) => {
 			var unread = buf.unread;
 			if (state.activeBuffer != buf.name) {
-				unread = Unread.union(buf.unread, unread);
+				unread = Unread.union(unread, msgUnread);
 			}
 			return {
 				messages: buf.messages.concat(msg),
