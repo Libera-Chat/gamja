@@ -1,5 +1,5 @@
-import * as irc from "./irc.js";
-import Client from "./client.js";
+import * as irc from "./lib/irc.js";
+import Client from "./lib/client.js";
 
 var server = {
 	name: "server",
