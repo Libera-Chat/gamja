@@ -58,13 +58,14 @@ export default class App extends Component {
 				return;
 			}
 
-			var newBuf = updater(buf);
-			if (buf === newBuf || !newBuf) {
+			var updated = updater(buf);
+			if (buf === updated || !updated) {
 				return;
 			}
+			updated = { ...buf, ...updated };
 
 			var buffers = new Map(state.buffers);
-			buffers.set(name, newBuf);
+			buffers.set(name, updated);
 			return { buffers };
 		}, callback);
 	}
@@ -102,10 +103,7 @@ export default class App extends Component {
 
 		this.createBuffer(bufName);
 		this.setBufferState(bufName, (buf) => {
-			return {
-				...buf,
-				messages: buf.messages.concat(msg),
-			};
+			return { messages: buf.messages.concat(msg) };
 		});
 	}
 
@@ -154,7 +152,7 @@ export default class App extends Component {
 			var topic = msg.params[2];
 
 			this.setBufferState(channel, (buf) => {
-				return { ...buf, topic };
+				return { topic };
 			});
 			break;
 		case irc.RPL_NAMREPLY:
@@ -168,7 +166,7 @@ export default class App extends Component {
 					members.set(member.nick, member.prefix);
 				});
 
-				return { ...buf, members };
+				return { members };
 			});
 			break;
 		case irc.RPL_ENDOFNAMES:
@@ -188,7 +186,7 @@ export default class App extends Component {
 			this.setBufferState(channel, (buf) => {
 				var members = new Map(buf.members);
 				members.set(msg.prefix.name, null);
-				return { ...buf, members };
+				return { members };
 			});
 			if (msg.prefix.name != this.client.nick) {
 				this.addMessage(channel, msg);
@@ -204,7 +202,7 @@ export default class App extends Component {
 			this.setBufferState(channel, (buf) => {
 				var members = new Map(buf.members);
 				members.delete(msg.prefix.name);
-				return { ...buf, members };
+				return { members };
 			});
 			this.addMessage(channel, msg);
 			break;
@@ -233,7 +231,7 @@ export default class App extends Component {
 			var topic = msg.params[1];
 
 			this.setBufferState(channel, (buf) => {
-				return { ...buf, topic };
+				return { topic };
 			});
 			this.addMessage(channel, msg);
 			break;
