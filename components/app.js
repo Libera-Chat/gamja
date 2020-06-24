@@ -277,6 +277,22 @@ export default class App extends Component {
 			}
 			this.disconnect();
 			break;
+		case "close":
+			var target = this.state.activeBuffer;
+			if (!target || target == SERVER_BUFFER) {
+				console.error("Not in a user or channel buffer");
+				return;
+			}
+			if (this.isChannel(target)) {
+				this.client.send({ command: "PART", params: [channel] });
+			}
+			this.switchBuffer(SERVER_BUFFER);
+			this.setState((state) => {
+				var buffers = new Map(state.buffers);
+				buffers.delete(target);
+				return { buffers };
+			});
+			break;
 		case "join":
 			var channel = args[0];
 			if (!channel) {
