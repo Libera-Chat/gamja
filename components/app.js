@@ -30,6 +30,7 @@ export default class App extends Component {
 			realname: null,
 			nick: null,
 			saslPlain: null,
+			autoconnect: false,
 			autojoin: [],
 		},
 		status: Status.DISCONNECTED,
@@ -44,6 +45,32 @@ export default class App extends Component {
 		this.handleConnectSubmit = this.handleConnectSubmit.bind(this);
 		this.handleBufferListClick = this.handleBufferListClick.bind(this);
 		this.handleComposerSubmit = this.handleComposerSubmit.bind(this);
+
+		if (window.localStorage && localStorage.getItem("autoconnect")) {
+			var connectParams = JSON.parse(localStorage.getItem("autoconnect"));
+			this.state.connectParams = {
+				...this.state.connectParams,
+				...connectParams,
+				autoconnect: true,
+			};
+		} else {
+			var params = parseQueryString();
+
+			if (params.server) {
+				this.state.connectParams.serverURL = params.server;
+			} else {
+				var host = window.location.host || "localhost:8080";
+				var proto = "wss:";
+				if (window.location.protocol != "https:") {
+					proto = "ws:";
+				}
+				this.state.connectParams.serverURL = proto + "//" + host + "/socket";
+			}
+
+			if (params.channels) {
+				this.state.connectParams.autojoin = params.channels.split(",");
+			}
+		}
 	}
 
 	setBufferState(name, updater, callback) {
@@ -262,8 +289,8 @@ export default class App extends Component {
 	}
 
 	handleConnectSubmit(connectParams) {
-		if (localStorage) {
-			if (connectParams.rememberMe) {
+		if (window.localStorage) {
+			if (connectParams.autoconnect) {
 				localStorage.setItem("autoconnect", JSON.stringify(connectParams));
 			} else {
 				localStorage.removeItem("autoconnect");
@@ -284,7 +311,7 @@ export default class App extends Component {
 		var args = parts.slice(1);
 		switch (cmd) {
 		case "quit":
-			if (localStorage) {
+			if (window.localStorage) {
 				localStorage.removeItem("autoconnect");
 			}
 			this.client.close();
@@ -364,36 +391,8 @@ export default class App extends Component {
 	}
 
 	componentDidMount() {
-		if (localStorage && localStorage.getItem("autoconnect")) {
-			var connectParams = JSON.parse(localStorage.getItem("autoconnect"));
-			this.connect(connectParams);
-		} else {
-			var params = parseQueryString();
-
-			var serverURL = params.server;
-			if (!serverURL) {
-				var host = window.location.host || "localhost:8080";
-				var proto = "wss:";
-				if (window.location.protocol != "https:") {
-					proto = "ws:";
-				}
-				serverURL = proto + "//" + host + "/socket";
-			}
-
-			var autojoin = [];
-			if (params.channels) {
-				autojoin = params.channels.split(",");
-			}
-
-			this.setState((state) => {
-				return {
-					connectParams: {
-						...state.connectParams,
-						serverURL,
-						autojoin,
-					},
-				};
-			});
+		if (this.state.connectParams.autoconnect) {
+			this.connect(this.state.connectParams);
 		}
 	}
 

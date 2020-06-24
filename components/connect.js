@@ -23,7 +23,7 @@ export default class Connect extends Component {
 				...this.state,
 				serverURL: props.params.serverURL || "",
 				nick: props.params.nick || "",
-				rememberMe: props.params.rememberMe || false,
+				rememberMe: props.params.autoconnect || false,
 				username: props.params.username || "",
 				realname: props.params.realname || "",
 				autojoin: (props.params.autojoin || []).join(","),
@@ -48,7 +48,7 @@ export default class Connect extends Component {
 			serverURL: this.state.serverURL,
 			serverPass: this.state.serverPass,
 			nick: this.state.nick,
-			rememberMe: this.state.rememberMe,
+			autoconnect: this.state.rememberMe,
 			username: this.state.username || this.state.nick,
 			realname: this.state.realname || this.state.nick,
 			saslPlain: null,
@@ -74,6 +74,17 @@ export default class Connect extends Component {
 	}
 
 	render() {
+		var rememberMe = null;
+		if (window.localStorage) {
+			rememberMe = html`
+				<label>
+					<input type="checkbox" name="rememberMe" checked=${this.state.rememberMe} disabled=${this.props.disabled}/>
+					Remember me
+				</label>
+				<br/><br/>
+			`;
+		}
+
 		return html`
 			<form onChange=${this.handleChange} onSubmit=${this.handleSubmit}>
 				<h2>Connect to IRC</h2>
@@ -90,11 +101,7 @@ export default class Connect extends Component {
 				</label>
 				<br/><br/>
 
-				<label>
-					<input type="checkbox" name="rememberMe" checked=${this.state.rememberMe} disabled=${this.props.disabled}/>
-					Remember me
-				</label>
-				<br/><br/>
+				${rememberMe}
 
 				<details>
 					<summary>Advanced options</summary>
