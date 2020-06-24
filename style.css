@@ -79,6 +79,9 @@ a {
 #sidebar .active a {
 	color: black;
 }
+#sidebar .unread-message a {
+	font-weight: bold;
+}
 #sidebar a:hover, #sidebar a:active,
 a.timestamp:hover, a.timestamp:active,
 a.nick:hover, a.nick:active {

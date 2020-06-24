@@ -5,12 +5,7 @@ import BufferList from "/components/buffer-list.js";
 import Connect from "/components/connect.js";
 import Composer from "/components/composer.js";
 import { html, Component, createRef } from "/lib/index.js";
-
-const SERVER_BUFFER = "*";
-
-const DISCONNECTED = "disconnected";
-const CONNECTING = "connecting";
-const REGISTERED = "registered";
+import { SERVER_BUFFER, Status, Unread } from "/state.js";
 
 function parseQueryString() {
 	var query = window.location.search.substring(1);
@@ -37,7 +32,7 @@ export default class App extends Component {
 			saslPlain: null,
 			autojoin: [],
 		},
-		status: DISCONNECTED,
+		status: Status.DISCONNECTED,
 		buffers: new Map(),
 		activeBuffer: null,
 	};
@@ -58,7 +53,12 @@ export default class App extends Component {
 				return;
 			}
 
-			var updated = updater(buf);
+			var updated;
+			if (typeof updater === "function") {
+				updated = updater(buf, state);
+			} else {
+				updated = updater;
+			}
 			if (buf === updated || !updated) {
 				return;
 			}
@@ -82,12 +82,14 @@ export default class App extends Component {
 				topic: null,
 				members: new Map(),
 				messages: [],
+				unread: Unread.NONE,
 			});
 			return { buffers };
 		});
 	}
 
 	switchBuffer(name) {
+		this.setBufferState(name, { unread: Unread.NONE });
 		this.setState({ activeBuffer: name }, () => {
 			if (this.composer.current) {
 				this.composer.current.focus();
@@ -101,14 +103,26 @@ export default class App extends Component {
 		}
 		// TODO: set time tag if missing
 
+		var unread = Unread.NONE;
+		if (msg.command == "PRIVMSG" || msg.command == "NOTICE") {
+			unread = Unread.MESSAGE;
+		}
+
 		this.createBuffer(bufName);
-		this.setBufferState(bufName, (buf) => {
-			return { messages: buf.messages.concat(msg) };
+		this.setBufferState(bufName, (buf, state) => {
+			var unread = buf.unread;
+			if (state.activeBuffer != buf.name) {
+				unread = Unread.union(buf.unread, unread);
+			}
+			return {
+				messages: buf.messages.concat(msg),
+				unread,
+			};
 		});
 	}
 
 	connect(params) {
-		this.setState({ status: CONNECTING, connectParams: params });
+		this.setState({ status: Status.CONNECTING, connectParams: params });
 
 		this.client = new Client({
 			url: params.serverURL,
@@ -121,7 +135,7 @@ export default class App extends Component {
 
 		this.client.addEventListener("close", () => {
 			this.setState({
-				status: DISCONNECTED,
+				status: Status.DISCONNECTED,
 				buffers: new Map(),
 				activeBuffer: null,
 			});
@@ -138,7 +152,7 @@ export default class App extends Component {
 	handleMessage(msg) {
 		switch (msg.command) {
 		case irc.RPL_WELCOME:
-			this.setState({ status: REGISTERED });
+			this.setState({ status: Status.REGISTERED });
 
 			if (this.state.connectParams.autojoin.length > 0) {
 				this.client.send({
@@ -151,9 +165,7 @@ export default class App extends Component {
 			var channel = msg.params[1];
 			var topic = msg.params[2];
 
-			this.setBufferState(channel, (buf) => {
-				return { topic };
-			});
+			this.setBufferState(channel, { topic });
 			break;
 		case irc.RPL_NAMREPLY:
 			var channel = msg.params[2];
@@ -230,9 +242,7 @@ export default class App extends Component {
 			var channel = msg.params[0];
 			var topic = msg.params[1];
 
-			this.setBufferState(channel, (buf) => {
-				return { topic };
-			});
+			this.setBufferState(channel, { topic });
 			this.addMessage(channel, msg);
 			break;
 		default:
@@ -377,10 +387,10 @@ export default class App extends Component {
 	}
 
 	render() {
-		if (this.state.status != REGISTERED) {
+		if (this.state.status != Status.REGISTERED) {
 			return html`
 				<section id="connect">
-					<${Connect} params=${this.state.connectParams} disabled=${this.state.status != DISCONNECTED} onSubmit=${this.handleConnectSubmit}/>
+					<${Connect} params=${this.state.connectParams} disabled=${this.state.status != Status.DISCONNECTED} onSubmit=${this.handleConnectSubmit}/>
 				</section>
 			`;
 		}

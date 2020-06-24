@@ -1,4 +1,5 @@
 import { html, Component } from "/lib/index.js";
+import { SERVER_BUFFER, Unread } from "/state.js";
 
 function BufferItem(props) {
 	function handleClick(event) {
@@ -7,12 +8,19 @@ function BufferItem(props) {
 	}
 
 	var name = props.buffer.name;
-	if (name == "*") {
+	if (name == SERVER_BUFFER) {
 		name = "server";
 	}
 
+	var activeClass = props.active ? "active" : "";
+
+	var unreadClass = "";
+	if (props.buffer.unread != Unread.NONE) {
+		unreadClass = "unread-" + props.buffer.unread;
+	}
+
 	return html`
-		<li class=${props.active ? "active" : ""}>
+		<li class="${activeClass} ${unreadClass}">
 			<a href="#" onClick=${handleClick}>${name}</a>
 		</li>
 	`;
