@@ -122,7 +122,11 @@ export default class App extends Component {
 		});
 
 		this.client.addEventListener("close", () => {
-			this.setState({ status: DISCONNECTED });
+			this.setState({
+				status: DISCONNECTED,
+				buffers: new Map(),
+				activeBuffer: null,
+			});
 		});
 
 		this.client.addEventListener("message", (event) => {
