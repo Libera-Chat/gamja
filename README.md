@@ -13,4 +13,4 @@ Requires an IRC WebSocket server.
 
 AGPLv3, see LICENSE.
 
-Copyright (C) 2020 Simon Ser
+Copyright (C) 2020 The gamja Contributors
