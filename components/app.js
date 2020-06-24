@@ -239,7 +239,7 @@ export default class App extends Component {
 			var channel = msg.params[0];
 			var topic = msg.params[1];
 
-			this.setBufferState((buf) => {
+			this.setBufferState(channel, (buf) => {
 				return { ...buf, topic };
 			});
 			this.addMessage(channel, msg);
