@@ -377,7 +377,7 @@ export default class App extends Component {
 				if (window.location.protocol != "https:") {
 					proto = "ws:";
 				}
-				connectParams.serverURL = proto + "//" + host + "/socket";
+				serverURL = proto + "//" + host + "/socket";
 			}
 
 			var autojoin = [];
