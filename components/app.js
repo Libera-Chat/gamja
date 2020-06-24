@@ -137,13 +137,6 @@ export default class App extends Component {
 		this.switchBuffer(SERVER_BUFFER);
 	}
 
-	disconnect() {
-		if (!this.client) {
-			return;
-		}
-		this.client.close();
-	}
-
 	handleMessage(msg) {
 		switch (msg.command) {
 		case irc.RPL_WELCOME:
@@ -275,7 +268,7 @@ export default class App extends Component {
 			if (localStorage) {
 				localStorage.removeItem("autoconnect");
 			}
-			this.disconnect();
+			this.client.close();
 			break;
 		case "close":
 			var target = this.state.activeBuffer;
