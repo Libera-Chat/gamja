@@ -24,11 +24,7 @@ function Nick(props) {
 function LogLine(props) {
 	var msg = props.message;
 
-	var date = new Date();
-	if (msg.tags["time"]) {
-		date = new Date(msg.tags["time"]);
-	}
-
+	var date = new Date(msg.tags["time"]);
 	var timestamp = date.toLocaleTimeString(undefined, {
 		timeStyle: "short",
 		hour12: false,

@@ -101,7 +101,18 @@ export default class App extends Component {
 		if (!msg.tags) {
 			msg.tags = {};
 		}
-		// TODO: set time tag if missing
+		if (!msg.tags["time"]) {
+			// Format the current time according to ISO 8601
+			var date = new Date();
+			var YYYY = date.getUTCFullYear().toString().padStart(4, "0");
+			var MM = (date.getUTCMonth() + 1).toString().padStart(2, "0");
+			var DD = date.getUTCDate().toString().padStart(2, "0");
+			var hh = date.getUTCHours().toString().padStart(2, "0");
+			var mm = date.getUTCMinutes().toString().padStart(2, "0");
+			var ss = date.getUTCSeconds().toString().padStart(2, "0");
+			var sss = date.getUTCMilliseconds().toString().padStart(3, "0");
+			msg.tags["time"] = `${YYYY}-${MM}-${DD}T${hh}:${mm}:${ss}.${sss}Z`;
+		}
 
 		var unread = Unread.NONE;
 		if (msg.command == "PRIVMSG" || msg.command == "NOTICE") {
