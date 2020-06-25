@@ -13,7 +13,7 @@ function djb2(s) {
 function Nick(props) {
 	function handleClick(event) {
 		event.preventDefault();
-		// TODO
+		props.onClick();
 	}
 
 	var colorIndex = djb2(props.nick) % 16 + 1;
@@ -24,6 +24,12 @@ function Nick(props) {
 
 function LogLine(props) {
 	var msg = props.message;
+
+	function createNick(nick) {
+		return html`
+			<${Nick} nick=${nick} onClick=${() => props.onNickClick(nick)}/>
+		`;
+	}
 
 	var date = new Date(msg.tags["time"]);
 	var timestamp = date.toLocaleTimeString(undefined, {
@@ -46,32 +52,32 @@ function LogLine(props) {
 			var action = text.slice(actionPrefix.length, -1);
 
 			lineClass = "me-tell";
-			content = html`* <${Nick} nick=${msg.prefix.name}/> ${linkify(action)}`;
+			content = html`* ${createNick(msg.prefix.name)} ${linkify(action)}`;
 		} else {
 			lineClass = "talk";
-			content = html`${"<"}<${Nick} nick=${msg.prefix.name}/>${">"} ${linkify(text)}`;
+			content = html`${"<"}${createNick(msg.prefix.name)}${">"} ${linkify(text)}`;
 		}
 		break;
 	case "JOIN":
 		content = html`
-			<${Nick} nick=${msg.prefix.name}/> has joined
+			${createNick(msg.prefix.name)} has joined
 		`;
 		break;
 	case "PART":
 		content = html`
-			<${Nick} nick=${msg.prefix.name}/> has left
+			${createNick(msg.prefix.name)} has left
 		`;
 		break;
 	case "NICK":
 		var newNick = msg.params[0];
 		content = html`
-			<${Nick} nick=${msg.prefix.name}/> is now known as <${Nick} nick=${newNick}/>
+			${createNick(msg.prefix.name)} is now known as <${Nick} nick=${newNick}/>
 		`;
 		break;
 	case "TOPIC":
 		var topic = msg.params[1];
 		content = html`
-			<${Nick} nick=${msg.prefix.name}/> changed the topic to: ${linkify(topic)}
+			${createNick(msg.prefix.name)} changed the topic to: ${linkify(topic)}
 		`;
 		break;
 	default:
@@ -91,7 +97,7 @@ export default function Buffer(props) {
 	return html`
 		<div class="logline-list">
 			${props.buffer.messages.map((msg) => html`
-				<${LogLine} message=${msg}/>
+				<${LogLine} message=${msg} onNickClick=${props.onNickClick}/>
 			`)}
 		</div>
 	`;

@@ -48,6 +48,7 @@ export default class App extends Component {
 		this.handleConnectSubmit = this.handleConnectSubmit.bind(this);
 		this.handleBufferListClick = this.handleBufferListClick.bind(this);
 		this.handleComposerSubmit = this.handleComposerSubmit.bind(this);
+		this.handleNickClick = this.handleNickClick.bind(this);
 
 		if (window.localStorage && localStorage.getItem("autoconnect")) {
 			var connectParams = JSON.parse(localStorage.getItem("autoconnect"));
@@ -310,9 +311,21 @@ export default class App extends Component {
 		this.connect(connectParams);
 	}
 
+	handleNickClick(nick) {
+		this.open(nick);
+	}
+
 	isChannel(name) {
 		// TODO: use the ISUPPORT token if available
 		return irc.STD_CHANNEL_TYPES.indexOf(name[0]) >= 0;
+	}
+
+	open(target) {
+		if (this.isChannel(target)) {
+			this.client.send({ command: "JOIN", params: [target] });
+		}
+		this.createBuffer(target);
+		this.switchBuffer(target);
 	}
 
 	close(target) {
@@ -341,6 +354,14 @@ export default class App extends Component {
 				localStorage.removeItem("autoconnect");
 			}
 			this.client.close();
+			break;
+		case "query":
+			var nick = args[0];
+			if (!nick) {
+				console.error("Missing nickname");
+				return;
+			}
+			this.open(nick);
 			break;
 		case "close":
 			var target = this.state.activeBuffer;
@@ -444,7 +465,7 @@ export default class App extends Component {
 			${topbar}
 			<${ScrollManager} target=${this.buffer} scrollKey=${this.state.activeBuffer}>
 				<section id="buffer" ref=${this.buffer}>
-					<${Buffer} buffer=${activeBuffer}/>
+					<${Buffer} buffer=${activeBuffer} onNickClick=${this.handleNickClick}/>
 				</section>
 			</>
 			<${Composer} ref=${this.composer} readOnly=${this.state.activeBuffer == SERVER_BUFFER} onSubmit=${this.handleComposerSubmit}/>
