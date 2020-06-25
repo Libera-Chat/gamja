@@ -4,6 +4,7 @@ import Buffer from "/components/buffer.js";
 import BufferList from "/components/buffer-list.js";
 import Connect from "/components/connect.js";
 import Composer from "/components/composer.js";
+import ScrollManager from "/components/scroll-manager.js";
 import { html, Component, createRef } from "/lib/index.js";
 import { SERVER_BUFFER, Status, Unread } from "/state.js";
 
@@ -37,6 +38,7 @@ export default class App extends Component {
 		buffers: new Map(),
 		activeBuffer: null,
 	};
+	buffer = createRef();
 	composer = createRef();
 
 	constructor(props) {
@@ -414,9 +416,11 @@ export default class App extends Component {
 			<section id="sidebar">
 				<${BufferList} buffers=${this.state.buffers} activeBuffer=${this.state.activeBuffer} onBufferClick=${this.handleBufferListClick}/>
 			</section>
-			<section id="buffer">
-				<${Buffer} buffer=${activeBuffer}/>
-			</section>
+			<${ScrollManager} target=${this.buffer} scrollKey=${this.state.activeBuffer}>
+				<section id="buffer" ref=${this.buffer}>
+					<${Buffer} buffer=${activeBuffer}/>
+				</section>
+			</>
 			<${Composer} ref=${this.composer} readOnly=${this.state.activeBuffer == SERVER_BUFFER} onSubmit=${this.handleComposerSubmit}/>
 		`;
 	}
