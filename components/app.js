@@ -2,6 +2,7 @@ import * as irc from "/lib/irc.js";
 import Client from "/lib/client.js";
 import Buffer from "/components/buffer.js";
 import BufferList from "/components/buffer-list.js";
+import BufferHeader from "/components/buffer-header.js";
 import Connect from "/components/connect.js";
 import Composer from "/components/composer.js";
 import ScrollManager from "/components/scroll-manager.js";
@@ -148,7 +149,10 @@ export default class App extends Component {
 			msgUnread = Unread.MESSAGE;
 		}
 
-		this.createBuffer(bufName);
+		if (msg.prefix.name != this.client.nick && msg.command != "PART") {
+			this.createBuffer(bufName);
+		}
+
 		this.setBufferState(bufName, (buf, state) => {
 			var unread = buf.unread;
 			if (state.activeBuffer != buf.name) {
@@ -311,6 +315,22 @@ export default class App extends Component {
 		return irc.STD_CHANNEL_TYPES.indexOf(name[0]) >= 0;
 	}
 
+	close(target) {
+		if (target == SERVER_BUFFER) {
+			this.client.close();
+			return;
+		}
+		if (this.isChannel(target)) {
+			this.client.send({ command: "PART", params: [target] });
+		}
+		this.switchBuffer(SERVER_BUFFER);
+		this.setState((state) => {
+			var buffers = new Map(state.buffers);
+			buffers.delete(target);
+			return { buffers };
+		});
+	}
+
 	executeCommand(s) {
 		var parts = s.split(" ");
 		var cmd = parts[0].toLowerCase().slice(1);
@@ -328,15 +348,7 @@ export default class App extends Component {
 				console.error("Not in a user or channel buffer");
 				return;
 			}
-			if (this.isChannel(target)) {
-				this.client.send({ command: "PART", params: [channel] });
-			}
-			this.switchBuffer(SERVER_BUFFER);
-			this.setState((state) => {
-				var buffers = new Map(state.buffers);
-				buffers.delete(target);
-				return { buffers };
-			});
+			this.close(target);
 			break;
 		case "join":
 			var channel = args[0];
@@ -416,10 +428,20 @@ export default class App extends Component {
 			activeBuffer = this.state.buffers.get(this.state.activeBuffer);
 		}
 
+		var topbar = null;
+		if (activeBuffer && this.isChannel(activeBuffer.name)) {
+			topbar = html`
+				<section id="topbar">
+					<${BufferHeader} buffer=${activeBuffer} onClose=${() => this.close(activeBuffer.name)}/>
+				</section>
+			`;
+		}
+
 		return html`
 			<section id="sidebar">
 				<${BufferList} buffers=${this.state.buffers} activeBuffer=${this.state.activeBuffer} onBufferClick=${this.handleBufferListClick}/>
 			</section>
+			${topbar}
 			<${ScrollManager} target=${this.buffer} scrollKey=${this.state.activeBuffer}>
 				<section id="buffer" ref=${this.buffer}>
 					<${Buffer} buffer=${activeBuffer}/>
