@@ -397,6 +397,14 @@ export default class App extends Component {
 			var newNick = args[0];
 			this.client.send({ command: "NICK", params: [newNick] });
 			break;
+		case "buffer":
+			var name = args[0];
+			if (!this.state.buffers.has(name)) {
+				console.error("Unknown buffer");
+				return;
+			}
+			this.switchBuffer(name);
+			break;
 		default:
 			console.error("Unknwon command '" + cmd + "'");
 		}
