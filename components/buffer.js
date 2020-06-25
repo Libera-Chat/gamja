@@ -1,4 +1,5 @@
 import { html, Component } from "/lib/index.js";
+import linkify from "/lib/linkify.js";
 
 function djb2(s) {
 	var hash = 5381;
@@ -45,10 +46,10 @@ function LogLine(props) {
 			var action = text.slice(actionPrefix.length, -1);
 
 			lineClass = "me-tell";
-			content = html`* <${Nick} nick=${msg.prefix.name}/> ${action}`;
+			content = html`* <${Nick} nick=${msg.prefix.name}/> ${linkify(action)}`;
 		} else {
 			lineClass = "talk";
-			content = html`${"<"}<${Nick} nick=${msg.prefix.name}/>${">"} ${text}`;
+			content = html`${"<"}<${Nick} nick=${msg.prefix.name}/>${">"} ${linkify(text)}`;
 		}
 		break;
 	case "JOIN":
@@ -70,7 +71,7 @@ function LogLine(props) {
 	case "TOPIC":
 		var topic = msg.params[1];
 		content = html`
-			<${Nick} nick=${msg.prefix.name}/> changed the topic to: ${topic}
+			<${Nick} nick=${msg.prefix.name}/> changed the topic to: ${linkify(topic)}
 		`;
 		break;
 	default:

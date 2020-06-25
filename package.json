@@ -1,6 +1,7 @@
 {
   "name": "gamja",
   "dependencies": {
+    "anchorme": "^2.1.2",
     "htm": "^3.0.4",
     "preact": "^10.4.4"
   },
