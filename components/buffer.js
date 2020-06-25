@@ -71,7 +71,7 @@ function LogLine(props) {
 	case "NICK":
 		var newNick = msg.params[0];
 		content = html`
-			${createNick(msg.prefix.name)} is now known as <${Nick} nick=${newNick}/>
+			${createNick(msg.prefix.name)} is now known as ${createNick(newNick)}
 		`;
 		break;
 	case "TOPIC":
