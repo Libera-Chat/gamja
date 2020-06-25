@@ -285,6 +285,10 @@ export default class App extends Component {
 			this.setBufferState(channel, { topic });
 			this.addMessage(channel, msg);
 			break;
+		case "CAP":
+		case "AUTHENTICATE":
+			// Ignore these
+			break;
 		default:
 			this.addMessage(SERVER_BUFFER, msg);
 		}
