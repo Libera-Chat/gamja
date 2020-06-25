@@ -87,5 +87,11 @@ export default function Buffer(props) {
 		return null;
 	}
 
-	return props.buffer.messages.map((msg) => html`<${LogLine} message=${msg}/>`);
+	return html`
+		<div class="logline-list">
+			${props.buffer.messages.map((msg) => html`
+				<${LogLine} message=${msg}/>
+			`)}
+		</div>
+	`;
 }

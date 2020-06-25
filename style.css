@@ -28,18 +28,15 @@ body {
 	margin: 0;
 	padding: 0;
 }
-#sidebar li {
-	padding: 2px 10px;
-}
-#sidebar li.active {
-	background-color: #4a4a4a;
-}
 #sidebar li a {
 	display: inline-block;
 	width: 100%;
+	padding: 2px 10px;
+	box-sizing: border-box;
 }
 #sidebar li.active a {
 	color: white;
+	background-color: #4a4a4a;
 }
 #sidebar li.unread-message a {
 	color: #b37400;
@@ -100,9 +97,11 @@ details summary {
 
 #buffer {
 	box-sizing: border-box;
-	padding: 10px;
 	color: #4a4a4a;
 	word-wrap: break-word;
+}
+#buffer .logline-list {
+	padding: 10px;
 }
 #buffer .talk {
 	color: black;
