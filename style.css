@@ -26,11 +26,23 @@ body {
 #sidebar ul {
 	list-style-type: none;
 	margin: 0;
-	padding: 10px;
+	padding: 0;
 }
-#sidebar ul a {
+#sidebar li {
+	padding: 2px 10px;
+}
+#sidebar li.active {
+	background-color: #4a4a4a;
+}
+#sidebar li a {
 	display: inline-block;
 	width: 100%;
+}
+#sidebar li.active a {
+	color: white;
+}
+#sidebar li.unread-message a {
+	color: #b37400;
 }
 
 #composer {
@@ -75,12 +87,6 @@ a {
 #sidebar a, a.timestamp, a.nick {
 	color: #4a4a4a;
 	text-decoration: none;
-}
-#sidebar .active a {
-	color: black;
-}
-#sidebar .unread-message a {
-	font-weight: bold;
 }
 #sidebar a:hover, #sidebar a:active,
 a.timestamp:hover, a.timestamp:active,
