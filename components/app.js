@@ -122,6 +122,7 @@ export default class App extends Component {
 			buffers.set(name, {
 				name,
 				type,
+				serverInfo: null, // if server
 				topic: null, // if channel
 				who: null, // if nick
 				members: new Map(),
@@ -218,6 +219,14 @@ export default class App extends Component {
 					params: [this.state.connectParams.autojoin.join(",")],
 				});
 			}
+			break;
+		case irc.RPL_MYINFO:
+			// TODO: parse available modes
+			var serverInfo = {
+				name: msg.params[1],
+				version: msg.params[2],
+			};
+			this.setBufferState(SERVER_BUFFER, { serverInfo });
 			break;
 		case irc.RPL_TOPIC:
 			var channel = msg.params[1];
@@ -488,7 +497,7 @@ export default class App extends Component {
 		}
 
 		var topbar = null;
-		if (activeBuffer && activeBuffer.type != BufferType.SERVER) {
+		if (activeBuffer) {
 			topbar = html`
 				<section id="topbar">
 					<${BufferHeader} buffer=${activeBuffer} onClose=${() => this.close(activeBuffer.name)}/>

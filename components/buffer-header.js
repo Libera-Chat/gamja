@@ -8,11 +8,14 @@ export default function BufferHeader(props) {
 	}
 
 	var description = null;
-	if (props.buffer.topic) {
-		description = html`<span class="description">${props.buffer.topic}</span>`;
+	if (props.buffer.serverInfo) {
+		var serverInfo = props.buffer.serverInfo;
+		description = `Connected to ${serverInfo.name}`;
+	} else if (props.buffer.topic) {
+		description = props.buffer.topic;
 	} else if (props.buffer.who) {
 		var who = props.buffer.who;
-		description = html`<span class="description">${who.realname} (${who.username}@${who.hostname})</span>`;
+		description = `${who.realname} (${who.username}@${who.hostname})`;
 	}
 
 	var closeText = "Close";
@@ -26,7 +29,7 @@ export default function BufferHeader(props) {
 	}
 
 	return html`
-		${description}
+		<span class="description">${description}</span>
 		<span class="actions">
 			<a href="#" onClick=${handlePartClick}>${closeText}</a>
 		</span>
