@@ -477,8 +477,11 @@ export default class App extends Component {
 
 		var msg = { command: "PRIVMSG", params: [target, text] };
 		this.client.send(msg);
-		msg.prefix = { name: this.client.nick };
-		this.addMessage(target, msg);
+
+		if (!this.client.enabledCaps["echo-message"]) {
+			msg.prefix = { name: this.client.nick };
+			this.addMessage(target, msg);
+		}
 	}
 
 	handleBufferListClick(name) {
