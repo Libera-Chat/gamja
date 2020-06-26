@@ -7,7 +7,9 @@ import Connect from "/components/connect.js";
 import Composer from "/components/composer.js";
 import ScrollManager from "/components/scroll-manager.js";
 import { html, Component, createRef } from "/lib/index.js";
-import { SERVER_BUFFER, Status, Unread } from "/state.js";
+import { BufferType, Status, Unread } from "/state.js";
+
+const SERVER_BUFFER = "*";
 
 function parseQueryString() {
 	var query = window.location.search.substring(1);
@@ -107,9 +109,19 @@ export default class App extends Component {
 				return;
 			}
 
+			var type;
+			if (name == SERVER_BUFFER) {
+				type = BufferType.SERVER;
+			} else if (this.isChannel(name)) {
+				type = BufferType.CHANNEL;
+			} else {
+				type = BufferType.NICK;
+			}
+
 			var buffers = new Map(state.buffers);
 			buffers.set(name, {
-				name: name,
+				name,
+				type,
 				topic: null,
 				members: new Map(),
 				messages: [],

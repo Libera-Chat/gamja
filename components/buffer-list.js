@@ -1,5 +1,5 @@
 import { html, Component } from "/lib/index.js";
-import { SERVER_BUFFER, Unread } from "/state.js";
+import { BufferType, Unread } from "/state.js";
 
 function BufferItem(props) {
 	function handleClick(event) {
@@ -8,7 +8,7 @@ function BufferItem(props) {
 	}
 
 	var name = props.buffer.name;
-	if (name == SERVER_BUFFER) {
+	if (props.buffer.type == BufferType.SERVER) {
 		name = "server";
 	}
 
