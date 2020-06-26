@@ -17,8 +17,9 @@ function Nick(props) {
 	}
 
 	var colorIndex = djb2(props.nick) % 16 + 1;
+	var url = "irc:///" + encodeURIComponent(props.nick) + ",isnick";
 	return html`
-		<a href="#" class="nick nick-${colorIndex}" onClick=${handleClick}>${props.nick}</a>
+		<a href=${url} class="nick nick-${colorIndex}" onClick=${handleClick}>${props.nick}</a>
 	`;
 }
 
