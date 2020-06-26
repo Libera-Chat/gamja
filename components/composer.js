@@ -9,12 +9,12 @@ export default class Composer extends Component {
 	constructor(props) {
 		super(props);
 
-		this.handleChange = this.handleChange.bind(this);
+		this.handleInput = this.handleInput.bind(this);
 		this.handleSubmit = this.handleSubmit.bind(this);
 		this.handleWindowKeyDown = this.handleWindowKeyDown.bind(this);
 	}
 
-	handleChange(event) {
+	handleInput(event) {
 		this.setState({ [event.target.name]: event.target.value });
 	}
 
@@ -48,7 +48,7 @@ export default class Composer extends Component {
 
 	render() {
 		return html`
-			<form id="composer" class="${this.props.readOnly && !this.state.text ? "read-only" : ""}" onChange=${this.handleChange} onSubmit=${this.handleSubmit}>
+			<form id="composer" class="${this.props.readOnly && !this.state.text ? "read-only" : ""}" onInput=${this.handleInput} onSubmit=${this.handleSubmit}>
 				<input type="text" name="text" ref=${this.textInput} value=${this.state.text} placeholder="Type a message"/>
 			</form>
 		`;
