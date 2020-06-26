@@ -3,6 +3,7 @@ import Client from "/lib/client.js";
 import Buffer from "/components/buffer.js";
 import BufferList from "/components/buffer-list.js";
 import BufferHeader from "/components/buffer-header.js";
+import MemberList from "/components/member-list.js";
 import Connect from "/components/connect.js";
 import Composer from "/components/composer.js";
 import ScrollManager from "/components/scroll-manager.js";
@@ -513,6 +514,18 @@ export default class App extends Component {
 			`;
 		}
 
+		var memberList = null;
+		if (activeBuffer && activeBuffer.type == BufferType.CHANNEL) {
+			memberList = html`
+				<section id="member-list-header">
+					${activeBuffer.members.size} users
+				</section>
+				<section id="member-list">
+					<${MemberList} members=${activeBuffer.members} onNickClick=${this.handleNickClick}/>
+				</section>
+			`;
+		}
+
 		return html`
 			<section id="sidebar">
 				<${BufferList} buffers=${this.state.buffers} activeBuffer=${this.state.activeBuffer} onBufferClick=${this.handleBufferListClick}/>
@@ -523,6 +536,7 @@ export default class App extends Component {
 					<${Buffer} buffer=${activeBuffer} onNickClick=${this.handleNickClick}/>
 				</section>
 			</>
+			${memberList}
 			<${Composer} ref=${this.composer} readOnly=${this.state.activeBuffer == SERVER_BUFFER} onSubmit=${this.handleComposerSubmit}/>
 		`;
 	}

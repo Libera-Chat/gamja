@@ -8,11 +8,11 @@ html, body {
 body {
 	display: grid;
 	grid-template-rows: auto 1fr max-content;
-	grid-template-columns: max-content auto;
+	grid-template-columns: max-content auto max-content;
 	font-family: monospace;
 }
 
-#sidebar, #buffer, #connect {
+#sidebar, #buffer, #connect, #member-list {
 	width: 100%;
 	height: 100%;
 	overflow: auto;
@@ -43,12 +43,15 @@ body {
 	color: #b37400;
 }
 
-#topbar {
-	grid-row: 1;
-	grid-column: 2;
+#topbar, #member-list-header {
 	box-sizing: border-box;
 	padding: 5px 10px;
 	border-bottom: 1px solid #e3e3e3;
+}
+
+#topbar {
+	grid-row: 1;
+	grid-column: 2;
 }
 
 #topbar .status-here {
@@ -67,9 +70,32 @@ body {
 	grid-column: 2;
 }
 
+#member-list-header {
+	grid-row: 1;
+	grid-column: 3;
+	border-left: 1px solid #e3e3e3;
+}
+#member-list {
+	grid-row: 2;
+	grid-column: 3;
+	border-left: 1px solid #e3e3e3;
+}
+
+#member-list ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+#member-list li a {
+	display: inline-block;
+	width: 100%;
+	padding: 2px 10px;
+	box-sizing: border-box;
+}
+
 #composer {
-	grid-column: 2;
 	grid-row: 3;
+	grid-column: 2 / 4;
 	border-top: 1px solid #e3e3e3;
 }
 #composer input {
