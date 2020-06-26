@@ -508,10 +508,10 @@ export default class App extends Component {
 			activeBuffer = this.state.buffers.get(this.state.activeBuffer);
 		}
 
-		var topbar = null;
+		var bufferHeader = null;
 		if (activeBuffer) {
-			topbar = html`
-				<section id="topbar">
+			bufferHeader = html`
+				<section id="buffer-header">
 					<${BufferHeader} buffer=${activeBuffer} onClose=${() => this.close(activeBuffer.name)}/>
 				</section>
 			`;
@@ -530,10 +530,10 @@ export default class App extends Component {
 		}
 
 		return html`
-			<section id="sidebar">
+			<section id="buffer-list">
 				<${BufferList} buffers=${this.state.buffers} activeBuffer=${this.state.activeBuffer} onBufferClick=${this.handleBufferListClick}/>
 			</section>
-			${topbar}
+			${bufferHeader}
 			<${ScrollManager} target=${this.buffer} scrollKey=${this.state.activeBuffer}>
 				<section id="buffer" ref=${this.buffer}>
 					<${Buffer} buffer=${activeBuffer} onNickClick=${this.handleNickClick}/>

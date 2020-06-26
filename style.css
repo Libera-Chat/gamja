@@ -12,56 +12,56 @@ body {
 	font-family: monospace;
 }
 
-#sidebar, #buffer, #connect, #member-list {
+#buffer-list, #buffer, #connect, #member-list {
 	width: 100%;
 	height: 100%;
 	overflow: auto;
 }
 
-#sidebar {
+#buffer-list {
 	background-color: #e3e3e3;
 	grid-column: 1;
 	grid-row: 1 / 4;
 }
 
-#sidebar ul {
+#buffer-list ul {
 	list-style-type: none;
 	margin: 0;
 	padding: 0;
 }
-#sidebar li a {
+#buffer-list li a {
 	display: inline-block;
 	width: 100%;
 	padding: 2px 10px;
 	box-sizing: border-box;
 }
-#sidebar li.active a {
+#buffer-list li.active a {
 	color: white;
 	background-color: #4a4a4a;
 }
-#sidebar li.unread-message a {
+#buffer-list li.unread-message a {
 	color: #b37400;
 }
 
-#topbar, #member-list-header {
+#buffer-header, #member-list-header {
 	box-sizing: border-box;
 	padding: 5px 10px;
 	border-bottom: 1px solid #e3e3e3;
 }
 
-#topbar {
+#buffer-header {
 	grid-row: 1;
 	grid-column: 2;
 }
 
-#topbar .status-here {
+#buffer-header .status-here {
 	color: green;
 }
-#topbar .status-gone {
+#buffer-header .status-gone {
 	color: orange;
 }
 
-#topbar .actions {
+#buffer-header .actions {
 	float: right;
 }
 
@@ -133,11 +133,11 @@ body {
 a {
 	color: green;
 }
-#sidebar a, a.timestamp, a.nick {
+#buffer-list a, a.timestamp, a.nick {
 	color: #4a4a4a;
 	text-decoration: none;
 }
-#sidebar a:hover, #sidebar a:active,
+#buffer-list a:hover, #buffer-list a:active,
 a.timestamp:hover, a.timestamp:active,
 a.nick:hover, a.nick:active {
 	text-decoration: underline;
