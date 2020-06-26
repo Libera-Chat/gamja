@@ -51,6 +51,13 @@ body {
 	border-bottom: 1px solid #e3e3e3;
 }
 
+#topbar .status-here {
+	color: green;
+}
+#topbar .status-gone {
+	color: orange;
+}
+
 #topbar .actions {
 	float: right;
 }

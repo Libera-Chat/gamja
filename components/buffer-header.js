@@ -15,7 +15,16 @@ export default function BufferHeader(props) {
 		description = props.buffer.topic;
 	} else if (props.buffer.who) {
 		var who = props.buffer.who;
-		description = `${who.realname} (${who.username}@${who.hostname})`;
+
+		var statusClass = "here";
+		var statusText = "User is online";
+		if (who.away) {
+			statusClass = "gone";
+			statusText = "User is away";
+		}
+		var status = html`<span class="status status-${statusClass}" title=${statusText}>●</span>`;
+
+		description = html`${status} ${who.realname} (${who.username}@${who.hostname})`;
 	}
 
 	var closeText = "Close";

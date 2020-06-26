@@ -327,6 +327,14 @@ export default class App extends Component {
 			this.setBufferState(channel, { topic });
 			this.addMessage(channel, msg);
 			break;
+		case "AWAY":
+			var awayMessage = msg.params[0];
+
+			this.setBufferState(msg.prefix.name, (buf) => {
+				var who = { ...buf.who, away: !!awayMessage };
+				return { who };
+			});
+			break;
 		case "CAP":
 		case "AUTHENTICATE":
 			// Ignore these
