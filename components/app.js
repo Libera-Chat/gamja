@@ -122,7 +122,8 @@ export default class App extends Component {
 			buffers.set(name, {
 				name,
 				type,
-				topic: null,
+				topic: null, // if channel
+				who: null, // if nick
 				members: new Map(),
 				messages: [],
 				unread: Unread.NONE,
@@ -240,6 +241,21 @@ export default class App extends Component {
 			break;
 		case irc.RPL_ENDOFNAMES:
 			break;
+		case irc.RPL_WHOREPLY:
+			var last = msg.params[msg.params.length - 1];
+			var who = {
+				username: msg.params[2],
+				hostname: msg.params[3],
+				server: msg.params[4],
+				nick: msg.params[5],
+				away: msg.params[6] == 'G', // H for here, G for gone
+				realname: last.slice(last.indexOf(" ") + 1),
+			};
+
+			this.setBufferState(who.nick, { who });
+			break;
+		case irc.RPL_ENDOFWHO:
+			break;
 		case "NOTICE":
 		case "PRIVMSG":
 			var target = msg.params[0];
@@ -335,6 +351,8 @@ export default class App extends Component {
 	open(target) {
 		if (this.isChannel(target)) {
 			this.client.send({ command: "JOIN", params: [target] });
+		} else {
+			this.client.send({ command: "WHO", params: [target] });
 		}
 		this.createBuffer(target);
 		this.switchBuffer(target);
@@ -470,7 +488,7 @@ export default class App extends Component {
 		}
 
 		var topbar = null;
-		if (activeBuffer && this.isChannel(activeBuffer.name)) {
+		if (activeBuffer && activeBuffer.type != BufferType.SERVER) {
 			topbar = html`
 				<section id="topbar">
 					<${BufferHeader} buffer=${activeBuffer} onClose=${() => this.close(activeBuffer.name)}/>
