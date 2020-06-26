@@ -61,7 +61,7 @@ export default function BufferList(props) {
 	return html`
 		<ul id="buffer-list">
 			${Array.from(this.props.buffers.values()).sort(compareBuffers).map(buf => html`
-				<${BufferItem} buffer=${buf} onClick=${() => props.onBufferClick(buf.name)} active=${props.activeBuffer == buf.name}/>
+				<${BufferItem} key=${buf.name} buffer=${buf} onClick=${() => props.onBufferClick(buf.name)} active=${props.activeBuffer == buf.name}/>
 			`)}
 		</ul>
 	`;
