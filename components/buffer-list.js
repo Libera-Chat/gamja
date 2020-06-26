@@ -39,10 +39,28 @@ function BufferItem(props) {
 	`;
 }
 
+function compareBuffers(a, b) {
+	if (a.type == BufferType.SERVER) {
+		return -1;
+	}
+	if (b.type == BufferType.SERVER) {
+		return 1;
+	}
+
+	if (a.name > b.name) {
+		return -1;
+	}
+	if (a.name < b.name) {
+		return 1;
+	}
+
+	return 0;
+}
+
 export default function BufferList(props) {
 	return html`
 		<ul id="buffer-list">
-			${Array.from(this.props.buffers.values()).map(buf => html`
+			${Array.from(this.props.buffers.values()).sort(compareBuffers).map(buf => html`
 				<${BufferItem} buffer=${buf} onClick=${() => props.onBufferClick(buf.name)} active=${props.activeBuffer == buf.name}/>
 			`)}
 		</ul>

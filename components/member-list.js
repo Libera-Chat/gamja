@@ -17,7 +17,7 @@ function MemberItem(props) {
 export default function MemberList(props) {
 	return html`
 		<ul id="buffer-list">
-			${Array.from(this.props.members.entries()).map(([nick, membership]) => html`
+			${Array.from(this.props.members.entries()).sort().map(([nick, membership]) => html`
 				<${MemberItem} key=${nick} nick=${nick} membership=${membership} onClick=${() => props.onNickClick(nick)}/>
 			`)}
 		</ul>
