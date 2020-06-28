@@ -441,6 +441,16 @@ export default class App extends Component {
 			var text = args.slice(1).join(" ");
 			this.client.send({ command: "PRIVMSG", params: [target, text] });
 			break;
+		case "me":
+			var action = args.join(" ");
+			var target = this.state.activeBuffer;
+			if (!target) {
+				console.error("Not in a buffer");
+				return;
+			}
+			var text = `\x01ACTION ${action}\x01`;
+			this.privmsg(target, text);
+			break;
 		case "nick":
 			var newNick = args[0];
 			this.client.send({ command: "NICK", params: [newNick] });
@@ -458,6 +468,21 @@ export default class App extends Component {
 		}
 	}
 
+	privmsg(target, text) {
+		if (target == SERVER_BUFFER) {
+			console.error("Cannot send message in server buffer");
+			return;
+		}
+
+		var msg = { command: "PRIVMSG", params: [target, text] };
+		this.client.send(msg);
+
+		if (!this.client.enabledCaps["echo-message"]) {
+			msg.prefix = { name: this.client.nick };
+			this.addMessage(target, msg);
+		}
+	}
+
 	handleComposerSubmit(text) {
 		if (!text) {
 			return;
@@ -471,17 +496,11 @@ export default class App extends Component {
 		}
 
 		var target = this.state.activeBuffer;
-		if (!target || target == SERVER_BUFFER) {
+		if (!target) {
 			return;
 		}
 
-		var msg = { command: "PRIVMSG", params: [target, text] };
-		this.client.send(msg);
-
-		if (!this.client.enabledCaps["echo-message"]) {
-			msg.prefix = { name: this.client.nick };
-			this.addMessage(target, msg);
-		}
+		this.privmsg(target, text);
 	}
 
 	handleBufferListClick(name) {
