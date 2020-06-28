@@ -428,13 +428,17 @@ export default class App extends Component {
 			this.client.send({ command: "JOIN", params: [channel] });
 			break;
 		case "part":
-			// TODO: part reason
-			if (!this.state.activeBuffer || !this.isChannel(this.state.activeBuffer)) {
+			var reason = args.join(" ");
+			var channel = this.state.activeBuffer;
+			if (!channel || !this.isChannel(channel)) {
 				console.error("Not in a channel");
 				return;
 			}
-			var channel = this.state.activeBuffer;
-			this.client.send({ command: "PART", params: [channel] });
+			var params = [channel];
+			if (reason) {
+				params.push(reason);
+			}
+			this.client.send({ command: "PART", params });
 			break;
 		case "msg":
 			var target = args[0];
