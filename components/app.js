@@ -12,6 +12,8 @@ import { BufferType, Status, Unread } from "/state.js";
 
 const SERVER_BUFFER = "*";
 
+var messagesCount = 0;
+
 function parseQueryString() {
 	var query = window.location.search.substring(1);
 	var params = {};
@@ -144,6 +146,9 @@ export default class App extends Component {
 	}
 
 	addMessage(bufName, msg) {
+		msg.key = messagesCount;
+		messagesCount++;
+
 		if (!msg.tags) {
 			msg.tags = {};
 		}

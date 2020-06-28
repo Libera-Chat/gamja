@@ -98,7 +98,7 @@ export default function Buffer(props) {
 	return html`
 		<div class="logline-list">
 			${props.buffer.messages.map((msg) => html`
-				<${LogLine} message=${msg} onNickClick=${props.onNickClick}/>
+				<${LogLine} key=${msg.key} message=${msg} onNickClick=${props.onNickClick}/>
 			`)}
 		</div>
 	`;
