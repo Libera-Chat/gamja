@@ -46,6 +46,9 @@ body {
 #buffer-list li.unread-message a {
 	color: #b37400;
 }
+#buffer-list li.unread-highlight a {
+	color: #22009b;
+}
 #buffer-list .actions {
 	flex-shrink: 0;
 	text-align: center;

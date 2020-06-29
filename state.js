@@ -13,11 +13,13 @@ export const Status = {
 export const Unread = {
 	NONE: "",
 	MESSAGE: "message",
+	HIGHLIGHT: "highlight",
 
 	union: (a, b) => {
 		const priority = {
 			[Unread.None]: 0,
 			[Unread.MESSAGE]: 1,
+			[Unread.HIGHLIGHT]: 2,
 		};
 		return (priority[a] > priority[b]) ? a : b;
 	},

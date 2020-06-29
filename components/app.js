@@ -168,7 +168,12 @@ export default class App extends Component {
 
 		var msgUnread = Unread.NONE;
 		if (msg.command == "PRIVMSG" || msg.command == "NOTICE") {
-			msgUnread = Unread.MESSAGE;
+			var text = msg.params[1];
+			if (msg.prefix.name != this.client.nick && irc.isHighlight(text, this.client.nick)) {
+				msgUnread = Unread.HIGHLIGHT;
+			} else {
+				msgUnread = Unread.MESSAGE;
+			}
 		}
 
 		if (msg.prefix.name != this.client.nick && msg.command != "PART") {
