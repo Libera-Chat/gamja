@@ -11,6 +11,7 @@ import { html, Component, createRef } from "/lib/index.js";
 import { BufferType, Status, Unread } from "/state.js";
 
 const SERVER_BUFFER = "*";
+const CHATHISTORY_PAGE_SIZE = 100;
 
 var messagesCount = 0;
 
@@ -25,6 +26,29 @@ function parseQueryString() {
 		params[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || "");
 	});
 	return params;
+}
+
+/* Insert a message in an immutable list of sorted messages. */
+function insertMessage(list, msg) {
+	if (list.length == 0) {
+		return [msg];
+	} else if (list[list.length - 1].tags.time <= msg.tags.time) {
+		return list.concat(msg);
+	}
+
+	var insertBefore = -1;
+	for (var i = 0; i < list.length; i++) {
+		var other = list[i];
+		if (msg.tags.time < other.tags.time) {
+			insertBefore = i;
+			break;
+		}
+	}
+	console.assert(insertBefore >= 0, "");
+
+	list = [ ...list ];
+	list.splice(insertBefore, 0, msg);
+	return list;
 }
 
 export default class App extends Component {
@@ -44,6 +68,7 @@ export default class App extends Component {
 		buffers: new Map(),
 		activeBuffer: null,
 	};
+	endOfHistory = new Map();
 	buffer = createRef();
 	composer = createRef();
 
@@ -56,6 +81,7 @@ export default class App extends Component {
 		this.handleNickClick = this.handleNickClick.bind(this);
 		this.handleJoinClick = this.handleJoinClick.bind(this);
 		this.autocomplete = this.autocomplete.bind(this);
+		this.handleBufferScrollTop = this.handleBufferScrollTop.bind(this);
 
 		if (window.localStorage && localStorage.getItem("autoconnect")) {
 			var connectParams = JSON.parse(localStorage.getItem("autoconnect"));
@@ -161,21 +187,18 @@ export default class App extends Component {
 		if (!msg.tags) {
 			msg.tags = {};
 		}
-		if (!msg.tags["time"]) {
-			// Format the current time according to ISO 8601
-			var date = new Date();
-			var YYYY = date.getUTCFullYear().toString().padStart(4, "0");
-			var MM = (date.getUTCMonth() + 1).toString().padStart(2, "0");
-			var DD = date.getUTCDate().toString().padStart(2, "0");
-			var hh = date.getUTCHours().toString().padStart(2, "0");
-			var mm = date.getUTCMinutes().toString().padStart(2, "0");
-			var ss = date.getUTCSeconds().toString().padStart(2, "0");
-			var sss = date.getUTCMilliseconds().toString().padStart(3, "0");
-			msg.tags["time"] = `${YYYY}-${MM}-${DD}T${hh}:${mm}:${ss}.${sss}Z`;
+		if (!msg.tags.time) {
+			msg.tags.time = irc.formatDate(new Date());
+		}
+
+		var isHistory = false;
+		if (msg.tags.batch && this.client.batches.has(msg.tags.batch)) {
+			var batch = this.client.batches.get(msg.tags.batch);
+			isHistory = batch.type == "chathistory";
 		}
 
 		var msgUnread = Unread.NONE;
-		if (msg.command == "PRIVMSG" || msg.command == "NOTICE") {
+		if ((msg.command == "PRIVMSG" || msg.command == "NOTICE") && !isHistory) {
 			var target = msg.params[0];
 			var text = msg.params[1];
 
@@ -215,8 +238,9 @@ export default class App extends Component {
 			if (state.activeBuffer != buf.name) {
 				unread = Unread.union(unread, msgUnread);
 			}
+			var messages = insertMessage(buf.messages, msg);
 			return {
-				messages: buf.messages.concat(msg),
+				messages,
 				unread,
 			};
 		});
@@ -393,6 +417,18 @@ export default class App extends Component {
 				var who = { ...buf.who, away: !!awayMessage };
 				return { who };
 			});
+			break;
+		case "BATCH":
+			var enter = msg.params[0].startsWith("+");
+			var name = msg.params[0].slice(1);
+			if (enter) {
+				break;
+			}
+			var batch = this.client.batches.get(name);
+			if (batch.type == "chathistory" && batch.messages.length < CHATHISTORY_PAGE_SIZE) {
+				var target = batch.params[0];
+				this.endOfHistory.set(target, true);
+			}
 			break;
 		case "CAP":
 		case "AUTHENTICATE":
@@ -612,6 +648,32 @@ export default class App extends Component {
 		return repl;
 	}
 
+	handleBufferScrollTop() {
+		var target = this.state.activeBuffer;
+		if (!target || target == SERVER_BUFFER) {
+			return;
+		}
+		if (!this.client.enabledCaps["draft/chathistory"] || !this.client.enabledCaps["server-time"]) {
+			return;
+		}
+		if (this.endOfHistory.has(target)) {
+			return;
+		}
+		var buf = this.state.buffers.get(target);
+
+		var before;
+		if (buf.messages.length > 0) {
+			before = buf.messages[0].tags["time"];
+		} else {
+			before = irc.formatDate(new Date());
+		}
+
+		this.client.send({
+			command: "CHATHISTORY",
+			params: ["BEFORE", target, "timestamp=" + before, CHATHISTORY_PAGE_SIZE],
+		});
+	}
+
 	componentDidMount() {
 		if (this.state.connectParams.autoconnect) {
 			this.connect(this.state.connectParams);
@@ -661,7 +723,7 @@ export default class App extends Component {
 				</div>
 			</section>
 			${bufferHeader}
-			<${ScrollManager} target=${this.buffer} scrollKey=${this.state.activeBuffer}>
+			<${ScrollManager} target=${this.buffer} scrollKey=${this.state.activeBuffer} onScrollTop=${this.handleBufferScrollTop}>
 				<section id="buffer" ref=${this.buffer}>
 					<${Buffer} buffer=${activeBuffer} onNickClick=${this.handleNickClick}/>
 				</section>

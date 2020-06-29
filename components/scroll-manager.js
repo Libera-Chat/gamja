@@ -40,10 +40,16 @@ export default class ScrollManager extends Component {
 		}
 		this.scroll(pos);
 		this.stickToBottom = pos.bottom;
+		if (this.props.target.current.scrollTop == 0) {
+			this.props.onScrollTop();
+		}
 	}
 
 	handleScroll() {
 		this.stickToBottom = this.isAtBottom();
+		if (this.props.target.current.scrollTop == 0) {
+			this.props.onScrollTop();
+		}
 	}
 
 	componentDidMount() {
