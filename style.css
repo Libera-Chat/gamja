@@ -8,7 +8,7 @@ html, body {
 body {
 	display: grid;
 	grid-template-rows: auto 1fr max-content;
-	grid-template-columns: max-content auto max-content;
+	grid-template-columns: max-content 1fr max-content;
 	font-family: monospace;
 }
 
