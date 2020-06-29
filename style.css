@@ -116,8 +116,11 @@ body {
 	width: 100%;
 	box-sizing: border-box;
 	padding: 10px;
+}
+#composer input, #composer input:focus {
 	border: none;
 	background: none;
+	outline: none;
 }
 #composer.read-only {
 	display: none;
