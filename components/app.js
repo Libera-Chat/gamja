@@ -168,11 +168,33 @@ export default class App extends Component {
 
 		var msgUnread = Unread.NONE;
 		if (msg.command == "PRIVMSG" || msg.command == "NOTICE") {
+			var target = msg.params[0];
 			var text = msg.params[1];
+
+			var kind;
 			if (msg.prefix.name != this.client.nick && irc.isHighlight(text, this.client.nick)) {
 				msgUnread = Unread.HIGHLIGHT;
+				kind = "highlight";
+			} else if (target == this.client.nick) {
+				msgUnread = Unread.HIGHLIGHT;
+				kind = "private message";
 			} else {
 				msgUnread = Unread.MESSAGE;
+			}
+
+			if (msgUnread == Unread.HIGHLIGHT && window.Notification && Notification.permission === "granted") {
+				var title = "New " + kind + " from " + msg.prefix.name;
+				if (this.isChannel(target)) {
+					title += " in " + target;
+				}
+				var notif = new Notification(title, {
+					body: text,
+					requireInteraction: true,
+				});
+				notif.addEventListener("click", () => {
+					// TODO: scroll to message
+					this.switchBuffer(target);
+				});
 			}
 		}
 

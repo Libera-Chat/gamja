@@ -90,6 +90,44 @@ function LogLine(props) {
 	`;
 }
 
+class NotificationNagger extends Component {
+	state = { nag: false };
+
+	constructor(props) {
+		super(props);
+
+		this.handleClick = this.handleClick.bind(this);
+
+		this.state.nag = this.shouldNag();
+	}
+
+	shouldNag() {
+		return window.Notification && Notification.permission !== "granted" && Notification.permission !== "denied";
+	}
+
+	handleClick(event) {
+		event.preventDefault();
+
+		Notification.requestPermission((permission) => {
+			this.setState({ nag: this.shouldNag() });
+		});
+	}
+
+	render() {
+		if (!this.state.nag) {
+			return null;
+		}
+
+		return html`
+			<div class="logline">
+				<span class="timestamp">--:--:--</span>
+				${" "}
+				<a href="#" onClick=${this.handleClick}>Turn on desktop notifications</a> to get notified about new messages
+			</div>
+		`;
+	}
+}
+
 export default function Buffer(props) {
 	if (!props.buffer) {
 		return null;
@@ -97,6 +135,7 @@ export default function Buffer(props) {
 
 	return html`
 		<div class="logline-list">
+			<${NotificationNagger}/>
 			${props.buffer.messages.map((msg) => html`
 				<${LogLine} key=${msg.key} message=${msg} onNickClick=${props.onNickClick}/>
 			`)}
