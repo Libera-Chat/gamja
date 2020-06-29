@@ -11,6 +11,7 @@ export default class Composer extends Component {
 
 		this.handleInput = this.handleInput.bind(this);
 		this.handleSubmit = this.handleSubmit.bind(this);
+		this.handleInputKeyDown = this.handleInputKeyDown.bind(this);
 		this.handleWindowKeyDown = this.handleWindowKeyDown.bind(this);
 	}
 
@@ -24,8 +25,36 @@ export default class Composer extends Component {
 		this.setState({ text: "" });
 	}
 
+	handleInputKeyDown(event) {
+		if (!this.props.autocomplete || event.key !== "Tab") {
+			return;
+		}
+
+		var text = this.state.text;
+		var i;
+		for (i = text.length - 1; i >= 0; i--) {
+			if (text[i] === " ") {
+				break;
+			}
+		}
+		var prefix = text.slice(i + 1);
+		if (!prefix) {
+			return;
+		}
+
+		event.preventDefault();
+
+		var repl = this.props.autocomplete(prefix);
+		if (!repl) {
+			return;
+		}
+
+		text = text.slice(0, i + 1) + repl;
+		this.setState({ text });
+	}
+
 	handleWindowKeyDown(event) {
-		if (document.activeElement == document.body && event.key == "/" && !this.state.text) {
+		if (document.activeElement === document.body && event.key === "/" && !this.state.text) {
 			event.preventDefault();
 			this.setState({ text: "/" }, () => {
 				this.focus();
@@ -49,7 +78,7 @@ export default class Composer extends Component {
 	render() {
 		return html`
 			<form id="composer" class="${this.props.readOnly && !this.state.text ? "read-only" : ""}" onInput=${this.handleInput} onSubmit=${this.handleSubmit}>
-				<input type="text" name="text" ref=${this.textInput} value=${this.state.text} placeholder="Type a message"/>
+				<input type="text" name="text" ref=${this.textInput} value=${this.state.text} placeholder="Type a message" onKeyDown=${this.handleInputKeyDown}/>
 			</form>
 		`;
 	}

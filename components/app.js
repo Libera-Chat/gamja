@@ -55,6 +55,7 @@ export default class App extends Component {
 		this.handleComposerSubmit = this.handleComposerSubmit.bind(this);
 		this.handleNickClick = this.handleNickClick.bind(this);
 		this.handleJoinClick = this.handleJoinClick.bind(this);
+		this.autocomplete = this.autocomplete.bind(this);
 
 		if (window.localStorage && localStorage.getItem("autoconnect")) {
 			var connectParams = JSON.parse(localStorage.getItem("autoconnect"));
@@ -554,6 +555,26 @@ export default class App extends Component {
 		this.client.send({ command: "JOIN", params: [channel] });
 	}
 
+	autocomplete(prefix) {
+		if (!this.state.activeBuffer) {
+			return null;
+		}
+		var buf = this.state.buffers.get(this.state.activeBuffer);
+
+		prefix = prefix.toLowerCase();
+
+		var repl = null;
+		for (var nick of buf.members.keys()) {
+			if (nick.toLowerCase().startsWith(prefix)) {
+				if (repl) {
+					return null;
+				}
+				repl = nick;
+			}
+		}
+		return repl;
+	}
+
 	componentDidMount() {
 		if (this.state.connectParams.autoconnect) {
 			this.connect(this.state.connectParams);
@@ -609,7 +630,7 @@ export default class App extends Component {
 				</section>
 			</>
 			${memberList}
-			<${Composer} ref=${this.composer} readOnly=${this.state.activeBuffer == SERVER_BUFFER} onSubmit=${this.handleComposerSubmit}/>
+			<${Composer} ref=${this.composer} readOnly=${this.state.activeBuffer == SERVER_BUFFER} onSubmit=${this.handleComposerSubmit} autocomplete=${this.autocomplete}/>
 		`;
 	}
 }
