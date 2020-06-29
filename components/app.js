@@ -54,6 +54,7 @@ export default class App extends Component {
 		this.handleBufferListClick = this.handleBufferListClick.bind(this);
 		this.handleComposerSubmit = this.handleComposerSubmit.bind(this);
 		this.handleNickClick = this.handleNickClick.bind(this);
+		this.handleJoinClick = this.handleJoinClick.bind(this);
 
 		if (window.localStorage && localStorage.getItem("autoconnect")) {
 			var connectParams = JSON.parse(localStorage.getItem("autoconnect"));
@@ -516,6 +517,16 @@ export default class App extends Component {
 		this.switchBuffer(name);
 	}
 
+	handleJoinClick(event) {
+		event.preventDefault();
+
+		var channel = prompt("Join channel:");
+		if (!channel) {
+			return;
+		}
+		this.client.send({ command: "JOIN", params: [channel] });
+	}
+
 	componentDidMount() {
 		if (this.state.connectParams.autoconnect) {
 			this.connect(this.state.connectParams);
@@ -560,6 +571,9 @@ export default class App extends Component {
 		return html`
 			<section id="buffer-list">
 				<${BufferList} buffers=${this.state.buffers} activeBuffer=${this.state.activeBuffer} onBufferClick=${this.handleBufferListClick}/>
+				<div class="actions">
+					<a href="#" onClick=${this.handleJoinClick}>Join channel</a>
+				</div>
 			</section>
 			${bufferHeader}
 			<${ScrollManager} target=${this.buffer} scrollKey=${this.state.activeBuffer}>
