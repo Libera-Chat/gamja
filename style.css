@@ -176,6 +176,9 @@ details summary {
 #buffer .talk {
 	color: black;
 }
+#buffer .error {
+	color: red;
+}
 #buffer .me-tell {
 	color: #b37400;
 }

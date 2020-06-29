@@ -1,5 +1,6 @@
 import { html, Component } from "/lib/index.js";
 import linkify from "/lib/linkify.js";
+import * as irc from "/lib/irc.js";
 
 function djb2(s) {
 	var hash = 5381;
@@ -82,6 +83,9 @@ function LogLine(props) {
 		`;
 		break;
 	default:
+		if (irc.isError(msg.command) && msg.command != irc.ERR_NOMOTD) {
+			lineClass = "error";
+		}
 		content = html`${msg.command} ${msg.params.join(" ")}`;
 	}
 
