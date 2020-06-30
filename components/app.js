@@ -271,7 +271,7 @@ export default class App extends Component {
 			break;
 		case irc.RPL_NAMREPLY:
 			var channel = msg.params[2];
-			var membersList = msg.params.slice(3);
+			var membersList = msg.params[3].split(" ");
 
 			this.setBufferState(channel, (buf) => {
 				var members = new Map(buf.members);
