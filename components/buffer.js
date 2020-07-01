@@ -1,6 +1,7 @@
 import { html, Component } from "/lib/index.js";
 import linkify from "/lib/linkify.js";
 import * as irc from "/lib/irc.js";
+import { BufferType } from "/state.js";
 
 function djb2(s) {
 	var hash = 5381;
@@ -137,9 +138,14 @@ export default function Buffer(props) {
 		return null;
 	}
 
+	var notifNagger = null;
+	if (props.buffer.type == BufferType.SERVER) {
+		notifNagger = html`<${NotificationNagger}/>`;
+	}
+
 	return html`
 		<div class="logline-list">
-			<${NotificationNagger}/>
+			${notifNagger}
 			${props.buffer.messages.map((msg) => html`
 				<${LogLine} key=${msg.key} message=${msg} onNickClick=${props.onNickClick}/>
 			`)}
