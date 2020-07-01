@@ -372,6 +372,7 @@ export default class App extends Component {
 			break;
 		case "CAP":
 		case "AUTHENTICATE":
+		case "PING":
 			// Ignore these
 			break;
 		default:
