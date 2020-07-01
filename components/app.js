@@ -67,16 +67,23 @@ export default class App extends Component {
 		} else {
 			var params = parseQueryString();
 
-			if (params.server) {
-				this.state.connectParams.serverURL = params.server;
-			} else {
-				var host = window.location.host || "localhost:8080";
-				var proto = "wss:";
-				if (window.location.protocol != "https:") {
-					proto = "ws:";
-				}
-				this.state.connectParams.serverURL = proto + "//" + host + "/socket";
+			var host = window.location.host || "localhost:8080";
+			var proto = "wss:";
+			if (window.location.protocol != "https:") {
+				proto = "ws:";
 			}
+
+			var serverURL;
+			if (params.server) {
+				if (params.server.startsWith("/")) {
+					serverURL = proto + "//" + host + params.server;
+				} else {
+					serverURL = params.server;
+				}
+			} else {
+				serverURL = proto + "//" + host + "/socket";
+			}
+			this.state.connectParams.serverURL = serverURL;
 
 			if (params.channels) {
 				this.state.connectParams.autojoin = params.channels.split(",");
