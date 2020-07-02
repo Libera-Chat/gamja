@@ -1,4 +1,4 @@
-# gamja
+# [gamja]
 
 A bare-bones IRC web client.
 
@@ -45,5 +45,6 @@ AGPLv3, see LICENSE.
 
 Copyright (C) 2020 The gamja Contributors
 
+[gamja]: https://sr.ht/~emersion/gamja/
 [soju]: https://soju.im
 [webircgateway]: https://github.com/kiwiirc/webircgateway
