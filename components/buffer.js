@@ -71,6 +71,11 @@ function LogLine(props) {
 			${createNick(msg.prefix.name)} has left
 		`;
 		break;
+	case "QUIT":
+		content = html`
+			${createNick(msg.prefix.name)} has quit
+		`;
+		break;
 	case "NICK":
 		var newNick = msg.params[0];
 		content = html`

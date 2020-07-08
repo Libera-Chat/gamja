@@ -206,7 +206,7 @@ export default class App extends Component {
 			}
 		}
 
-		if (msg.prefix.name != this.client.nick && msg.command != "PART") {
+		if (msg.prefix.name != this.client.nick && (msg.command != "PART" && msg.comand != "QUIT")) {
 			this.createBuffer(bufName);
 		}
 
@@ -341,6 +341,23 @@ export default class App extends Component {
 				return { members };
 			});
 			this.addMessage(channel, msg);
+			break;
+		case "QUIT":
+			var affectedBuffers = [];
+			this.setState((state) => {
+				var buffers = new Map(state.buffers);
+				state.buffers.forEach((buf) => {
+					if (!buf.members.has(msg.prefix.name) && buf.name != msg.prefix.name) {
+						return;
+					}
+					var members = new Map(buf.members);
+					members.delete(msg.prefix.name);
+					buffers.set(buf.name, { ...buf, members });
+					affectedBuffers.push(buf.name);
+				});
+				return { buffers };
+			});
+			affectedBuffers.forEach((name) => this.addMessage(name, msg));
 			break;
 		case "NICK":
 			var newNick = msg.params[0];
