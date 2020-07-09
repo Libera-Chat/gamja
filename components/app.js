@@ -526,6 +526,18 @@ export default class App extends Component {
 			}
 			this.switchBuffer(name);
 			break;
+		case "topic":
+			var channel = this.state.activeBuffer;
+			if (!channel || !this.isChannel(channel)) {
+				console.error("Not in a channel");
+				return;
+			}
+			var params = [channel];
+			if (args.length > 0) {
+				params.push(args.join(" "));
+			}
+			this.client.send({ command: "TOPIC", params });
+			break;
 		default:
 			console.error("Unknwon command '" + cmd + "'");
 		}
