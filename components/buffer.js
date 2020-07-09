@@ -25,79 +25,94 @@ function Nick(props) {
 	`;
 }
 
-function LogLine(props) {
-	var msg = props.message;
-
-	function createNick(nick) {
-		return html`
-			<${Nick} nick=${nick} onClick=${() => props.onNickClick(nick)}/>
-		`;
+function Timestamp({ date }) {
+	if (!date) {
+		return html`<spam class="timestamp">--:--:--</span>`;
 	}
 
-	var date = new Date(msg.tags["time"]);
-	var timestamp = date.toLocaleTimeString(undefined, {
-		timeStyle: "short",
-		hour12: false,
-	});
-	var timestampLink = html`
+	var hh = date.getHours().toString().padStart(2, "0");
+	var mm = date.getMinutes().toString().padStart(2, "0");
+	var ss = date.getSeconds().toString().padStart(2, "0");
+	var timestamp = `${hh}:${mm}:${ss}`;
+	return html`
 		<a href="#" class="timestamp" onClick=${(event) => event.preventDefault()}>${timestamp}</a>
 	`;
+}
 
-	var lineClass = "";
-	var content;
-	switch (msg.command) {
-	case "NOTICE":
-	case "PRIVMSG":
-		var text = msg.params[1];
-
-		var actionPrefix = "\x01ACTION ";
-		if (text.startsWith(actionPrefix) && text.endsWith("\x01")) {
-			var action = text.slice(actionPrefix.length, -1);
-
-			lineClass = "me-tell";
-			content = html`* ${createNick(msg.prefix.name)} ${linkify(action)}`;
-		} else {
-			lineClass = "talk";
-			content = html`${"<"}${createNick(msg.prefix.name)}${">"} ${linkify(text)}`;
-		}
-		break;
-	case "JOIN":
-		content = html`
-			${createNick(msg.prefix.name)} has joined
-		`;
-		break;
-	case "PART":
-		content = html`
-			${createNick(msg.prefix.name)} has left
-		`;
-		break;
-	case "QUIT":
-		content = html`
-			${createNick(msg.prefix.name)} has quit
-		`;
-		break;
-	case "NICK":
-		var newNick = msg.params[0];
-		content = html`
-			${createNick(msg.prefix.name)} is now known as ${createNick(newNick)}
-		`;
-		break;
-	case "TOPIC":
-		var topic = msg.params[1];
-		content = html`
-			${createNick(msg.prefix.name)} changed the topic to: ${linkify(topic)}
-		`;
-		break;
-	default:
-		if (irc.isError(msg.command) && msg.command != irc.ERR_NOMOTD) {
-			lineClass = "error";
-		}
-		content = html`${msg.command} ${msg.params.join(" ")}`;
+class LogLine extends Component {
+	shouldComponentUpdate(nextProps) {
+		return this.props.message != nextProps.message;
 	}
 
-	return html`
-		<div class="logline ${lineClass}">${timestampLink} ${content}</div>
-	`;
+	render() {
+		var msg = this.props.message;
+
+		function createNick(nick) {
+			return html`
+				<${Nick} nick=${nick} onClick=${() => props.onNickClick(nick)}/>
+			`;
+		}
+
+		var lineClass = "";
+		var content;
+		switch (msg.command) {
+		case "NOTICE":
+		case "PRIVMSG":
+			var text = msg.params[1];
+
+			var actionPrefix = "\x01ACTION ";
+			if (text.startsWith(actionPrefix) && text.endsWith("\x01")) {
+				var action = text.slice(actionPrefix.length, -1);
+
+				lineClass = "me-tell";
+				content = html`* ${createNick(msg.prefix.name)} ${linkify(action)}`;
+			} else {
+				lineClass = "talk";
+				content = html`${"<"}${createNick(msg.prefix.name)}${">"} ${linkify(text)}`;
+			}
+			break;
+		case "JOIN":
+			content = html`
+				${createNick(msg.prefix.name)} has joined
+			`;
+			break;
+		case "PART":
+			content = html`
+				${createNick(msg.prefix.name)} has left
+			`;
+			break;
+		case "QUIT":
+			content = html`
+				${createNick(msg.prefix.name)} has quit
+			`;
+			break;
+		case "NICK":
+			var newNick = msg.params[0];
+			content = html`
+				${createNick(msg.prefix.name)} is now known as ${createNick(newNick)}
+			`;
+			break;
+		case "TOPIC":
+			var topic = msg.params[1];
+			content = html`
+				${createNick(msg.prefix.name)} changed the topic to: ${linkify(topic)}
+			`;
+			break;
+		default:
+			if (irc.isError(msg.command) && msg.command != irc.ERR_NOMOTD) {
+				lineClass = "error";
+			}
+			content = html`${msg.command} ${msg.params.join(" ")}`;
+		}
+
+		return html`
+			<div class="logline ${lineClass}">
+				<${Timestamp} date=${new Date(msg.tags.time)}/>
+				${" "}
+				${content}
+			</div>
+		`;
+	}
 }
 
 class NotificationNagger extends Component {
@@ -130,7 +145,7 @@ class NotificationNagger extends Component {
 
 		return html`
 			<div class="logline">
-				<span class="timestamp">--:--:--</span>
+				<${Timestamp}/>
 				${" "}
 				<a href="#" onClick=${this.handleClick}>Turn on desktop notifications</a> to get notified about new messages
 			</div>
@@ -138,22 +153,28 @@ class NotificationNagger extends Component {
 	}
 }
 
-export default function Buffer(props) {
-	if (!props.buffer) {
-		return null;
+export default class Buffer extends Component {
+	shouldComponentUpdate(nextProps) {
+		return this.props.buffer != nextProps.buffer;
 	}
 
-	var notifNagger = null;
-	if (props.buffer.type == BufferType.SERVER) {
-		notifNagger = html`<${NotificationNagger}/>`;
-	}
+	render() {
+		if (!this.props.buffer) {
+			return null;
+		}
 
-	return html`
-		<div class="logline-list">
-			${notifNagger}
-			${props.buffer.messages.map((msg) => html`
-				<${LogLine} key=${msg.key} message=${msg} onNickClick=${props.onNickClick}/>
-			`)}
-		</div>
-	`;
+		var notifNagger = null;
+		if (this.props.buffer.type == BufferType.SERVER) {
+			notifNagger = html`<${NotificationNagger}/>`;
+		}
+
+		return html`
+			<div class="logline-list">
+				${notifNagger}
+				${this.props.buffer.messages.map((msg) => html`
+					<${LogLine} key=${msg.key} message=${msg} onNickClick=${this.props.onNickClick}/>
+				`)}
+			</div>
+		`;
+	}
 }
