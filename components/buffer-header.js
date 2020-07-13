@@ -1,6 +1,22 @@
 import { html, Component } from "/lib/index.js";
 import { BufferType } from "/state.js";
 
+const Status = {
+	HERE: "here",
+	GONE: "gone",
+	OFFLINE: "offline",
+};
+
+function NickStatus(props) {
+	var textMap = {
+		[Status.HERE]: "User is online",
+		[Status.GONE]: "User is away",
+		[Status.OFFLINE]: "User is offline",
+	};
+	var text = textMap[props.status];
+	return html`<span class="status status-${props.status}" title=${text}>●</span>`;
+}
+
 export default function BufferHeader(props) {
 	function handlePartClick(event) {
 		event.preventDefault();
@@ -16,15 +32,18 @@ export default function BufferHeader(props) {
 	} else if (props.buffer.who) {
 		var who = props.buffer.who;
 
-		var statusClass = "here";
-		var statusText = "User is online";
+		var status = Status.HERE;
 		if (who.away) {
-			statusClass = "gone";
-			statusText = "User is away";
+			status = Status.GONE;
 		}
-		var status = html`<span class="status status-${statusClass}" title=${statusText}>●</span>`;
+		if (props.buffer.offline) {
+			status = Status.OFFLINE;
+		}
 
-		description = html`${status} ${who.realname} (${who.username}@${who.hostname})`;
+		description = html`<${NickStatus} status=${status}/> ${who.realname} (${who.username}@${who.hostname})`;
+	} else if (props.buffer.offline) {
+		// User is offline, but we don't have WHO information
+		description = html`<${NickStatus} status=${Status.OFFLINE}/> ${props.buffer.name}`;
 	}
 
 	var closeText = "Close";

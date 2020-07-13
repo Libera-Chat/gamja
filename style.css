@@ -76,6 +76,9 @@ body {
 #buffer-header .status-gone {
 	color: orange;
 }
+#buffer-header .status-offline {
+	color: red;
+}
 
 #buffer-header .actions {
 	float: right;

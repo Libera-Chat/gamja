@@ -162,8 +162,9 @@ export default class App extends Component {
 				type,
 				serverInfo: null, // if server
 				topic: null, // if channel
+				members: new Map(), // if channel
 				who: null, // if nick
-				members: new Map(),
+				offline: false, // if nick
 				messages: [],
 				unread: Unread.NONE,
 			});
@@ -327,9 +328,21 @@ export default class App extends Component {
 				realname: last.slice(last.indexOf(" ") + 1),
 			};
 
-			this.setBufferState(who.nick, { who });
+			this.setBufferState(who.nick, { who, offline: false });
 			break;
 		case irc.RPL_ENDOFWHO:
+			var target = msg.params[1];
+			if (!this.isChannel(target) && target.indexOf("*") < 0) {
+				// Not a channel nor a mask, likely a nick
+				this.setBufferState(target, (buf) => {
+					// TODO: mark user offline if we have old WHO info but this
+					// WHO reply is empty
+					if (buf.who) {
+						return;
+					}
+					return { offline: true };
+				});
+			}
 			break;
 		case "NOTICE":
 		case "PRIVMSG":
@@ -376,7 +389,8 @@ export default class App extends Component {
 					}
 					var members = new Map(buf.members);
 					members.delete(msg.prefix.name);
-					buffers.set(buf.name, { ...buf, members });
+					var offline = buf.name == msg.prefix.name;
+					buffers.set(buf.name, { ...buf, members, offline });
 					affectedBuffers.push(buf.name);
 				});
 				return { buffers };
