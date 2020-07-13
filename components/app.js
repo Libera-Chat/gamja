@@ -439,9 +439,9 @@ export default class App extends Component {
 				break;
 			}
 			var batch = this.client.batches.get(name);
-			if (batch.type == "chathistory" && batch.messages.length < CHATHISTORY_PAGE_SIZE) {
+			if (batch.type == "chathistory") {
 				var target = batch.params[0];
-				this.endOfHistory.set(target, true);
+				this.endOfHistory.set(target, batch.messages.length < CHATHISTORY_PAGE_SIZE);
 			}
 			break;
 		case "CAP":
@@ -606,7 +606,7 @@ export default class App extends Component {
 		if (!this.client.enabledCaps["draft/chathistory"] || !this.client.enabledCaps["server-time"]) {
 			return;
 		}
-		if (this.endOfHistory.has(target)) {
+		if (this.endOfHistory.get(target)) {
 			return;
 		}
 		var buf = this.state.buffers.get(target);
@@ -622,6 +622,10 @@ export default class App extends Component {
 			command: "CHATHISTORY",
 			params: ["BEFORE", target, "timestamp=" + before, CHATHISTORY_PAGE_SIZE],
 		});
+
+		// Avoids sending multiple CHATHISTORY commands in parallel. The BATCH
+		// end handler will overwrite the value.
+		this.endOfHistory.set(target, true);
 	}
 
 	componentDidMount() {
