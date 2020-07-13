@@ -41,7 +41,7 @@ function Timestamp({ date }) {
 
 class LogLine extends Component {
 	shouldComponentUpdate(nextProps) {
-		return this.props.message != nextProps.message;
+		return this.props.message !== nextProps.message;
 	}
 
 	render() {
@@ -155,7 +155,7 @@ class NotificationNagger extends Component {
 
 export default class Buffer extends Component {
 	shouldComponentUpdate(nextProps) {
-		return this.props.buffer != nextProps.buffer;
+		return this.props.buffer !== nextProps.buffer;
 	}
 
 	render() {
