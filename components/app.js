@@ -8,9 +8,9 @@ import Connect from "/components/connect.js";
 import Composer from "/components/composer.js";
 import ScrollManager from "/components/scroll-manager.js";
 import { html, Component, createRef } from "/lib/index.js";
-import { BufferType, Status, Unread } from "/state.js";
+import { SERVER_BUFFER, BufferType, Status, Unread } from "/state.js";
+import commands from "/commands.js";
 
-const SERVER_BUFFER = "*";
 const CHATHISTORY_PAGE_SIZE = 100;
 
 var messagesCount = 0;
@@ -503,93 +503,19 @@ export default class App extends Component {
 
 	executeCommand(s) {
 		var parts = s.split(" ");
-		var cmd = parts[0].toLowerCase().slice(1);
+		var name = parts[0].toLowerCase().slice(1);
 		var args = parts.slice(1);
-		switch (cmd) {
-		case "quit":
-			if (window.localStorage) {
-				localStorage.removeItem("autoconnect");
-			}
-			this.client.close();
-			break;
-		case "query":
-			var nick = args[0];
-			if (!nick) {
-				console.error("Missing nickname");
-				return;
-			}
-			this.open(nick);
-			break;
-		case "close":
-			var target = this.state.activeBuffer;
-			if (!target || target == SERVER_BUFFER) {
-				console.error("Not in a user or channel buffer");
-				return;
-			}
-			this.close(target);
-			break;
-		case "join":
-			var channel = args[0];
-			if (!channel) {
-				console.error("Missing channel name");
-				return;
-			}
-			this.client.send({ command: "JOIN", params: [channel] });
-			break;
-		case "part":
-			var reason = args.join(" ");
-			var channel = this.state.activeBuffer;
-			if (!channel || !this.isChannel(channel)) {
-				console.error("Not in a channel");
-				return;
-			}
-			var params = [channel];
-			if (reason) {
-				params.push(reason);
-			}
-			this.client.send({ command: "PART", params });
-			break;
-		case "msg":
-			var target = args[0];
-			var text = args.slice(1).join(" ");
-			this.client.send({ command: "PRIVMSG", params: [target, text] });
-			break;
-		case "me":
-			var action = args.join(" ");
-			var target = this.state.activeBuffer;
-			if (!target) {
-				console.error("Not in a buffer");
-				return;
-			}
-			var text = `\x01ACTION ${action}\x01`;
-			this.privmsg(target, text);
-			break;
-		case "nick":
-			var newNick = args[0];
-			this.client.send({ command: "NICK", params: [newNick] });
-			break;
-		case "buffer":
-			var name = args[0];
-			if (!this.state.buffers.has(name)) {
-				console.error("Unknown buffer");
-				return;
-			}
-			this.switchBuffer(name);
-			break;
-		case "topic":
-			var channel = this.state.activeBuffer;
-			if (!channel || !this.isChannel(channel)) {
-				console.error("Not in a channel");
-				return;
-			}
-			var params = [channel];
-			if (args.length > 0) {
-				params.push(args.join(" "));
-			}
-			this.client.send({ command: "TOPIC", params });
-			break;
-		default:
-			console.error("Unknwon command '" + cmd + "'");
+
+		var cmd = commands[name];
+		if (!cmd) {
+			console.error("Unknwon command '" + name + "'");
+			return;
+		}
+
+		try {
+			cmd(this, args);
+		} catch (err) {
+			console.error(err);
 		}
 	}
 

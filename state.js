@@ -1,3 +1,5 @@
+export const SERVER_BUFFER = "*";
+
 export const BufferType = {
 	SERVER: "server",
 	CHANNEL: "channel",
