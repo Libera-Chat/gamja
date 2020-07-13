@@ -1,4 +1,5 @@
 import { html, Component } from "/lib/index.js";
+import linkify from "/lib/linkify.js";
 import { BufferType } from "/state.js";
 
 const Status = {
@@ -28,7 +29,7 @@ export default function BufferHeader(props) {
 		var serverInfo = props.buffer.serverInfo;
 		description = `Connected to ${serverInfo.name}`;
 	} else if (props.buffer.topic) {
-		description = props.buffer.topic;
+		description = linkify(props.buffer.topic);
 	} else if (props.buffer.who) {
 		var who = props.buffer.who;
 
