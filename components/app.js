@@ -569,23 +569,33 @@ export default class App extends Component {
 	}
 
 	autocomplete(prefix) {
+		function fromList(l, prefix) {
+			prefix = prefix.toLowerCase();
+			var repl = null;
+			for (var item of l) {
+				if (item.toLowerCase().startsWith(prefix)) {
+					if (repl) {
+						return null;
+					}
+					repl = item;
+				}
+			}
+			return repl;
+		}
+
+		if (prefix.startsWith("/")) {
+			var repl = fromList(Object.keys(commands), prefix.slice(1));
+			if (repl) {
+				repl = "/" + repl;
+			}
+			return repl;
+		}
+
 		if (!this.state.activeBuffer) {
 			return null;
 		}
 		var buf = this.state.buffers.get(this.state.activeBuffer);
-
-		prefix = prefix.toLowerCase();
-
-		var repl = null;
-		for (var nick of buf.members.keys()) {
-			if (nick.toLowerCase().startsWith(prefix)) {
-				if (repl) {
-					return null;
-				}
-				repl = nick;
-			}
-		}
-		return repl;
+		return fromList(buf.members.keys(), prefix);
 	}
 
 	handleBufferScrollTop() {
