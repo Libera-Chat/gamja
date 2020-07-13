@@ -71,6 +71,9 @@ export default class Composer extends Component {
 	}
 
 	focus() {
+		if (!this.textInput.current) {
+			return;
+		}
 		document.activeElement.blur(); // in case we're read-only
 		this.textInput.current.focus();
 	}
