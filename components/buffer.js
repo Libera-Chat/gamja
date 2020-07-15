@@ -1,7 +1,7 @@
 import { html, Component } from "/lib/index.js";
 import linkify from "/lib/linkify.js";
 import * as irc from "/lib/irc.js";
-import { BufferType } from "/state.js";
+import { BufferType, getNickURL, getMessageURL } from "/state.js";
 
 function djb2(s) {
 	var hash = 5381;
@@ -19,13 +19,12 @@ function Nick(props) {
 	}
 
 	var colorIndex = djb2(props.nick) % 16 + 1;
-	var url = "irc:///" + encodeURIComponent(props.nick) + ",isnick";
 	return html`
-		<a href=${url} class="nick nick-${colorIndex}" onClick=${handleClick}>${props.nick}</a>
+		<a href=${getNickURL(props.nick)} class="nick nick-${colorIndex}" onClick=${handleClick}>${props.nick}</a>
 	`;
 }
 
-function Timestamp({ date }) {
+function Timestamp({ date, url }) {
 	if (!date) {
 		return html`<spam class="timestamp">--:--:--</span>`;
 	}
@@ -35,7 +34,7 @@ function Timestamp({ date }) {
 	var ss = date.getSeconds().toString().padStart(2, "0");
 	var timestamp = `${hh}:${mm}:${ss}`;
 	return html`
-		<a href="#" class="timestamp" onClick=${(event) => event.preventDefault()}>${timestamp}</a>
+		<a href=${url} class="timestamp" onClick=${(event) => event.preventDefault()}>${timestamp}</a>
 	`;
 }
 
@@ -107,7 +106,7 @@ class LogLine extends Component {
 
 		return html`
 			<div class="logline ${lineClass}">
-				<${Timestamp} date=${new Date(msg.tags.time)}/>
+				<${Timestamp} date=${new Date(msg.tags.time)} url=${getMessageURL(this.props.buffer, msg)}/>
 				${" "}
 				${content}
 			</div>
@@ -172,7 +171,7 @@ export default class Buffer extends Component {
 			<div class="logline-list">
 				${notifNagger}
 				${this.props.buffer.messages.map((msg) => html`
-					<${LogLine} key=${msg.key} message=${msg} onNickClick=${this.props.onNickClick}/>
+					<${LogLine} key=${msg.key} message=${msg} buffer=${this.props.buffer} onNickClick=${this.props.onNickClick}/>
 				`)}
 			</div>
 		`;

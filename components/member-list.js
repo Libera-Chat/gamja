@@ -1,4 +1,5 @@
 import { html, Component } from "/lib/index.js";
+import { getNickURL } from "/state.js";
 
 class MemberItem extends Component {
 	constructor(props) {
@@ -17,10 +18,9 @@ class MemberItem extends Component {
 	}
 
 	render() {
-		var url = "irc:///" + encodeURIComponent(this.props.nick) + ",isnick";
 		return html`
 			<li>
-				<a href=${url} class="nick" onClick=${this.handleClick}>${this.props.nick}</a>
+				<a href=${getNickURL(this.props.nick)} class="nick" onClick=${this.handleClick}>${this.props.nick}</a>
 			</li>
 		`;
 	}

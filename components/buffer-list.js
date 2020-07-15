@@ -1,5 +1,5 @@
 import { html, Component } from "/lib/index.js";
-import { BufferType, Unread } from "/state.js";
+import { BufferType, Unread, getBufferURL } from "/state.js";
 
 function BufferItem(props) {
 	function handleClick(event) {
@@ -19,22 +19,9 @@ function BufferItem(props) {
 		unreadClass = "unread-" + props.buffer.unread;
 	}
 
-	var url = "#";
-	switch (props.buffer.type) {
-	case BufferType.SERVER:
-		url = "irc:///";
-		break;
-	case BufferType.CHANNEL:
-		url = "irc:///" + encodeURIComponent(props.buffer.name);
-		break;
-	case BufferType.NICK:
-		url = "irc:///" + encodeURIComponent(props.buffer.name) + ",isnick";
-		break;
-	}
-
 	return html`
 		<li class="${activeClass} ${unreadClass}">
-			<a href=${url} onClick=${handleClick}>${name}</a>
+			<a href=${getBufferURL(props.buffer)} onClick=${handleClick}>${name}</a>
 		</li>
 	`;
 }
