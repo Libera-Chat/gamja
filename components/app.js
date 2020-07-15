@@ -12,6 +12,12 @@ import { SERVER_BUFFER, BufferType, Status, Unread } from "/state.js";
 import commands from "/commands.js";
 
 const CHATHISTORY_PAGE_SIZE = 100;
+const CHATHISTORY_MAX_SIZE = 4000;
+
+const ReceiptType = {
+	DELIVERED: "delivered",
+	READ: "read",
+};
 
 var messagesCount = 0;
 
@@ -51,6 +57,17 @@ function insertMessage(list, msg) {
 	return list;
 }
 
+function debounce(f, delay) {
+	var timeout = null;
+	return (...args) => {
+		clearTimeout(timeout);
+		timeout = setTimeout(() => {
+			timeout = null;
+			f(...args);
+		}, delay);
+	};
+}
+
 export default class App extends Component {
 	client = null;
 	state = {
@@ -68,7 +85,9 @@ export default class App extends Component {
 		buffers: new Map(),
 		activeBuffer: null,
 	};
+	pendingHistory = Promise.resolve(null);
 	endOfHistory = new Map();
+	receipts = new Map();
 	buffer = createRef();
 	composer = createRef();
 
@@ -82,6 +101,8 @@ export default class App extends Component {
 		this.handleJoinClick = this.handleJoinClick.bind(this);
 		this.autocomplete = this.autocomplete.bind(this);
 		this.handleBufferScrollTop = this.handleBufferScrollTop.bind(this);
+
+		this.saveReceipts = debounce(this.saveReceipts.bind(this), 500);
 
 		if (window.localStorage && localStorage.getItem("autoconnect")) {
 			var connectParams = JSON.parse(localStorage.getItem("autoconnect"));
@@ -114,6 +135,11 @@ export default class App extends Component {
 			if (params.channels) {
 				this.state.connectParams.autojoin = params.channels.split(",");
 			}
+		}
+
+		if (window.localStorage && localStorage.getItem("receipts")) {
+			var obj = JSON.parse(localStorage.getItem("receipts"));
+			this.receipts = new Map(Object.entries(obj));
 		}
 	}
 
@@ -173,12 +199,52 @@ export default class App extends Component {
 	}
 
 	switchBuffer(name) {
+		// TODO: only mark as read if user scrolled at the bottom
 		this.setBufferState(name, { unread: Unread.NONE });
 		this.setState({ activeBuffer: name }, () => {
 			if (this.composer.current) {
 				this.composer.current.focus();
 			}
+
+			var buf = this.state.buffers.get(name);
+			if (!buf || buf.messages.length == 0) {
+				return;
+			}
+			var lastMsg = buf.messages[buf.messages.length - 1];
+			this.setReceipt(name, ReceiptType.READ, lastMsg);
 		});
+	}
+
+	saveReceipts() {
+		if (window.localStorage) {
+			var obj = Object.fromEntries(this.receipts);
+			localStorage.setItem("receipts", JSON.stringify(obj));
+		}
+	}
+
+	getReceipt(target, type) {
+		var receipts = this.receipts.get(target);
+		if (!receipts) {
+			return undefined;
+		}
+		return receipts[type];
+	}
+
+	hasReceipt(target, type, msg) {
+		var receipt = this.getReceipt(target, type);
+		return receipt && msg.tags.time <= receipt.time;
+	}
+
+	setReceipt(target, type, msg) {
+		var receipt = this.getReceipt(target, type);
+		if (this.hasReceipt(target, type, msg)) {
+			return;
+		}
+		this.receipts.set(target, {
+			...this.receipts.get(target),
+			[type]: { time: msg.tags.time },
+		});
+		this.saveReceipts();
 	}
 
 	addMessage(bufName, msg) {
@@ -192,14 +258,12 @@ export default class App extends Component {
 			msg.tags.time = irc.formatDate(new Date());
 		}
 
-		var isHistory = false;
-		if (msg.tags.batch && this.client.batches.has(msg.tags.batch)) {
-			var batch = this.client.batches.get(msg.tags.batch);
-			isHistory = batch.type == "chathistory";
-		}
+		var isDelivered = this.hasReceipt(bufName, ReceiptType.DELIVERED, msg);
+		var isRead = this.hasReceipt(bufName, ReceiptType.READ, msg);
+		// TODO: messages coming from infinite scroll shouldn't trigger notifications
 
 		var msgUnread = Unread.NONE;
-		if ((msg.command == "PRIVMSG" || msg.command == "NOTICE") && !isHistory) {
+		if ((msg.command == "PRIVMSG" || msg.command == "NOTICE") && !isRead) {
 			var target = msg.params[0];
 			var text = msg.params[1];
 
@@ -214,7 +278,7 @@ export default class App extends Component {
 				msgUnread = Unread.MESSAGE;
 			}
 
-			if (msgUnread == Unread.HIGHLIGHT && window.Notification && Notification.permission === "granted") {
+			if (msgUnread == Unread.HIGHLIGHT && window.Notification && Notification.permission === "granted" && !isDelivered) {
 				var title = "New " + kind + " from " + msg.prefix.name;
 				if (this.isChannel(target)) {
 					title += " in " + target;
@@ -234,16 +298,18 @@ export default class App extends Component {
 			this.createBuffer(bufName);
 		}
 
+		this.setReceipt(bufName, ReceiptType.DELIVERED, msg);
+
 		this.setBufferState(bufName, (buf, state) => {
+			// TODO: set unread if scrolled up
 			var unread = buf.unread;
 			if (state.activeBuffer != buf.name) {
 				unread = Unread.union(unread, msgUnread);
+			} else {
+				this.setReceipt(bufName, ReceiptType.READ, msg);
 			}
 			var messages = insertMessage(buf.messages, msg);
-			return {
-				messages,
-				unread,
-			};
+			return { messages, unread };
 		});
 	}
 
@@ -368,6 +434,17 @@ export default class App extends Component {
 				// TODO: only switch once right after connect
 				this.switchBuffer(channel);
 			}
+
+			var receipt = this.getReceipt(channel, ReceiptType.READ);
+			if (msg.prefix.name == this.client.nick && receipt) {
+				var after = receipt;
+				var before = { time: msg.tags.time || irc.formatDate(new Date()) };
+				this.fetchHistoryBetween(channel, after, before, CHATHISTORY_MAX_SIZE).catch((err) => {
+					console.error("Failed to fetch history:", err);
+					this.receipts.delete(channel);
+					this.saveReceipts();
+				});
+			}
 			break;
 		case "PART":
 			var channel = msg.params[0];
@@ -378,6 +455,11 @@ export default class App extends Component {
 				return { members };
 			});
 			this.addMessage(channel, msg);
+
+			if (msg.prefix.name == this.client.nick) {
+				this.receipts.delete(channel);
+				this.saveReceipts();
+			}
 			break;
 		case "QUIT":
 			var affectedBuffers = [];
@@ -432,21 +514,10 @@ export default class App extends Component {
 				return { who };
 			});
 			break;
-		case "BATCH":
-			var enter = msg.params[0].startsWith("+");
-			var name = msg.params[0].slice(1);
-			if (enter) {
-				break;
-			}
-			var batch = this.client.batches.get(name);
-			if (batch.type == "chathistory") {
-				var target = batch.params[0];
-				this.endOfHistory.set(target, batch.messages.length < CHATHISTORY_PAGE_SIZE);
-			}
-			break;
 		case "CAP":
 		case "AUTHENTICATE":
 		case "PING":
+		case "BATCH":
 			// Ignore these
 			break;
 		default:
@@ -490,15 +561,20 @@ export default class App extends Component {
 			this.client.close();
 			return;
 		}
+
 		if (this.isChannel(target)) {
 			this.client.send({ command: "PART", params: [target] });
 		}
+
 		this.switchBuffer(SERVER_BUFFER);
 		this.setState((state) => {
 			var buffers = new Map(state.buffers);
 			buffers.delete(target);
 			return { buffers };
 		});
+
+		this.receipts.delete(channel);
+		this.saveReceipts();
 	}
 
 	executeCommand(s) {
@@ -598,6 +674,57 @@ export default class App extends Component {
 		return fromList(buf.members.keys(), prefix);
 	}
 
+	roundtripChatHistory(params) {
+		// Don't send multiple CHATHISTORY commands in parallel, we can't
+		// properly handle batches and errors.
+		this.pendingHistory = this.pendingHistory.catch(() => {}).then(() => {
+			var msg = {
+				command: "CHATHISTORY",
+				params,
+			};
+			return this.client.roundtrip(msg, (event) => {
+				var msg = event.detail.message;
+
+				switch (msg.command) {
+				case "BATCH":
+					var enter = msg.params[0].startsWith("+");
+					var name = msg.params[0].slice(1);
+					if (enter) {
+						break;
+					}
+					var batch = this.client.batches.get(name);
+					if (batch.type == "chathistory") {
+						return batch;
+					}
+					break;
+				case "FAIL":
+					if (msg.params[0] == "CHATHISTORY") {
+						throw msg;
+					}
+					break;
+				}
+			});
+		});
+		return this.pendingHistory;
+	}
+
+	/* Fetch history in ascending order */
+	fetchHistoryBetween(target, after, before, limit) {
+		var max = Math.min(limit, CHATHISTORY_PAGE_SIZE);
+		var params = ["AFTER", target, "timestamp=" + after.time, max];
+		return this.roundtripChatHistory(params).then((batch) => {
+			limit -= batch.messages.length;
+			if (limit <= 0) {
+				throw new Error("Cannot fetch all chat history: too many messages");
+			}
+			if (batch.messages.length == max) {
+				// There are still more messages to fetch
+				after.time = batch.messages[batch.messages.length - 1].tags.time;
+				return this.fetchHistoryBetween(target, after, before, limit);
+			}
+		});
+	}
+
 	handleBufferScrollTop() {
 		var target = this.state.activeBuffer;
 		if (!target || target == SERVER_BUFFER) {
@@ -618,14 +745,13 @@ export default class App extends Component {
 			before = irc.formatDate(new Date());
 		}
 
-		this.client.send({
-			command: "CHATHISTORY",
-			params: ["BEFORE", target, "timestamp=" + before, CHATHISTORY_PAGE_SIZE],
-		});
-
-		// Avoids sending multiple CHATHISTORY commands in parallel. The BATCH
-		// end handler will overwrite the value.
+		// Avoids sending multiple CHATHISTORY commands in parallel
 		this.endOfHistory.set(target, true);
+
+		var params = ["BEFORE", target, "timestamp=" + before, CHATHISTORY_PAGE_SIZE];
+		this.roundtripChatHistory(params).then((batch) => {
+			this.endOfHistory.set(target, batch.messages.length < CHATHISTORY_PAGE_SIZE);
+		});
 	}
 
 	componentDidMount() {
