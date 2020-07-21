@@ -45,5 +45,9 @@ export function getBufferURL(buf) {
 
 export function getMessageURL(buf, msg) {
 	var bufURL = getBufferURL(buf);
-	return bufURL + "#timestamp=" + encodeURIComponent(msg.tags.time);
+	if (msg.tags.msgid) {
+		return bufURL + "#msgid=" + encodeURIComponent(msg.tags.msgid);
+	} else {
+		return bufURL + "#timestamp=" + encodeURIComponent(msg.tags.time);
+	}
 }
