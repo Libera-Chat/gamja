@@ -39,6 +39,10 @@ Start your IRC WebSocket server, e.g. on port 8080. Then run:
 This will start a development HTTP server for gamja. Connect to it and append
 `?server=ws://localhost:8080` to the URL.
 
+## Contributing
+
+Send patches on the [mailing list], report bugs on the [issue tracker].
+
 ## License
 
 AGPLv3, see LICENSE.
@@ -48,3 +52,5 @@ Copyright (C) 2020 The gamja Contributors
 [gamja]: https://sr.ht/~emersion/gamja/
 [soju]: https://soju.im
 [webircgateway]: https://github.com/kiwiirc/webircgateway
+[mailing list]: https://lists.sr.ht/~emersion/public-inbox
+[issue tracker]: https://todo.sr.ht/~emersion/gamja
