@@ -27,6 +27,11 @@ export const Unread = {
 	},
 };
 
+export const ReceiptType = {
+	DELIVERED: "delivered",
+	READ: "read",
+};
+
 export function getNickURL(nick) {
 	return "irc:///" + encodeURIComponent(nick) + ",isnick";
 }

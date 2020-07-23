@@ -8,16 +8,12 @@ import Connect from "/components/connect.js";
 import Composer from "/components/composer.js";
 import ScrollManager from "/components/scroll-manager.js";
 import { html, Component, createRef } from "/lib/index.js";
-import { SERVER_BUFFER, BufferType, Status, Unread } from "/state.js";
+import { SERVER_BUFFER, BufferType, ReceiptType, Status, Unread } from "/state.js";
 import commands from "/commands.js";
+import { setup as setupKeybindings } from "/keybindings.js";
 
 const CHATHISTORY_PAGE_SIZE = 100;
 const CHATHISTORY_MAX_SIZE = 4000;
-
-const ReceiptType = {
-	DELIVERED: "delivered",
-	READ: "read",
-};
 
 var messagesCount = 0;
 
@@ -758,6 +754,8 @@ export default class App extends Component {
 		if (this.state.connectParams.autoconnect) {
 			this.connect(this.state.connectParams);
 		}
+
+		setupKeybindings(this);
 	}
 
 	render() {
