@@ -22,6 +22,20 @@ export const keybindings = [
 			});
 		},
 	},
+	{
+		key: "a",
+		altKey: true,
+		description: "Jump to next buffer with activity",
+		execute: (app) => {
+			// TODO: order by priority, then by age
+			for (var buf of app.state.buffers.values()) {
+				if (buf.unread != Unread.NONE) {
+					app.switchBuffer(buf.name);
+					break;
+				}
+			}
+		},
+	},
 ];
 
 export function setup(app) {
