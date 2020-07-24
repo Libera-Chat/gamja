@@ -2,6 +2,8 @@
 
 A bare-bones IRC web client.
 
+![screenshot](https://l.sr.ht/7Npm.png)
+
 ## Usage
 
 Requires an IRC WebSocket server.
