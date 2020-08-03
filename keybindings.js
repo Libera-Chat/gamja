@@ -36,6 +36,39 @@ export const keybindings = [
 			}
 		},
 	},
+	{
+		key: "ArrowUp",
+		altKey: true,
+		description: "Jump to the previous buffer",
+		execute: (app) => {
+			var prev = null;
+			for (var buf of app.state.buffers.values()) {
+				if (app.state.activeBuffer == buf.name) {
+					if (prev) {
+						app.switchBuffer(prev.name);
+					}
+					break;
+				}
+				prev = buf;
+			}
+		},
+	},
+	{
+		key: "ArrowDown",
+		altKey: true,
+		description: "Jump to the next buffer",
+		execute: (app) => {
+			var found = false;
+			for (var buf of app.state.buffers.values()) {
+				if (found) {
+					app.switchBuffer(buf.name);
+					break;
+				} else if (app.state.activeBuffer == buf.name) {
+					found = true;
+				}
+			}
+		},
+	},
 ];
 
 export function setup(app) {
