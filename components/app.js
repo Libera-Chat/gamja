@@ -569,7 +569,7 @@ export default class App extends Component {
 			return { buffers };
 		});
 
-		this.receipts.delete(channel);
+		this.receipts.delete(target);
 		this.saveReceipts();
 	}
 
