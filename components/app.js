@@ -377,6 +377,11 @@ export default class App extends Component {
 			};
 			this.setBufferState(SERVER_BUFFER, { serverInfo });
 			break;
+		case irc.RPL_NOTOPIC:
+			var channel = msg.params[1];
+
+			this.setBufferState(channel, { topic: null });
+			break;
 		case irc.RPL_TOPIC:
 			var channel = msg.params[1];
 			var topic = msg.params[2];
