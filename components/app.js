@@ -64,6 +64,24 @@ function debounce(f, delay) {
 	};
 }
 
+function compareBuffers(a, b) {
+	if (a.type == BufferType.SERVER) {
+		return -1;
+	}
+	if (b.type == BufferType.SERVER) {
+		return 1;
+	}
+
+	if (a.name > b.name) {
+		return -1;
+	}
+	if (a.name < b.name) {
+		return 1;
+	}
+
+	return 0;
+}
+
 export default class App extends Component {
 	client = null;
 	state = {
@@ -178,8 +196,8 @@ export default class App extends Component {
 				type = BufferType.NICK;
 			}
 
-			var buffers = new Map(state.buffers);
-			buffers.set(name, {
+			var bufferList = Array.from(state.buffers.values());
+			bufferList.push({
 				name,
 				type,
 				serverInfo: null, // if server
@@ -190,6 +208,8 @@ export default class App extends Component {
 				messages: [],
 				unread: Unread.NONE,
 			});
+			bufferList = bufferList.sort(compareBuffers);
+			var buffers = new Map(bufferList.map((buf) => [buf.name, buf]));
 			return { buffers };
 		});
 	}

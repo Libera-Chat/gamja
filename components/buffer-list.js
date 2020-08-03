@@ -26,28 +26,11 @@ function BufferItem(props) {
 	`;
 }
 
-function compareBuffers(a, b) {
-	if (a.type == BufferType.SERVER) {
-		return -1;
-	}
-	if (b.type == BufferType.SERVER) {
-		return 1;
-	}
-
-	if (a.name > b.name) {
-		return -1;
-	}
-	if (a.name < b.name) {
-		return 1;
-	}
-
-	return 0;
-}
 
 export default function BufferList(props) {
 	return html`
 		<ul>
-			${Array.from(props.buffers.values()).sort(compareBuffers).map(buf => html`
+			${Array.from(props.buffers.values()).map((buf) => html`
 				<${BufferItem} key=${buf.name} buffer=${buf} onClick=${() => props.onBufferClick(buf.name)} active=${props.activeBuffer == buf.name}/>
 			`)}
 		</ul>
