@@ -1,6 +1,7 @@
 import { html, Component } from "/lib/index.js";
 import linkify from "/lib/linkify.js";
 import * as irc from "/lib/irc.js";
+import { strip as stripANSI } from "/lib/ansi.js";
 import { BufferType, getNickURL, getMessageURL } from "/state.js";
 
 function djb2(s) {
@@ -64,10 +65,10 @@ class LogLine extends Component {
 				var action = text.slice(actionPrefix.length, -1);
 
 				lineClass = "me-tell";
-				content = html`* ${createNick(msg.prefix.name)} ${linkify(action)}`;
+				content = html`* ${createNick(msg.prefix.name)} ${linkify(stripANSI(action))}`;
 			} else {
 				lineClass = "talk";
-				content = html`${"<"}${createNick(msg.prefix.name)}${">"} ${linkify(text)}`;
+				content = html`${"<"}${createNick(msg.prefix.name)}${">"} ${linkify(stripANSI(text))}`;
 			}
 			break;
 		case "JOIN":
@@ -94,7 +95,7 @@ class LogLine extends Component {
 		case "TOPIC":
 			var topic = msg.params[1];
 			content = html`
-				${createNick(msg.prefix.name)} changed the topic to: ${linkify(topic)}
+				${createNick(msg.prefix.name)} changed the topic to: ${linkify(stripANSI(topic))}
 			`;
 			break;
 		default:

@@ -1,5 +1,6 @@
 import { html, Component } from "/lib/index.js";
 import linkify from "/lib/linkify.js";
+import { strip as stripANSI } from "/lib/ansi.js";
 import { BufferType } from "/state.js";
 
 const Status = {
@@ -29,9 +30,11 @@ export default function BufferHeader(props) {
 		var serverInfo = props.buffer.serverInfo;
 		description = `Connected to ${serverInfo.name}`;
 	} else if (props.buffer.topic) {
-		description = linkify(props.buffer.topic);
+		description = linkify(stripANSI(props.buffer.topic));
 	} else if (props.buffer.who) {
 		var who = props.buffer.who;
+
+		var realname = stripANSI(who.realname || "");
 
 		var status = Status.HERE;
 		if (who.away) {
@@ -41,7 +44,7 @@ export default function BufferHeader(props) {
 			status = Status.OFFLINE;
 		}
 
-		description = html`<${NickStatus} status=${status}/> ${who.realname} (${who.username}@${who.hostname})`;
+		description = html`<${NickStatus} status=${status}/> ${realname} (${who.username}@${who.hostname})`;
 	} else if (props.buffer.offline) {
 		// User is offline, but we don't have WHO information
 		description = html`<${NickStatus} status=${Status.OFFLINE}/> ${props.buffer.name}`;
