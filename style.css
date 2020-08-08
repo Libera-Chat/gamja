@@ -234,3 +234,22 @@ details summary {
 #buffer .nick-16 {
 	color: #ec273e;
 }
+
+#error-msg {
+	color: white;
+	background-color: red;
+	position: fixed;
+	bottom: 2rem;
+	right: 0;
+	padding: 0.5rem;
+	margin: 0.5rem;
+}
+
+#error-msg a {
+	color: white;
+	text-decoration: none;
+}
+
+.error-text {
+	color: red;
+}

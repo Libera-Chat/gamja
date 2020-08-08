@@ -140,7 +140,9 @@ export default class Connect extends Component {
 				</details>
 
 				<br/>
-
+				${this.props.error ? html`
+					<p class="error-text">${this.props.error || ""}</p>
+				` : null}
 				<button disabled=${this.props.disabled}>Connect</button>
 			</form>
 		`;

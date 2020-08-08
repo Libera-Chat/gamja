@@ -98,6 +98,7 @@ export default class App extends Component {
 		status: Status.DISCONNECTED,
 		buffers: new Map(),
 		activeBuffer: null,
+		error: null,
 	};
 	pendingHistory = Promise.resolve(null);
 	endOfHistory = new Map();
@@ -115,6 +116,7 @@ export default class App extends Component {
 		this.handleJoinClick = this.handleJoinClick.bind(this);
 		this.autocomplete = this.autocomplete.bind(this);
 		this.handleBufferScrollTop = this.handleBufferScrollTop.bind(this);
+		this.dismissError = this.dismissError.bind(this);
 
 		this.saveReceipts = debounce(this.saveReceipts.bind(this), 500);
 
@@ -155,6 +157,11 @@ export default class App extends Component {
 			var obj = JSON.parse(localStorage.getItem("receipts"));
 			this.receipts = new Map(Object.entries(obj));
 		}
+	}
+
+	dismissError(event) {
+		event.preventDefault();
+		this.setState({ error: null });
 	}
 
 	setBufferState(name, updater, callback) {
@@ -353,6 +360,12 @@ export default class App extends Component {
 			this.handleMessage(event.detail.message);
 		});
 
+		this.client.addEventListener("error", (event) => {
+			this.setState({
+				error: event.detail,
+			});
+		});
+
 		this.createBuffer(SERVER_BUFFER);
 		this.switchBuffer(SERVER_BUFFER);
 	}
@@ -461,7 +474,7 @@ export default class App extends Component {
 				var after = receipt;
 				var before = { time: msg.tags.time || irc.formatDate(new Date()) };
 				this.fetchHistoryBetween(channel, after, before, CHATHISTORY_MAX_SIZE).catch((err) => {
-					console.error("Failed to fetch history:", err);
+					this.setState({ error: "Failed to fetch history: " + err });
 					this.receipts.delete(channel);
 					this.saveReceipts();
 				});
@@ -605,20 +618,20 @@ export default class App extends Component {
 
 		var cmd = commands[name];
 		if (!cmd) {
-			console.error("Unknwon command '" + name + "'");
+			this.setState({ error: "Unknown command '" + name + "'" });
 			return;
 		}
 
 		try {
 			cmd(this, args);
-		} catch (err) {
-			console.error(err);
+		} catch (error) {
+			this.setState({ error });
 		}
 	}
 
 	privmsg(target, text) {
 		if (target == SERVER_BUFFER) {
-			console.error("Cannot send message in server buffer");
+			this.setState({ error: "Cannot send message in server buffer" });
 			return;
 		}
 
@@ -787,7 +800,7 @@ export default class App extends Component {
 		if (this.state.status != Status.REGISTERED) {
 			return html`
 				<section id="connect">
-					<${Connect} params=${this.state.connectParams} disabled=${this.state.status != Status.DISCONNECTED} onSubmit=${this.handleConnectSubmit}/>
+					<${Connect} error=${this.state.error} params=${this.state.connectParams} disabled=${this.state.status != Status.DISCONNECTED} onSubmit=${this.handleConnectSubmit}/>
 				</section>
 			`;
 		}
@@ -833,6 +846,9 @@ export default class App extends Component {
 			</>
 			${memberList}
 			<${Composer} ref=${this.composer} readOnly=${this.state.activeBuffer == SERVER_BUFFER} onSubmit=${this.handleComposerSubmit} autocomplete=${this.autocomplete}/>
+			${this.state.error ? html`
+				<p id="error-msg">${this.state.error} <a href="#" onClick=${this.dismissError}>×</a></p>
+			` : null}
 		`;
 	}
 }
