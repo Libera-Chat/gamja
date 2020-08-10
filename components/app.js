@@ -560,6 +560,8 @@ export default class App extends Component {
 	}
 
 	handleConnectSubmit(connectParams) {
+		this.setState({ error: null });
+
 		if (window.localStorage) {
 			if (connectParams.autoconnect) {
 				localStorage.setItem("autoconnect", JSON.stringify(connectParams));
