@@ -161,6 +161,33 @@ class NotificationNagger extends Component {
 	}
 }
 
+class DateSeparator extends Component {
+	constructor(props) {
+		super(props);
+	}
+
+	shouldComponentUpdate(nextProps) {
+		return this.props.date.getTime() !== nextProps.date.getTime();
+	}
+
+	render() {
+		var date = this.props.date;
+		var YYYY = date.getFullYear().toString().padStart(4, "0");
+		var MM = (date.getMonth() + 1).toString().padStart(2, "0");
+		var DD = date.getDate().toString().padStart(2, "0");
+		var text = `${YYYY}-${MM}-${DD}`;
+		return html`
+			<div class="date-separator">
+				${text}
+			</div>
+		`;
+	}
+}
+
+function sameDate(d1, d2) {
+	return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
+}
+
 export default class Buffer extends Component {
 	shouldComponentUpdate(nextProps) {
 		return this.props.buffer !== nextProps.buffer;
@@ -171,17 +198,27 @@ export default class Buffer extends Component {
 			return null;
 		}
 
-		var notifNagger = null;
+		var children = [];
 		if (this.props.buffer.type == BufferType.SERVER) {
-			notifNagger = html`<${NotificationNagger}/>`;
+			children.push(html`<${NotificationNagger}/>`);
 		}
+
+		var prevDate = new Date();
+		this.props.buffer.messages.forEach((msg) => {
+			var date = new Date(msg.tags.time);
+			if (!sameDate(prevDate, date)) {
+				children.push(html`<${DateSeparator} key=${"date-" + date} date=${date}/>`);
+			}
+			prevDate = date;
+
+			children.push(html`
+				<${LogLine} key=${"msg-" + msg.key} message=${msg} buffer=${this.props.buffer} onNickClick=${this.props.onNickClick}/>
+			`);
+		});
 
 		return html`
 			<div class="logline-list">
-				${notifNagger}
-				${this.props.buffer.messages.map((msg) => html`
-					<${LogLine} key=${msg.key} message=${msg} buffer=${this.props.buffer} onNickClick=${this.props.onNickClick}/>
-				`)}
+				${children}
 			</div>
 		`;
 	}

@@ -239,6 +239,17 @@ details summary {
 	color: #ec273e;
 }
 
+#buffer .date-separator {
+	display: flex;
+	align-items: center;
+	text-align: center;
+}
+#buffer .date-separator::before, #buffer .date-separator::after {
+	content: "";
+	flex: 1;
+	border-bottom: 1px solid #ddd;
+}
+
 #error-msg {
 	color: white;
 	background-color: red;
