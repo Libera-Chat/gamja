@@ -304,7 +304,7 @@ export default class App extends Component {
 				msgUnread = Unread.MESSAGE;
 			}
 
-			if (msgUnread == Unread.HIGHLIGHT && window.Notification && Notification.permission === "granted" && !isDelivered) {
+			if (msgUnread == Unread.HIGHLIGHT && window.Notification && Notification.permission === "granted" && !isDelivered && !irc.parseCTCP(msg)) {
 				var title = "New " + kind + " from " + msg.prefix.name;
 				if (this.isChannel(target)) {
 					title += " in " + target;

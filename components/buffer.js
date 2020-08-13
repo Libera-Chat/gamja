@@ -60,12 +60,16 @@ class LogLine extends Component {
 		case "PRIVMSG":
 			var text = msg.params[1];
 
-			var actionPrefix = "\x01ACTION ";
-			if (text.startsWith(actionPrefix) && text.endsWith("\x01")) {
-				var action = text.slice(actionPrefix.length, -1);
-
-				lineClass = "me-tell";
-				content = html`* ${createNick(msg.prefix.name)} ${linkify(stripANSI(action))}`;
+			var ctcp = irc.parseCTCP(msg);
+			if (ctcp) {
+				if (ctcp.command == "ACTION") {
+					lineClass = "me-tell";
+					content = html`* ${createNick(msg.prefix.name)} ${linkify(stripANSI(ctcp.param))}`;
+				} else {
+					content = html`
+						${createNick(msg.prefix.name)} has sent a CTCP command: ${ctcp.command} ${ctcp.param}
+					`;
+				}
 			} else {
 				lineClass = "talk";
 				content = html`${"<"}${createNick(msg.prefix.name)}${">"} ${linkify(stripANSI(text))}`;
