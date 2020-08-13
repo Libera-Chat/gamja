@@ -65,6 +65,11 @@ export default {
 		var newNick = args[0];
 		app.client.send({ command: "NICK", params: [newNick] });
 	},
+	"notice": (app, args) => {
+		var target = args[0];
+		var text = args.slice(1).join(" ");
+		app.client.send({ command: "NOTICE", params: [target, text] });
+	},
 	"buffer": (app, args) => {
 		var name = args[0];
 		if (!app.state.buffers.has(name)) {
