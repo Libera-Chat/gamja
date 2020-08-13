@@ -274,6 +274,8 @@ export default class App extends Component {
 		msg.key = messagesCount;
 		messagesCount++;
 
+		msg.isHighlight = irc.isHighlight(msg, this.client.nick);
+
 		if (!msg.tags) {
 			msg.tags = {};
 		}
@@ -291,7 +293,7 @@ export default class App extends Component {
 			var text = msg.params[1];
 
 			var kind;
-			if (irc.isHighlight(msg, this.client.nick)) {
+			if (msg.isHighlight) {
 				msgUnread = Unread.HIGHLIGHT;
 				kind = "highlight";
 			} else if (target == this.client.nick) {

@@ -70,6 +70,10 @@ class LogLine extends Component {
 				lineClass = "talk";
 				content = html`${"<"}${createNick(msg.prefix.name)}${">"} ${linkify(stripANSI(text))}`;
 			}
+
+			if (msg.isHighlight) {
+				lineClass += " highlight";
+			}
 			break;
 		case "JOIN":
 			content = html`
