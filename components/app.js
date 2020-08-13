@@ -472,7 +472,7 @@ export default class App extends Component {
 			}
 
 			var receipt = this.getReceipt(channel, ReceiptType.READ);
-			if (msg.prefix.name == this.client.nick && receipt) {
+			if (msg.prefix.name == this.client.nick && receipt && this.client.enabledCaps["draft/chathistory"] && this.client.enabledCaps["server-time"]) {
 				var after = receipt;
 				var before = { time: msg.tags.time || irc.formatDate(new Date()) };
 				this.fetchHistoryBetween(channel, after, before, CHATHISTORY_MAX_SIZE).catch((err) => {
