@@ -8,6 +8,7 @@ import Connect from "/components/connect.js";
 import Composer from "/components/composer.js";
 import ScrollManager from "/components/scroll-manager.js";
 import { html, Component, createRef } from "/lib/index.js";
+import { strip as stripANSI } from "/lib/ansi.js";
 import { SERVER_BUFFER, BufferType, ReceiptType, Status, Unread } from "/state.js";
 import commands from "/commands.js";
 import { setup as setupKeybindings } from "/keybindings.js";
@@ -309,7 +310,7 @@ export default class App extends Component {
 					title += " in " + target;
 				}
 				var notif = new Notification(title, {
-					body: text,
+					body: stripANSI(text),
 					requireInteraction: true,
 				});
 				notif.addEventListener("click", () => {
