@@ -1,4 +1,4 @@
-import { ReceiptType, Unread } from "/state.js";
+import { ReceiptType, Unread, SERVER_BUFFER } from "/state.js";
 
 export const keybindings = [
 	{
@@ -28,12 +28,14 @@ export const keybindings = [
 		description: "Jump to next buffer with activity",
 		execute: (app) => {
 			// TODO: order by priority, then by age
+			var target = SERVER_BUFFER;
 			for (var buf of app.state.buffers.values()) {
 				if (buf.unread != Unread.NONE) {
-					app.switchBuffer(buf.name);
+					target = buf.name;
 					break;
 				}
 			}
+			app.switchBuffer(target);
 		},
 	},
 	{
