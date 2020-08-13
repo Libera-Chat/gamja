@@ -291,7 +291,7 @@ export default class App extends Component {
 			var text = msg.params[1];
 
 			var kind;
-			if (msg.prefix.name != this.client.nick && irc.isHighlight(text, this.client.nick)) {
+			if (irc.isHighlight(msg, this.client.nick)) {
 				msgUnread = Unread.HIGHLIGHT;
 				kind = "highlight";
 			} else if (target == this.client.nick) {
