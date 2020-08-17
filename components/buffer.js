@@ -72,7 +72,11 @@ class LogLine extends Component {
 				}
 			} else {
 				lineClass = "talk";
-				content = html`${"<"}${createNick(msg.prefix.name)}${">"} ${linkify(stripANSI(text))}`;
+				var prefix = "<", suffix = ">";
+				if (msg.command == "NOTICE") {
+					prefix = suffix = "-";
+				}
+				content = html`${prefix}${createNick(msg.prefix.name)}${suffix} ${linkify(stripANSI(text))}`;
 			}
 
 			if (msg.isHighlight) {
