@@ -404,6 +404,9 @@ export default class App extends Component {
 
 			this.setBufferState(channel, { topic });
 			break;
+		case irc.RPL_TOPICWHOTIME:
+			// Ignore
+			break;
 		case irc.RPL_NAMREPLY:
 			var channel = msg.params[2];
 			var membersList = msg.params[3].split(" ");
