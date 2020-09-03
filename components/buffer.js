@@ -181,11 +181,15 @@ class DateSeparator extends Component {
 		var DD = date.getDate().toString().padStart(2, "0");
 		var text = `${YYYY}-${MM}-${DD}`;
 		return html`
-			<div class="date-separator">
+			<div class="separator date-separator">
 				${text}
 			</div>
 		`;
 	}
+}
+
+function UnreadSeparator(props) {
+	return html`<div class="separator unread-separator">New messages</div>`;
 }
 
 function sameDate(d1, d2) {
@@ -198,17 +202,24 @@ export default class Buffer extends Component {
 	}
 
 	render() {
-		if (!this.props.buffer) {
+		var buf = this.props.buffer;
+		if (!buf) {
 			return null;
 		}
 
 		var children = [];
-		if (this.props.buffer.type == BufferType.SERVER) {
+		if (buf.type == BufferType.SERVER) {
 			children.push(html`<${NotificationNagger}/>`);
 		}
 
+		var hasUnreadSeparator = false;
 		var prevDate = new Date();
-		this.props.buffer.messages.forEach((msg) => {
+		buf.messages.forEach((msg) => {
+			if (!hasUnreadSeparator && buf.type != BufferType.SERVER && buf.lastReadReceipt && msg.tags.time > buf.lastReadReceipt.time) {
+				children.push(html`<${UnreadSeparator} key="unread"/>`);
+				hasUnreadSeparator = true;
+			}
+
 			var date = new Date(msg.tags.time);
 			if (!sameDate(prevDate, date)) {
 				children.push(html`<${DateSeparator} key=${"date-" + date} date=${date}/>`);
@@ -216,7 +227,7 @@ export default class Buffer extends Component {
 			prevDate = date;
 
 			children.push(html`
-				<${LogLine} key=${"msg-" + msg.key} message=${msg} buffer=${this.props.buffer} onNickClick=${this.props.onNickClick}/>
+				<${LogLine} key=${"msg-" + msg.key} message=${msg} buffer=${buf} onNickClick=${this.props.onNickClick}/>
 			`);
 		});
 

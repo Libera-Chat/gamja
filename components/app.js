@@ -223,8 +223,12 @@ export default class App extends Component {
 	}
 
 	switchBuffer(name) {
+		var lastReadReceipt = this.getReceipt(name, ReceiptType.READ);
 		// TODO: only mark as read if user scrolled at the bottom
-		this.setBufferState(name, { unread: Unread.NONE });
+		this.setBufferState(name, {
+			unread: Unread.NONE,
+			lastReadReceipt,
+		});
 		this.setState({ activeBuffer: name }, () => {
 			if (this.composer.current) {
 				this.composer.current.focus();
@@ -329,13 +333,15 @@ export default class App extends Component {
 		this.setBufferState(bufName, (buf, state) => {
 			// TODO: set unread if scrolled up
 			var unread = buf.unread;
+			var lastReadReceipt = buf.lastReadReceipt;
 			if (state.activeBuffer != buf.name) {
 				unread = Unread.union(unread, msgUnread);
 			} else {
 				this.setReceipt(bufName, ReceiptType.READ, msg);
+				lastReadReceipt = this.getReceipt(bufName, ReceiptType.READ);
 			}
 			var messages = insertMessage(buf.messages, msg);
-			return { messages, unread };
+			return { messages, unread, lastReadReceipt };
 		});
 	}
 

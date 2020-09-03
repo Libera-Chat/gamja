@@ -239,15 +239,29 @@ details summary {
 	color: #ec273e;
 }
 
-#buffer .date-separator {
+#buffer .separator {
 	display: flex;
 	align-items: center;
 	text-align: center;
+	text-transform: lowercase;
+	font-variant: small-caps;
 }
-#buffer .date-separator::before, #buffer .date-separator::after {
+#buffer .separator::before, #buffer .separator::after {
 	content: "";
 	flex: 1;
-	border-bottom: 1px solid #ddd;
+	border-bottom: 1px solid transparent;
+}
+#buffer .date-separator {
+	color: #ddd;
+}
+#buffer .date-separator::before, #buffer .date-separator::after {
+	border-color: #ddd;
+}
+#buffer .unread-separator {
+	color: #ff3535;
+}
+#buffer .unread-separator::before, #buffer .unread-separator::after {
+	border-color: #ff3535;
 }
 
 #error-msg {
