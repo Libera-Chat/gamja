@@ -27,6 +27,7 @@ export default function BufferHeader(props) {
 
 	var description = null;
 	if (props.buffer.serverInfo) {
+		// TODO: print current connection status
 		var serverInfo = props.buffer.serverInfo;
 		description = `Connected to ${serverInfo.name}`;
 	} else if (props.buffer.topic) {

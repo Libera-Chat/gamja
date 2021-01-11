@@ -12,7 +12,7 @@ export default {
 		if (window.localStorage) {
 			localStorage.removeItem("autoconnect");
 		}
-		app.client.close();
+		app.close(SERVER_BUFFER);
 	},
 	"query": (app, args) => {
 		var nick = args[0];

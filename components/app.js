@@ -15,6 +15,7 @@ import { setup as setupKeybindings } from "/keybindings.js";
 
 const CHATHISTORY_PAGE_SIZE = 100;
 const CHATHISTORY_MAX_SIZE = 4000;
+const RECONNECT_DELAY_SEC = 10;
 
 var messagesCount = 0;
 
@@ -358,10 +359,16 @@ export default class App extends Component {
 		});
 
 		this.client.addEventListener("close", () => {
-			this.setState({
-				status: Status.DISCONNECTED,
-				buffers: new Map(),
-				activeBuffer: null,
+			this.setState((state) => {
+				if (state.status == Status.DISCONNECTED) {
+					// User decided to logout
+					return null;
+				}
+				console.log("Reconnecting to server in " + RECONNECT_DELAY_SEC + " seconds");
+				setTimeout(() => {
+					this.connect(params);
+				}, RECONNECT_DELAY_SEC * 1000);
+				return { status: Status.DISCONNECTED };
 			});
 		});
 
@@ -606,6 +613,11 @@ export default class App extends Component {
 
 	close(target) {
 		if (target == SERVER_BUFFER) {
+			this.setState({
+				status: Status.DISCONNECTED,
+				buffers: new Map(),
+				activeBuffer: null,
+			});
 			this.client.close();
 			return;
 		}
@@ -811,7 +823,7 @@ export default class App extends Component {
 	}
 
 	render() {
-		if (this.state.status != Status.REGISTERED) {
+		if (this.state.status != Status.REGISTERED && !this.state.activeBuffer) {
 			return html`
 				<section id="connect">
 					<${Connect} error=${this.state.error} params=${this.state.connectParams} disabled=${this.state.status != Status.DISCONNECTED} onSubmit=${this.handleConnectSubmit}/>
