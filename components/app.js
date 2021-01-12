@@ -107,10 +107,12 @@ export default class App extends Component {
 	receipts = new Map();
 	buffer = createRef();
 	composer = createRef();
+	reconnectTimeoutID = null;
 
 	constructor(props) {
 		super(props);
 
+		this.handleClose = this.handleClose.bind(this);
 		this.handleConnectSubmit = this.handleConnectSubmit.bind(this);
 		this.handleBufferListClick = this.handleBufferListClick.bind(this);
 		this.handleComposerSubmit = this.handleComposerSubmit.bind(this);
@@ -347,6 +349,8 @@ export default class App extends Component {
 	}
 
 	connect(params) {
+		this.disconnect();
+
 		this.setState({ status: Status.CONNECTING, connectParams: params });
 
 		this.client = new Client({
@@ -358,19 +362,7 @@ export default class App extends Component {
 			saslPlain: params.saslPlain,
 		});
 
-		this.client.addEventListener("close", () => {
-			this.setState((state) => {
-				if (state.status == Status.DISCONNECTED) {
-					// User decided to logout
-					return null;
-				}
-				console.log("Reconnecting to server in " + RECONNECT_DELAY_SEC + " seconds");
-				setTimeout(() => {
-					this.connect(params);
-				}, RECONNECT_DELAY_SEC * 1000);
-				return { status: Status.DISCONNECTED };
-			});
-		});
+		this.client.addEventListener("close", this.handleClose);
 
 		this.client.addEventListener("message", (event) => {
 			this.handleMessage(event.detail.message);
@@ -384,6 +376,38 @@ export default class App extends Component {
 
 		this.createBuffer(SERVER_BUFFER);
 		this.switchBuffer(SERVER_BUFFER);
+	}
+
+	handleClose() {
+		this.setState((state) => {
+			if (state.status == Status.DISCONNECTED) {
+				// User decided to logout
+				return null;
+			}
+			console.log("Reconnecting to server in " + RECONNECT_DELAY_SEC + " seconds");
+			clearTimeout(this.reconnectTimeoutID);
+			this.reconnectTimeoutID = setTimeout(() => {
+				this.connect(this.state.connectParams);
+			}, RECONNECT_DELAY_SEC * 1000);
+			return { status: Status.DISCONNECTED };
+		});
+	}
+
+	disconnect() {
+		clearTimeout(this.reconnectTimeoutID);
+		this.reconnectTimeoutID = null;
+
+		if (this.client) {
+			// Prevent auto-reconnect from kicking in
+			this.client.removeEventListener("close", this.handleClose);
+			this.client.close();
+		}
+
+		this.setState({ status: Status.DISCONNECTED });
+	}
+
+	reconnect() {
+		this.connect(this.state.connectParams);
 	}
 
 	handleMessage(msg) {
@@ -614,11 +638,10 @@ export default class App extends Component {
 	close(target) {
 		if (target == SERVER_BUFFER) {
 			this.setState({
-				status: Status.DISCONNECTED,
 				buffers: new Map(),
 				activeBuffer: null,
 			});
-			this.client.close();
+			this.disconnect();
 			return;
 		}
 
