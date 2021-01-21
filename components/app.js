@@ -17,6 +17,8 @@ const CHATHISTORY_PAGE_SIZE = 100;
 const CHATHISTORY_MAX_SIZE = 4000;
 const RECONNECT_DELAY_SEC = 10;
 
+const DEFAULT_NETWORK = "network"; // TODO: remove this global
+
 var messagesCount = 0;
 
 function parseQueryString() {
@@ -84,6 +86,19 @@ function compareBuffers(a, b) {
 	return 0;
 }
 
+function updateState(state, updater) {
+	var updated;
+	if (typeof updater === "function") {
+		updated = updater(state, state);
+	} else {
+		updated = updater;
+	}
+	if (state === updated || !updated) {
+		return;
+	}
+	return { ...state, ...updated };
+}
+
 export default class App extends Component {
 	client = null;
 	state = {
@@ -98,7 +113,9 @@ export default class App extends Component {
 			autojoin: [],
 		},
 		status: Status.DISCONNECTED,
+		networks: new Map(),
 		buffers: new Map(),
+		activeNetwork: DEFAULT_NETWORK,
 		activeBuffer: null,
 		error: null,
 	};
@@ -112,7 +129,6 @@ export default class App extends Component {
 	constructor(props) {
 		super(props);
 
-		this.handleClose = this.handleClose.bind(this);
 		this.handleConnectSubmit = this.handleConnectSubmit.bind(this);
 		this.handleBufferListClick = this.handleBufferListClick.bind(this);
 		this.handleComposerSubmit = this.handleComposerSubmit.bind(this);
@@ -168,6 +184,21 @@ export default class App extends Component {
 		this.setState({ error: null });
 	}
 
+	setNetworkState(id, updater, callback) {
+		this.setState((state) => {
+			var net = state.networks.get(id);
+			if (!net) {
+				return;
+			}
+
+			var updated = updateState(net, updater);
+
+			var networks = new Map(state.networks);
+			networks.set(id, updated);
+			return { networks };
+		}, callback);
+	}
+
 	setBufferState(name, updater, callback) {
 		this.setState((state) => {
 			var buf = state.buffers.get(name);
@@ -175,16 +206,7 @@ export default class App extends Component {
 				return;
 			}
 
-			var updated;
-			if (typeof updater === "function") {
-				updated = updater(buf, state);
-			} else {
-				updated = updater;
-			}
-			if (buf === updated || !updated) {
-				return;
-			}
-			updated = { ...buf, ...updated };
+			var updated = updateState(buf, updater);
 
 			var buffers = new Map(state.buffers);
 			buffers.set(name, updated);
@@ -348,10 +370,18 @@ export default class App extends Component {
 		});
 	}
 
-	connect(params) {
-		this.disconnect();
+	connect(netID, params) {
+		this.disconnect(netID);
 
-		this.setState({ status: Status.CONNECTING, connectParams: params });
+		this.setState((state) => {
+			var networks = new Map(state.networks);
+			networks.set(netID, {
+				id: netID,
+				status: Status.CONNECTING,
+			});
+			return { networks };
+		});
+		this.setState({ connectParams: params });
 
 		this.client = new Client({
 			url: params.serverURL,
@@ -362,10 +392,12 @@ export default class App extends Component {
 			saslPlain: params.saslPlain,
 		});
 
-		this.client.addEventListener("close", this.handleClose);
+		this.client.addEventListener("close", () => {
+			this.handleClose(netID);
+		});
 
 		this.client.addEventListener("message", (event) => {
-			this.handleMessage(event.detail.message);
+			this.handleMessage(netID, event.detail.message);
 		});
 
 		this.client.addEventListener("error", (event) => {
@@ -378,8 +410,8 @@ export default class App extends Component {
 		this.switchBuffer(SERVER_BUFFER);
 	}
 
-	handleClose() {
-		this.setState((state) => {
+	handleClose(netID) {
+		this.setNetworkState(netID, (state) => {
 			if (state.status == Status.DISCONNECTED) {
 				// User decided to logout
 				return null;
@@ -387,13 +419,13 @@ export default class App extends Component {
 			console.log("Reconnecting to server in " + RECONNECT_DELAY_SEC + " seconds");
 			clearTimeout(this.reconnectTimeoutID);
 			this.reconnectTimeoutID = setTimeout(() => {
-				this.connect(this.state.connectParams);
+				this.connect(netID, this.state.connectParams);
 			}, RECONNECT_DELAY_SEC * 1000);
 			return { status: Status.DISCONNECTED };
 		});
 	}
 
-	disconnect() {
+	disconnect(netID) {
 		clearTimeout(this.reconnectTimeoutID);
 		this.reconnectTimeoutID = null;
 
@@ -403,17 +435,17 @@ export default class App extends Component {
 			this.client.close();
 		}
 
-		this.setState({ status: Status.DISCONNECTED });
+		this.setNetworkState(netID, { status: Status.DISCONNECTED });
 	}
 
-	reconnect() {
-		this.connect(this.state.connectParams);
+	reconnect(netID) {
+		this.connect(netID, this.state.connectParams);
 	}
 
-	handleMessage(msg) {
+	handleMessage(netID, msg) {
 		switch (msg.command) {
 		case irc.RPL_WELCOME:
-			this.setState({ status: Status.REGISTERED });
+			this.setNetworkState(netID, { status: Status.REGISTERED });
 
 			if (this.state.connectParams.autojoin.length > 0) {
 				this.client.send({
@@ -613,7 +645,7 @@ export default class App extends Component {
 			}
 		}
 
-		this.connect(connectParams);
+		this.connect(DEFAULT_NETWORK, connectParams);
 	}
 
 	handleNickClick(nick) {
@@ -641,7 +673,7 @@ export default class App extends Component {
 				buffers: new Map(),
 				activeBuffer: null,
 			});
-			this.disconnect();
+			this.disconnect(DEFAULT_NETWORK);
 			return;
 		}
 
@@ -839,24 +871,29 @@ export default class App extends Component {
 
 	componentDidMount() {
 		if (this.state.connectParams.autoconnect) {
-			this.connect(this.state.connectParams);
+			this.connect(DEFAULT_NETWORK, this.state.connectParams);
 		}
 
 		setupKeybindings(this);
 	}
 
 	render() {
-		if (this.state.status != Status.REGISTERED && !this.state.activeBuffer) {
-			return html`
-				<section id="connect">
-					<${Connect} error=${this.state.error} params=${this.state.connectParams} disabled=${this.state.status != Status.DISCONNECTED} onSubmit=${this.handleConnectSubmit}/>
-				</section>
-			`;
+		var activeNetwork = null;
+		if (this.state.activeNetwork) {
+			activeNetwork = this.state.networks.get(this.state.activeNetwork);
 		}
 
 		var activeBuffer = null;
 		if (this.state.activeBuffer) {
 			activeBuffer = this.state.buffers.get(this.state.activeBuffer);
+		}
+
+		if (!activeNetwork || (activeNetwork.status != Status.REGISTERED && !activeBuffer)) {
+			return html`
+				<section id="connect">
+					<${Connect} error=${this.state.error} params=${this.state.connectParams} disabled=${this.state.status != Status.DISCONNECTED} onSubmit=${this.handleConnectSubmit}/>
+				</section>
+			`;
 		}
 
 		var bufferHeader = null;
