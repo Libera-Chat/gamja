@@ -99,16 +99,24 @@ function updateState(state, updater) {
 	return { ...state, ...updated };
 }
 
-function getBuffer(state, network, name) {
-	if (!network) {
-		network = state.activeNetwork;
-	}
-	for (var buf of state.buffers.values()) {
-		if (buf.network === network && buf.name === name) {
-			return buf;
+function getBuffer(state, id) {
+	switch (typeof id) {
+	case "number":
+		return state.buffers.get(id);
+	case "object":
+		var network = id.network, name = id.name;
+		if (!network) {
+			network = state.activeNetwork;
 		}
+		for (var buf of state.buffers.values()) {
+			if (buf.network === network && buf.name === name) {
+				return buf;
+			}
+		}
+		return null;
+	default:
+		throw new Error("Invalid buffer ID type: " + (typeof id));
 	}
-	return null;
 }
 
 export default class App extends Component {
@@ -217,17 +225,7 @@ export default class App extends Component {
 
 	setBufferState(id, updater, callback) {
 		this.setState((state) => {
-			var buf;
-			switch (typeof id) {
-			case "object":
-				buf = getBuffer(state, id.network, id.name);
-				break;
-			case "number":
-				buf = state.buffers.get(id);
-				break;
-			default:
-				throw new Error("Invalid buffer ID type: " + (typeof id));
-			}
+			var buf = getBuffer(state, id);
 			if (!buf) {
 				return;
 			}
@@ -246,7 +244,7 @@ export default class App extends Component {
 	createBuffer(netID, name, callback) {
 		var id = null;
 		this.setState((state) => {
-			if (getBuffer(state, netID, name)) {
+			if (getBuffer(state, { network: netID, name })) {
 				return;
 			}
 
@@ -295,7 +293,7 @@ export default class App extends Component {
 		});
 		var buf;
 		this.setState((state) => {
-			buf = getBuffer(state, null, name);
+			buf = getBuffer(state, { name });
 			if (!buf) {
 				return;
 			}
