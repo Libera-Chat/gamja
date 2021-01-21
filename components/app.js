@@ -99,6 +99,18 @@ function updateState(state, updater) {
 	return { ...state, ...updated };
 }
 
+function getBuffer(state, network, name) {
+	if (!network) {
+		network = state.activeNetwork;
+	}
+	for (var buf of state.buffers.values()) {
+		if (buf.network === network && buf.name === name) {
+			return buf;
+		}
+	}
+	return null;
+}
+
 export default class App extends Component {
 	client = null;
 	state = {
@@ -125,6 +137,7 @@ export default class App extends Component {
 	buffer = createRef();
 	composer = createRef();
 	reconnectTimeoutID = null;
+	lastBufferID = 0;
 
 	constructor(props) {
 		super(props);
@@ -192,6 +205,9 @@ export default class App extends Component {
 			}
 
 			var updated = updateState(net, updater);
+			if (!updated) {
+				return;
+			}
 
 			var networks = new Map(state.networks);
 			networks.set(id, updated);
@@ -199,26 +215,43 @@ export default class App extends Component {
 		}, callback);
 	}
 
-	setBufferState(name, updater, callback) {
+	setBufferState(id, updater, callback) {
 		this.setState((state) => {
-			var buf = state.buffers.get(name);
+			var buf;
+			switch (typeof id) {
+			case "object":
+				buf = getBuffer(state, id.network, id.name);
+				break;
+			case "number":
+				buf = state.buffers.get(id);
+				break;
+			default:
+				throw new Error("Invalid buffer ID type: " + (typeof id));
+			}
 			if (!buf) {
 				return;
 			}
 
 			var updated = updateState(buf, updater);
+			if (!updated) {
+				return;
+			}
 
 			var buffers = new Map(state.buffers);
-			buffers.set(name, updated);
+			buffers.set(buf.id, updated);
 			return { buffers };
 		}, callback);
 	}
 
-	createBuffer(netID, name) {
+	createBuffer(netID, name, callback) {
+		var id = null;
 		this.setState((state) => {
-			if (state.buffers.get(name)) {
+			if (getBuffer(state, netID, name)) {
 				return;
 			}
+
+			this.lastBufferID++;
+			id = this.lastBufferID;
 
 			var type;
 			if (name == SERVER_BUFFER) {
@@ -231,6 +264,7 @@ export default class App extends Component {
 
 			var bufferList = Array.from(state.buffers.values());
 			bufferList.push({
+				id,
 				name,
 				type,
 				network: netID,
@@ -243,24 +277,34 @@ export default class App extends Component {
 				unread: Unread.NONE,
 			});
 			bufferList = bufferList.sort(compareBuffers);
-			var buffers = new Map(bufferList.map((buf) => [buf.name, buf]));
+			var buffers = new Map(bufferList.map((buf) => [buf.id, buf]));
 			return { buffers };
+		}, () => {
+			if (callback) {
+				callback(id);
+			}
 		});
 	}
 
 	switchBuffer(name) {
 		var lastReadReceipt = this.getReceipt(name, ReceiptType.READ);
 		// TODO: only mark as read if user scrolled at the bottom
-		this.setBufferState(name, {
+		this.setBufferState({ name }, {
 			unread: Unread.NONE,
 			lastReadReceipt,
 		});
-		this.setState({ activeBuffer: name }, () => {
+		var buf;
+		this.setState((state) => {
+			buf = getBuffer(state, null, name);
+			if (!buf) {
+				return;
+			}
+			return { activeBuffer: buf.id };
+		}, () => {
 			if (this.composer.current) {
 				this.composer.current.focus();
 			}
 
-			var buf = this.state.buffers.get(name);
 			if (!buf || buf.messages.length == 0) {
 				return;
 			}
@@ -356,11 +400,11 @@ export default class App extends Component {
 
 		this.setReceipt(bufName, ReceiptType.DELIVERED, msg);
 
-		this.setBufferState(bufName, (buf, state) => {
+		this.setBufferState({ network: netID, name: bufName}, (buf, state) => {
 			// TODO: set unread if scrolled up
 			var unread = buf.unread;
 			var lastReadReceipt = buf.lastReadReceipt;
-			if (state.activeBuffer != buf.name) {
+			if (state.activeBuffer != buf.id) {
 				unread = Unread.union(unread, msgUnread);
 			} else {
 				this.setReceipt(bufName, ReceiptType.READ, msg);
@@ -461,18 +505,18 @@ export default class App extends Component {
 				name: msg.params[1],
 				version: msg.params[2],
 			};
-			this.setBufferState(SERVER_BUFFER, { serverInfo });
+			this.setBufferState({ network: netID, name: SERVER_BUFFER}, { serverInfo });
 			break;
 		case irc.RPL_NOTOPIC:
 			var channel = msg.params[1];
 
-			this.setBufferState(channel, { topic: null });
+			this.setBufferState({ network: netID, name: channel}, { topic: null });
 			break;
 		case irc.RPL_TOPIC:
 			var channel = msg.params[1];
 			var topic = msg.params[2];
 
-			this.setBufferState(channel, { topic });
+			this.setBufferState({ network: netID, name: channel}, { topic });
 			break;
 		case irc.RPL_TOPICWHOTIME:
 			// Ignore
@@ -481,7 +525,7 @@ export default class App extends Component {
 			var channel = msg.params[2];
 			var membersList = msg.params[3].split(" ");
 
-			this.setBufferState(channel, (buf) => {
+			this.setBufferState({ network: netID, name: channel}, (buf) => {
 				var members = new Map(buf.members);
 				membersList.forEach((s) => {
 					var member = irc.parseMembership(s);
@@ -504,13 +548,13 @@ export default class App extends Component {
 				realname: last.slice(last.indexOf(" ") + 1),
 			};
 
-			this.setBufferState(who.nick, { who, offline: false });
+			this.setBufferState({ network: netID, name: who.nick}, { who, offline: false });
 			break;
 		case irc.RPL_ENDOFWHO:
 			var target = msg.params[1];
 			if (!this.isChannel(target) && target.indexOf("*") < 0) {
 				// Not a channel nor a mask, likely a nick
-				this.setBufferState(target, (buf) => {
+				this.setBufferState({ network: netID, name: target}, (buf) => {
 					// TODO: mark user offline if we have old WHO info but this
 					// WHO reply is empty
 					if (buf.who) {
@@ -532,7 +576,7 @@ export default class App extends Component {
 			var channel = msg.params[0];
 
 			this.createBuffer(netID, channel);
-			this.setBufferState(channel, (buf) => {
+			this.setBufferState({ network: netID, name: channel}, (buf) => {
 				var members = new Map(buf.members);
 				members.set(msg.prefix.name, null);
 				return { members };
@@ -559,7 +603,7 @@ export default class App extends Component {
 		case "PART":
 			var channel = msg.params[0];
 
-			this.setBufferState(channel, (buf) => {
+			this.setBufferState({ network: netID, name: channel}, (buf) => {
 				var members = new Map(buf.members);
 				members.delete(msg.prefix.name);
 				return { members };
@@ -613,13 +657,13 @@ export default class App extends Component {
 			var channel = msg.params[0];
 			var topic = msg.params[1];
 
-			this.setBufferState(channel, { topic });
+			this.setBufferState({ network: netID, name: channel}, { topic });
 			this.addMessage(netID, channel, msg);
 			break;
 		case "AWAY":
 			var awayMessage = msg.params[0];
 
-			this.setBufferState(msg.prefix.name, (buf) => {
+			this.setBufferState({ network: netID, name: msg.prefix.name}, (buf) => {
 				var who = { ...buf.who, away: !!awayMessage };
 				return { who };
 			});
@@ -738,12 +782,12 @@ export default class App extends Component {
 			return;
 		}
 
-		var target = this.state.activeBuffer;
-		if (!target) {
+		var buf = this.state.buffers.get(this.state.activeBuffer);
+		if (!buf) {
 			return;
 		}
 
-		this.privmsg(target, text);
+		this.privmsg(buf.name, text);
 	}
 
 	handleBufferListClick(name) {
@@ -783,10 +827,10 @@ export default class App extends Component {
 			return repl;
 		}
 
-		if (!this.state.activeBuffer) {
+		var buf = this.state.buffers.get(this.state.activeBuffer);
+		if (!buf || !buf.members) {
 			return null;
 		}
-		var buf = this.state.buffers.get(this.state.activeBuffer);
 		return fromList(buf.members.keys(), prefix);
 	}
 
@@ -842,17 +886,16 @@ export default class App extends Component {
 	}
 
 	handleBufferScrollTop() {
-		var target = this.state.activeBuffer;
-		if (!target || target == SERVER_BUFFER) {
+		var buf = this.state.buffers.get(this.state.activeBuffer);
+		if (!buf || buf.type == BufferType.SERVER) {
 			return;
 		}
 		if (!this.client.enabledCaps["draft/chathistory"] || !this.client.enabledCaps["server-time"]) {
 			return;
 		}
-		if (this.endOfHistory.get(target)) {
+		if (this.endOfHistory.get(buf.name)) {
 			return;
 		}
-		var buf = this.state.buffers.get(target);
 
 		var before;
 		if (buf.messages.length > 0) {
@@ -862,11 +905,11 @@ export default class App extends Component {
 		}
 
 		// Avoids sending multiple CHATHISTORY commands in parallel
-		this.endOfHistory.set(target, true);
+		this.endOfHistory.set(buf.name, true);
 
-		var params = ["BEFORE", target, "timestamp=" + before, CHATHISTORY_PAGE_SIZE];
+		var params = ["BEFORE", buf.name, "timestamp=" + before, CHATHISTORY_PAGE_SIZE];
 		this.roundtripChatHistory(params).then((batch) => {
-			this.endOfHistory.set(target, batch.messages.length < CHATHISTORY_PAGE_SIZE);
+			this.endOfHistory.set(buf.name, batch.messages.length < CHATHISTORY_PAGE_SIZE);
 		});
 	}
 

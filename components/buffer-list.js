@@ -31,7 +31,7 @@ export default function BufferList(props) {
 	return html`
 		<ul>
 			${Array.from(props.buffers.values()).map((buf) => html`
-				<${BufferItem} key=${buf.name} buffer=${buf} onClick=${() => props.onBufferClick(buf.name)} active=${props.activeBuffer == buf.name}/>
+				<${BufferItem} key=${buf.id} buffer=${buf} onClick=${() => props.onBufferClick(buf.name)} active=${props.activeBuffer == buf.id}/>
 			`)}
 		</ul>
 	`;
