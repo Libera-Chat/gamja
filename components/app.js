@@ -214,7 +214,7 @@ export default class App extends Component {
 		}, callback);
 	}
 
-	createBuffer(name) {
+	createBuffer(netID, name) {
 		this.setState((state) => {
 			if (state.buffers.get(name)) {
 				return;
@@ -233,6 +233,7 @@ export default class App extends Component {
 			bufferList.push({
 				name,
 				type,
+				network: netID,
 				serverInfo: null, // if server
 				topic: null, // if channel
 				members: new Map(), // if channel
@@ -300,7 +301,7 @@ export default class App extends Component {
 		this.saveReceipts();
 	}
 
-	addMessage(bufName, msg) {
+	addMessage(netID, bufName, msg) {
 		msg.key = messagesCount;
 		messagesCount++;
 
@@ -350,7 +351,7 @@ export default class App extends Component {
 		}
 
 		if (msg.prefix.name != this.client.nick && (msg.command != "PART" && msg.comand != "QUIT")) {
-			this.createBuffer(bufName);
+			this.createBuffer(netID, bufName);
 		}
 
 		this.setReceipt(bufName, ReceiptType.DELIVERED, msg);
@@ -406,7 +407,7 @@ export default class App extends Component {
 			});
 		});
 
-		this.createBuffer(SERVER_BUFFER);
+		this.createBuffer(netID, SERVER_BUFFER);
 		this.switchBuffer(SERVER_BUFFER);
 	}
 
@@ -525,19 +526,19 @@ export default class App extends Component {
 			if (target == this.client.nick) {
 				target = msg.prefix.name;
 			}
-			this.addMessage(target, msg);
+			this.addMessage(netID, target, msg);
 			break;
 		case "JOIN":
 			var channel = msg.params[0];
 
-			this.createBuffer(channel);
+			this.createBuffer(netID, channel);
 			this.setBufferState(channel, (buf) => {
 				var members = new Map(buf.members);
 				members.set(msg.prefix.name, null);
 				return { members };
 			});
 			if (msg.prefix.name != this.client.nick) {
-				this.addMessage(channel, msg);
+				this.addMessage(netID, channel, msg);
 			}
 			if (channel == this.state.connectParams.autojoin[0]) {
 				// TODO: only switch once right after connect
@@ -563,7 +564,7 @@ export default class App extends Component {
 				members.delete(msg.prefix.name);
 				return { members };
 			});
-			this.addMessage(channel, msg);
+			this.addMessage(netID, channel, msg);
 
 			if (msg.prefix.name == this.client.nick) {
 				this.receipts.delete(channel);
@@ -586,7 +587,7 @@ export default class App extends Component {
 				});
 				return { buffers };
 			});
-			affectedBuffers.forEach((name) => this.addMessage(name, msg));
+			affectedBuffers.forEach((name) => this.addMessage(netID, name, msg));
 			break;
 		case "NICK":
 			var newNick = msg.params[0];
@@ -606,14 +607,14 @@ export default class App extends Component {
 				});
 				return { buffers };
 			});
-			affectedBuffers.forEach((name) => this.addMessage(name, msg));
+			affectedBuffers.forEach((name) => this.addMessage(netID, name, msg));
 			break;
 		case "TOPIC":
 			var channel = msg.params[0];
 			var topic = msg.params[1];
 
 			this.setBufferState(channel, { topic });
-			this.addMessage(channel, msg);
+			this.addMessage(netID, channel, msg);
 			break;
 		case "AWAY":
 			var awayMessage = msg.params[0];
@@ -630,7 +631,7 @@ export default class App extends Component {
 			// Ignore these
 			break;
 		default:
-			this.addMessage(SERVER_BUFFER, msg);
+			this.addMessage(netID, SERVER_BUFFER, msg);
 		}
 	}
 
@@ -663,7 +664,7 @@ export default class App extends Component {
 		} else {
 			this.client.send({ command: "WHO", params: [target] });
 		}
-		this.createBuffer(target);
+		this.createBuffer(this.state.activeNetwork, target);
 		this.switchBuffer(target);
 	}
 
@@ -721,7 +722,7 @@ export default class App extends Component {
 
 		if (!this.client.enabledCaps["echo-message"]) {
 			msg.prefix = { name: this.client.nick };
-			this.addMessage(target, msg);
+			this.addMessage(this.state.activeNetwork, target, msg);
 		}
 	}
 
