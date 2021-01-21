@@ -104,6 +104,10 @@ function getBuffer(state, id) {
 	case "number":
 		return state.buffers.get(id);
 	case "object":
+		if (id.id) {
+			return state.buffers.get(id.id);
+		}
+
 		var network = id.network, name = id.name;
 		if (!network) {
 			network = state.activeNetwork;
@@ -284,30 +288,35 @@ export default class App extends Component {
 		});
 	}
 
-	switchBuffer(name) {
-		var lastReadReceipt = this.getReceipt(name, ReceiptType.READ);
-		// TODO: only mark as read if user scrolled at the bottom
-		this.setBufferState({ name }, {
-			unread: Unread.NONE,
-			lastReadReceipt,
-		});
+	switchBuffer(id) {
 		var buf;
 		this.setState((state) => {
-			buf = getBuffer(state, { name });
+			buf = getBuffer(state, id);
 			if (!buf) {
 				return;
 			}
 			return { activeBuffer: buf.id };
 		}, () => {
+			if (!buf) {
+				return;
+			}
+
+			var lastReadReceipt = this.getReceipt(buf.name, ReceiptType.READ);
+			// TODO: only mark as read if user scrolled at the bottom
+			this.setBufferState(buf.id, {
+				unread: Unread.NONE,
+				lastReadReceipt,
+			});
+
 			if (this.composer.current) {
 				this.composer.current.focus();
 			}
 
-			if (!buf || buf.messages.length == 0) {
+			if (buf.messages.length == 0) {
 				return;
 			}
 			var lastMsg = buf.messages[buf.messages.length - 1];
-			this.setReceipt(name, ReceiptType.READ, lastMsg);
+			this.setReceipt(buf.name, ReceiptType.READ, lastMsg);
 		});
 	}
 
@@ -387,7 +396,7 @@ export default class App extends Component {
 				});
 				notif.addEventListener("click", () => {
 					// TODO: scroll to message
-					this.switchBuffer(target);
+					this.switchBuffer({ network: netID, name: target });
 				});
 			}
 		}
@@ -450,7 +459,7 @@ export default class App extends Component {
 		});
 
 		this.createBuffer(netID, SERVER_BUFFER);
-		this.switchBuffer(SERVER_BUFFER);
+		this.switchBuffer({ network: netID, name: SERVER_BUFFER });
 	}
 
 	handleClose(netID) {
@@ -584,7 +593,7 @@ export default class App extends Component {
 			}
 			if (channel == this.state.connectParams.autojoin[0]) {
 				// TODO: only switch once right after connect
-				this.switchBuffer(channel);
+				this.switchBuffer({ network: netID, name: channel });
 			}
 
 			var receipt = this.getReceipt(channel, ReceiptType.READ);
@@ -624,7 +633,7 @@ export default class App extends Component {
 					var members = new Map(buf.members);
 					members.delete(msg.prefix.name);
 					var offline = buf.name == msg.prefix.name;
-					buffers.set(buf.name, { ...buf, members, offline });
+					buffers.set(buf.id, { ...buf, members, offline });
 					affectedBuffers.push(buf.name);
 				});
 				return { buffers };
@@ -644,7 +653,7 @@ export default class App extends Component {
 					var members = new Map(buf.members);
 					members.set(newNick, members.get(msg.prefix.name));
 					members.delete(msg.prefix.name);
-					buffers.set(buf.name, { ...buf, members });
+					buffers.set(buf.id, { ...buf, members });
 					affectedBuffers.push(buf.name);
 				});
 				return { buffers };
@@ -707,7 +716,7 @@ export default class App extends Component {
 			this.client.send({ command: "WHO", params: [target] });
 		}
 		this.createBuffer(this.state.activeNetwork, target);
-		this.switchBuffer(target);
+		this.switchBuffer({ name: target });
 	}
 
 	close(target) {
@@ -724,7 +733,7 @@ export default class App extends Component {
 			this.client.send({ command: "PART", params: [target] });
 		}
 
-		this.switchBuffer(SERVER_BUFFER);
+		this.switchBuffer({ name: SERVER_BUFFER });
 		this.setState((state) => {
 			var buffers = new Map(state.buffers);
 			buffers.delete(target);
@@ -789,7 +798,7 @@ export default class App extends Component {
 	}
 
 	handleBufferListClick(name) {
-		this.switchBuffer(name);
+		this.switchBuffer({ name });
 	}
 
 	handleJoinClick(event) {

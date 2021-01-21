@@ -28,10 +28,10 @@ export const keybindings = [
 		description: "Jump to next buffer with activity",
 		execute: (app) => {
 			// TODO: order by priority, then by age
-			var target = SERVER_BUFFER;
+			var target = { name: SERVER_BUFFER };
 			for (var buf of app.state.buffers.values()) {
 				if (buf.unread != Unread.NONE) {
-					target = buf.name;
+					target = buf;
 					break;
 				}
 			}
@@ -45,9 +45,9 @@ export const keybindings = [
 		execute: (app) => {
 			var prev = null;
 			for (var buf of app.state.buffers.values()) {
-				if (app.state.activeBuffer == buf.name) {
+				if (app.state.activeBuffer == buf.id) {
 					if (prev) {
-						app.switchBuffer(prev.name);
+						app.switchBuffer(prev);
 					}
 					break;
 				}
@@ -63,9 +63,9 @@ export const keybindings = [
 			var found = false;
 			for (var buf of app.state.buffers.values()) {
 				if (found) {
-					app.switchBuffer(buf.name);
+					app.switchBuffer(buf);
 					break;
-				} else if (app.state.activeBuffer == buf.name) {
+				} else if (app.state.activeBuffer == buf.id) {
 					found = true;
 				}
 			}

@@ -72,10 +72,13 @@ export default {
 	},
 	"buffer": (app, args) => {
 		var name = args[0];
-		if (!app.state.buffers.has(name)) {
-			throw new Error("Unknown buffer");
+		for (var buf of app.state.buffers.values()) {
+			if (buf.name === name) {
+				app.switchBuffer(buf);
+				return;
+			}
 		}
-		app.switchBuffer(name);
+		throw new Error("Unknown buffer");
 	},
 	"topic": (app, args) => {
 		var channel = app.state.activeBuffer;
