@@ -15,7 +15,6 @@ import { setup as setupKeybindings } from "/keybindings.js";
 
 const CHATHISTORY_PAGE_SIZE = 100;
 const CHATHISTORY_MAX_SIZE = 4000;
-const RECONNECT_DELAY_SEC = 10;
 
 const DEFAULT_NETWORK = "network"; // TODO: remove this global
 
@@ -161,7 +160,6 @@ export default class App extends Component {
 	receipts = new Map();
 	buffer = createRef();
 	composer = createRef();
-	reconnectTimeoutID = null;
 	lastNetworkID = 0;
 	lastBufferID = 0;
 
@@ -438,13 +436,9 @@ export default class App extends Component {
 		});
 	}
 
-	connect(netID, params) {
-		if (netID) {
-			this.disconnect(netID);
-		} else {
-			this.lastNetworkID++;
-			netID = this.lastNetworkID;
-		}
+	connect(params) {
+		this.lastNetworkID++;
+		var netID = this.lastNetworkID;
 
 		this.setState((state) => {
 			var networks = new Map(state.networks);
@@ -465,11 +459,10 @@ export default class App extends Component {
 			realname: params.realname,
 			saslPlain: params.saslPlain,
 		});
-
 		this.clients.set(netID, client);
 
 		client.addEventListener("status", () => {
-			this.handleStatus(netID, client.status);
+			this.setNetworkState(netID, { status: client.status });
 		});
 
 		client.addEventListener("message", (event) => {
@@ -486,55 +479,26 @@ export default class App extends Component {
 		this.switchBuffer({ network: netID, name: SERVER_BUFFER });
 	}
 
-	handleStatus(netID, status) {
-		this.setNetworkState(netID, (state) => {
-			if (status !== Client.Status.DISCONNECTED) {
-				return { status };
-			}
-
-			if (state.status === Client.Status.DISCONNECTED) {
-				// User decided to logout
-				return null;
-			}
-
-			console.log("Reconnecting to server in " + RECONNECT_DELAY_SEC + " seconds");
-			clearTimeout(this.reconnectTimeoutID);
-			this.reconnectTimeoutID = setTimeout(() => {
-				this.connect(netID, this.state.connectParams);
-			}, RECONNECT_DELAY_SEC * 1000);
-
-			return { status };
-		});
-	}
-
 	disconnect(netID) {
 		if (!netID) {
 			netID = getActiveNetworkID(this.state);
-			if (!netID) {
-				return;
-			}
 		}
-
-		clearTimeout(this.reconnectTimeoutID);
-		this.reconnectTimeoutID = null;
 
 		var client = this.clients.get(netID);
 		if (client) {
 			client.disconnect();
 		}
-
-		this.setNetworkState(netID, { status: NetworkStatus.DISCONNECTED });
 	}
 
 	reconnect(netID) {
 		if (!netID) {
 			netID = getActiveNetworkID(this.state);
-			if (!netID) {
-				return;
-			}
 		}
 
-		this.connect(netID, this.state.connectParams);
+		var client = this.clients.get(netID);
+		if (client) {
+			client.reconnect();
+		}
 	}
 
 	handleMessage(netID, msg) {
@@ -747,7 +711,7 @@ export default class App extends Component {
 			}
 		}
 
-		this.connect(null, connectParams);
+		this.connect(connectParams);
 	}
 
 	handleNickClick(nick) {
@@ -997,7 +961,7 @@ export default class App extends Component {
 
 	componentDidMount() {
 		if (this.state.connectParams.autoconnect) {
-			this.connect(null, this.state.connectParams);
+			this.connect(this.state.connectParams);
 		}
 
 		setupKeybindings(this);
