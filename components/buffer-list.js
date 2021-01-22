@@ -1,5 +1,23 @@
+import * as irc from "/lib/irc.js";
 import { html, Component } from "/lib/index.js";
 import { BufferType, Unread, getBufferURL } from "/state.js";
+
+function getNetworkName(network) {
+	var bouncerStr = network.isupport.get("BOUNCER");
+	if (bouncerStr) {
+		var bouncerProps = irc.parseTags(bouncerStr);
+		if (bouncerProps["network"]) {
+			return bouncerProps["network"];
+		}
+	}
+
+	var netName = network.isupport.get("NETWORK");
+	if (netName) {
+		return netName;
+	}
+
+	return "server";
+}
 
 function BufferItem(props) {
 	function handleClick(event) {
@@ -9,7 +27,7 @@ function BufferItem(props) {
 
 	var name = props.buffer.name;
 	if (props.buffer.type == BufferType.SERVER) {
-		name = "server";
+		name = getNetworkName(props.network);
 	}
 
 	var activeClass = props.active ? "active" : "";
@@ -31,7 +49,7 @@ export default function BufferList(props) {
 	return html`
 		<ul>
 			${Array.from(props.buffers.values()).map((buf) => html`
-				<${BufferItem} key=${buf.id} buffer=${buf} onClick=${() => props.onBufferClick(buf.name)} active=${props.activeBuffer == buf.id}/>
+				<${BufferItem} key=${buf.id} buffer=${buf} network=${props.networks.get(buf.network)} onClick=${() => props.onBufferClick(buf.name)} active=${props.activeBuffer == buf.id}/>
 			`)}
 		</ul>
 	`;

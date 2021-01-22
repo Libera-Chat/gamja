@@ -1020,7 +1020,7 @@ export default class App extends Component {
 
 		return html`
 			<section id="buffer-list">
-				<${BufferList} buffers=${this.state.buffers} activeBuffer=${this.state.activeBuffer} onBufferClick=${this.handleBufferListClick}/>
+				<${BufferList} buffers=${this.state.buffers} networks=${this.state.networks} activeBuffer=${this.state.activeBuffer} onBufferClick=${this.handleBufferListClick}/>
 				<div class="actions">
 					<a href="#" onClick=${this.handleJoinClick}>Join channel</a>
 				</div>
