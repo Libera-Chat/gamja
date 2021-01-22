@@ -155,7 +155,6 @@ export default class App extends Component {
 		error: null,
 	};
 	clients = new Map();
-	pendingHistory = Promise.resolve(null);
 	endOfHistory = new Map();
 	receipts = new Map();
 	buffer = createRef();
@@ -614,7 +613,7 @@ export default class App extends Component {
 			if (msg.prefix.name == client.nick && receipt && client.enabledCaps["draft/chathistory"] && client.enabledCaps["server-time"]) {
 				var after = receipt;
 				var before = { time: msg.tags.time || irc.formatDate(new Date()) };
-				this.fetchHistoryBetween(client, channel, after, before, CHATHISTORY_MAX_SIZE).catch((err) => {
+				client.fetchHistoryBetween(channel, after, before, CHATHISTORY_MAX_SIZE).catch((err) => {
 					this.setState({ error: "Failed to fetch history: " + err });
 					this.receipts.delete(channel);
 					this.saveReceipts();
@@ -877,57 +876,6 @@ export default class App extends Component {
 		return fromList(buf.members.keys(), prefix);
 	}
 
-	roundtripChatHistory(client, params) {
-		// Don't send multiple CHATHISTORY commands in parallel, we can't
-		// properly handle batches and errors.
-		this.pendingHistory = this.pendingHistory.catch(() => {}).then(() => {
-			var msg = {
-				command: "CHATHISTORY",
-				params,
-			};
-			return client.roundtrip(msg, (event) => {
-				var msg = event.detail.message;
-
-				switch (msg.command) {
-				case "BATCH":
-					var enter = msg.params[0].startsWith("+");
-					var name = msg.params[0].slice(1);
-					if (enter) {
-						break;
-					}
-					var batch = client.batches.get(name);
-					if (batch.type == "chathistory") {
-						return batch;
-					}
-					break;
-				case "FAIL":
-					if (msg.params[0] == "CHATHISTORY") {
-						throw msg;
-					}
-					break;
-				}
-			});
-		});
-		return this.pendingHistory;
-	}
-
-	/* Fetch history in ascending order */
-	fetchHistoryBetween(client, target, after, before, limit) {
-		var max = Math.min(limit, CHATHISTORY_PAGE_SIZE);
-		var params = ["AFTER", target, "timestamp=" + after.time, max];
-		return this.roundtripChatHistory(client, params).then((batch) => {
-			limit -= batch.messages.length;
-			if (limit <= 0) {
-				throw new Error("Cannot fetch all chat history: too many messages");
-			}
-			if (batch.messages.length == max) {
-				// There are still more messages to fetch
-				after.time = batch.messages[batch.messages.length - 1].tags.time;
-				return this.fetchHistoryBetween(client, target, after, before, limit);
-			}
-		});
-	}
-
 	handleBufferScrollTop() {
 		var buf = this.state.buffers.get(this.state.activeBuffer);
 		if (!buf || buf.type == BufferType.SERVER) {
@@ -954,7 +902,7 @@ export default class App extends Component {
 		this.endOfHistory.set(buf.id, true);
 
 		var params = ["BEFORE", buf.name, "timestamp=" + before, CHATHISTORY_PAGE_SIZE];
-		this.roundtripChatHistory(client, params).then((batch) => {
+		client.roundtripChatHistory(params).then((batch) => {
 			this.endOfHistory.set(buf.id, batch.messages.length < CHATHISTORY_PAGE_SIZE);
 		});
 	}
