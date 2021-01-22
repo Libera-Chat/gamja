@@ -1001,7 +1001,7 @@ export default class App extends Component {
 		if (activeBuffer) {
 			bufferHeader = html`
 				<section id="buffer-header">
-					<${BufferHeader} buffer=${activeBuffer} onClose=${() => this.close(activeBuffer)}/>
+					<${BufferHeader} buffer=${activeBuffer} network=${activeNetwork} onClose=${() => this.close(activeBuffer)}/>
 				</section>
 			`;
 		}

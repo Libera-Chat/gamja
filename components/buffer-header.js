@@ -1,9 +1,9 @@
 import { html, Component } from "/lib/index.js";
 import linkify from "/lib/linkify.js";
 import { strip as stripANSI } from "/lib/ansi.js";
-import { BufferType } from "/state.js";
+import { BufferType, Status } from "/state.js";
 
-const Status = {
+const UserStatus = {
 	HERE: "here",
 	GONE: "gone",
 	OFFLINE: "offline",
@@ -11,9 +11,9 @@ const Status = {
 
 function NickStatus(props) {
 	var textMap = {
-		[Status.HERE]: "User is online",
-		[Status.GONE]: "User is away",
-		[Status.OFFLINE]: "User is offline",
+		[UserStatus.HERE]: "User is online",
+		[UserStatus.GONE]: "User is away",
+		[UserStatus.OFFLINE]: "User is offline",
 	};
 	var text = textMap[props.status];
 	return html`<span class="status status-${props.status}" title=${text}>●</span>`;
@@ -27,9 +27,18 @@ export default function BufferHeader(props) {
 
 	var description = null;
 	if (props.buffer.serverInfo) {
-		// TODO: print current connection status
-		var serverInfo = props.buffer.serverInfo;
-		description = `Connected to ${serverInfo.name}`;
+		switch (props.network.status) {
+		case Status.DISCONNECTED:
+			description = "Disconnected";
+			break;
+		case Status.CONNECTING:
+			description = "Connecting...";
+			break;
+		case Status.REGISTERED:
+			var serverInfo = props.buffer.serverInfo;
+			description = `Connected to ${serverInfo.name}`;
+			break;
+		}
 	} else if (props.buffer.topic) {
 		description = linkify(stripANSI(props.buffer.topic));
 	} else if (props.buffer.who) {
@@ -37,18 +46,18 @@ export default function BufferHeader(props) {
 
 		var realname = stripANSI(who.realname || "");
 
-		var status = Status.HERE;
+		var status = UserStatus.HERE;
 		if (who.away) {
-			status = Status.GONE;
+			status = UserStatus.GONE;
 		}
 		if (props.buffer.offline) {
-			status = Status.OFFLINE;
+			status = UserStatus.OFFLINE;
 		}
 
 		description = html`<${NickStatus} status=${status}/> ${realname} (${who.username}@${who.hostname})`;
 	} else if (props.buffer.offline) {
 		// User is offline, but we don't have WHO information
-		description = html`<${NickStatus} status=${Status.OFFLINE}/> ${props.buffer.name}`;
+		description = html`<${NickStatus} status=${UserStatus.OFFLINE}/> ${props.buffer.name}`;
 	}
 
 	var closeText = "Close";
