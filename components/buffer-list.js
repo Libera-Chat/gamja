@@ -2,13 +2,12 @@ import * as irc from "../lib/irc.js";
 import { html, Component } from "../lib/index.js";
 import { BufferType, Unread, getBufferURL } from "../state.js";
 
-function getNetworkName(network) {
-	var bouncerStr = network.isupport.get("BOUNCER");
-	if (bouncerStr) {
-		var bouncerProps = irc.parseTags(bouncerStr);
-		if (bouncerProps["network"]) {
-			return bouncerProps["network"];
-		}
+function getNetworkName(network, bouncerNetwork, bouncer) {
+	if (bouncerNetwork && bouncerNetwork.name) {
+		return bouncerNetwork.name;
+	}
+	if (bouncer) {
+		return "bouncer";
 	}
 
 	var netName = network.isupport.get("NETWORK");
@@ -27,7 +26,7 @@ function BufferItem(props) {
 
 	var name = props.buffer.name;
 	if (props.buffer.type == BufferType.SERVER) {
-		name = getNetworkName(props.network);
+		name = getNetworkName(props.network, props.bouncerNetwork, props.bouncer);
 	}
 
 	var activeClass = props.active ? "active" : "";
@@ -46,11 +45,22 @@ function BufferItem(props) {
 
 
 export default function BufferList(props) {
-	return html`
-		<ul>
-			${Array.from(props.buffers.values()).map((buf) => html`
-				<${BufferItem} key=${buf.id} buffer=${buf} network=${props.networks.get(buf.network)} onClick=${() => props.onBufferClick(buf)} active=${props.activeBuffer == buf.id}/>
-			`)}
-		</ul>
-	`;
+	// TODO: check bouncer-networks cap instead
+	var bouncer = props.bouncerNetworks.size > 0;
+
+	var items = Array.from(props.buffers.values()).map((buf) => {
+		var network = props.networks.get(buf.network);
+
+		var bouncerNetwork = null;
+		var bouncerNetID = network.isupport.get("BOUNCER_NETID");
+		if (bouncerNetID) {
+			bouncerNetwork = props.bouncerNetworks.get(bouncerNetID);
+		}
+
+		return html`
+			<${BufferItem} key=${buf.id} buffer=${buf} network=${network} bouncer=${bouncer} bouncerNetwork=${bouncerNetwork} onClick=${() => props.onBufferClick(buf)} active=${props.activeBuffer == buf.id}/>
+		`;
+	});
+
+	return html`<ul>${items}</ul>`;
 }

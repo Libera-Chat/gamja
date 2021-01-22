@@ -160,6 +160,7 @@ export default class App extends Component {
 		},
 		networks: new Map(),
 		buffers: new Map(),
+		bouncerNetworks: new Map(),
 		activeBuffer: null,
 		dialog: null,
 		error: null,
@@ -541,6 +542,15 @@ export default class App extends Component {
 		var client = this.clients.get(netID);
 		switch (msg.command) {
 		case irc.RPL_WELCOME:
+			if (client.enabledCaps["soju.im/bouncer-networks"] && !client.params.bouncerNetwork) {
+				client.listBouncerNetworks().then((bouncerNetworks) => {
+					this.setState((state) => {
+						return { bouncerNetworks };
+					});
+					this.openSecondaryClients(client, bouncerNetworks);
+				});
+			}
+
 			if (this.state.connectParams.autojoin.length > 0) {
 				client.send({
 					command: "JOIN",
@@ -735,11 +745,21 @@ export default class App extends Component {
 		case "AUTHENTICATE":
 		case "PING":
 		case "BATCH":
+		case "BOUNCER":
 			// Ignore these
 			break;
 		default:
 			this.addMessage(netID, SERVER_BUFFER, msg);
 		}
+	}
+
+	openSecondaryClients(client, bouncerNetworks) {
+		bouncerNetworks.forEach((attrs, id) => {
+			this.connect({
+				...client.params,
+				bouncerNetwork: id,
+			});
+		});
 	}
 
 	handleConnectSubmit(connectParams) {
@@ -1053,6 +1073,7 @@ export default class App extends Component {
 				<${BufferList}
 					buffers=${this.state.buffers}
 					networks=${this.state.networks}
+					bouncerNetworks=${this.state.bouncerNetworks}
 					activeBuffer=${this.state.activeBuffer}
 					onBufferClick=${this.handleBufferListClick}
 				/>
