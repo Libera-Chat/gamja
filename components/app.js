@@ -69,6 +69,13 @@ function debounce(f, delay) {
 }
 
 function compareBuffers(a, b) {
+	if (a.network < b.network) {
+		return -1;
+	}
+	if (a.network > b.network) {
+		return 1;
+	}
+
 	if (a.type == BufferType.SERVER) {
 		return -1;
 	}
