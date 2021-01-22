@@ -163,6 +163,7 @@ export default class App extends Component {
 	buffer = createRef();
 	composer = createRef();
 	reconnectTimeoutID = null;
+	lastNetworkID = 0;
 	lastBufferID = 0;
 
 	constructor(props) {
@@ -437,7 +438,12 @@ export default class App extends Component {
 	}
 
 	connect(netID, params) {
-		this.disconnect(netID);
+		if (netID) {
+			this.disconnect(netID);
+		} else {
+			this.lastNetworkID++;
+			netID = this.lastNetworkID;
+		}
 
 		this.setState((state) => {
 			var networks = new Map(state.networks);
@@ -725,7 +731,7 @@ export default class App extends Component {
 			}
 		}
 
-		this.connect(DEFAULT_NETWORK, connectParams);
+		this.connect(null, connectParams);
 	}
 
 	handleNickClick(nick) {
@@ -961,7 +967,7 @@ export default class App extends Component {
 
 	componentDidMount() {
 		if (this.state.connectParams.autoconnect) {
-			this.connect(DEFAULT_NETWORK, this.state.connectParams);
+			this.connect(null, this.state.connectParams);
 		}
 
 		setupKeybindings(this);
