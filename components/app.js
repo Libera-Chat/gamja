@@ -1032,7 +1032,7 @@ export default class App extends Component {
 				</section>
 			</>
 			${memberList}
-			<${Composer} ref=${this.composer} readOnly=${this.state.activeBuffer == SERVER_BUFFER} onSubmit=${this.handleComposerSubmit} autocomplete=${this.autocomplete}/>
+			<${Composer} ref=${this.composer} readOnly=${activeBuffer && activeBuffer.type == BufferType.SERVER} onSubmit=${this.handleComposerSubmit} autocomplete=${this.autocomplete}/>
 			${this.state.error ? html`
 				<p id="error-msg">${this.state.error} <a href="#" onClick=${this.dismissError}>×</a></p>
 			` : null}
