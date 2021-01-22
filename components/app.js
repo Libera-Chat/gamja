@@ -9,7 +9,7 @@ import Composer from "/components/composer.js";
 import ScrollManager from "/components/scroll-manager.js";
 import { html, Component, createRef } from "/lib/index.js";
 import { strip as stripANSI } from "/lib/ansi.js";
-import { SERVER_BUFFER, BufferType, ReceiptType, Status, Unread } from "/state.js";
+import { SERVER_BUFFER, BufferType, ReceiptType, NetworkStatus, Unread } from "/state.js";
 import commands from "/commands.js";
 import { setup as setupKeybindings } from "/keybindings.js";
 
@@ -150,7 +150,6 @@ export default class App extends Component {
 			autoconnect: false,
 			autojoin: [],
 		},
-		status: Status.DISCONNECTED,
 		networks: new Map(),
 		buffers: new Map(),
 		activeBuffer: null,
@@ -451,7 +450,7 @@ export default class App extends Component {
 			var networks = new Map(state.networks);
 			networks.set(netID, {
 				id: netID,
-				status: Status.CONNECTING,
+				status: NetworkStatus.CONNECTING,
 				isupport: new Map(),
 			});
 			return { networks };
@@ -469,8 +468,8 @@ export default class App extends Component {
 
 		this.clients.set(netID, client);
 
-		client.addEventListener("close", () => {
-			this.handleClose(netID);
+		client.addEventListener("status", () => {
+			this.handleStatus(netID, client.status);
 		});
 
 		client.addEventListener("message", (event) => {
@@ -487,18 +486,24 @@ export default class App extends Component {
 		this.switchBuffer({ network: netID, name: SERVER_BUFFER });
 	}
 
-	handleClose(netID) {
+	handleStatus(netID, status) {
 		this.setNetworkState(netID, (state) => {
-			if (state.status == Status.DISCONNECTED) {
+			if (status !== Client.Status.DISCONNECTED) {
+				return { status };
+			}
+
+			if (state.status === Client.Status.DISCONNECTED) {
 				// User decided to logout
 				return null;
 			}
+
 			console.log("Reconnecting to server in " + RECONNECT_DELAY_SEC + " seconds");
 			clearTimeout(this.reconnectTimeoutID);
 			this.reconnectTimeoutID = setTimeout(() => {
 				this.connect(netID, this.state.connectParams);
 			}, RECONNECT_DELAY_SEC * 1000);
-			return { status: Status.DISCONNECTED };
+
+			return { status };
 		});
 	}
 
@@ -515,12 +520,10 @@ export default class App extends Component {
 
 		var client = this.clients.get(netID);
 		if (client) {
-			// Prevent auto-reconnect from kicking in
-			client.removeEventListener("close", this.handleClose);
-			client.close();
+			client.disconnect();
 		}
 
-		this.setNetworkState(netID, { status: Status.DISCONNECTED });
+		this.setNetworkState(netID, { status: NetworkStatus.DISCONNECTED });
 	}
 
 	reconnect(netID) {
@@ -538,8 +541,6 @@ export default class App extends Component {
 		var client = this.clients.get(netID);
 		switch (msg.command) {
 		case irc.RPL_WELCOME:
-			this.setNetworkState(netID, { status: Status.REGISTERED });
-
 			if (this.state.connectParams.autojoin.length > 0) {
 				client.send({
 					command: "JOIN",
@@ -1009,10 +1010,10 @@ export default class App extends Component {
 			activeNetwork = this.state.networks.get(activeBuffer.network);
 		}
 
-		if (!activeNetwork || (activeNetwork.status != Status.REGISTERED && !activeBuffer)) {
+		if (!activeNetwork || (activeNetwork.status !== NetworkStatus.REGISTERED && !activeBuffer)) {
 			return html`
 				<section id="connect">
-					<${Connect} error=${this.state.error} params=${this.state.connectParams} disabled=${this.state.status != Status.DISCONNECTED} onSubmit=${this.handleConnectSubmit}/>
+					<${Connect} error=${this.state.error} params=${this.state.connectParams} disabled=${activeNetwork} onSubmit=${this.handleConnectSubmit}/>
 				</section>
 			`;
 		}

@@ -1,3 +1,5 @@
+import Client from "/lib/client.js";
+
 export const SERVER_BUFFER = "*";
 
 export const BufferType = {
@@ -6,11 +8,7 @@ export const BufferType = {
 	NICK: "nick",
 };
 
-export const Status = {
-	DISCONNECTED: "disconnected",
-	CONNECTING: "connecting",
-	REGISTERED: "registered",
-};
+export const NetworkStatus = Client.Status;
 
 export const Unread = {
 	NONE: "",

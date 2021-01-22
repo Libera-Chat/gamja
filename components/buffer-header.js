@@ -1,7 +1,7 @@
 import { html, Component } from "/lib/index.js";
 import linkify from "/lib/linkify.js";
 import { strip as stripANSI } from "/lib/ansi.js";
-import { BufferType, Status } from "/state.js";
+import { BufferType, NetworkStatus } from "/state.js";
 
 const UserStatus = {
 	HERE: "here",
@@ -28,13 +28,16 @@ export default function BufferHeader(props) {
 	var description = null;
 	if (props.buffer.serverInfo) {
 		switch (props.network.status) {
-		case Status.DISCONNECTED:
+		case NetworkStatus.DISCONNECTED:
 			description = "Disconnected";
 			break;
-		case Status.CONNECTING:
+		case NetworkStatus.CONNECTING:
 			description = "Connecting...";
 			break;
-		case Status.REGISTERED:
+		case NetworkStatus.REGISTERING:
+			description = "Logging in...";
+			break;
+		case NetworkStatus.REGISTERED:
 			var serverInfo = props.buffer.serverInfo;
 			description = `Connected to ${serverInfo.name}`;
 			break;
