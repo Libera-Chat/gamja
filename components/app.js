@@ -450,6 +450,7 @@ export default class App extends Component {
 			networks.set(netID, {
 				id: netID,
 				status: Status.CONNECTING,
+				isupport: new Map(),
 			});
 			return { networks };
 		});
@@ -547,6 +548,14 @@ export default class App extends Component {
 				version: msg.params[2],
 			};
 			this.setBufferState({ network: netID, name: SERVER_BUFFER}, { serverInfo });
+			break;
+		case irc.RPL_ISUPPORT:
+			var tokens = msg.params.slice(1, -1);
+			this.setNetworkState(netID, (network) => {
+				var isupport = new Map(network.isupport);
+				irc.parseISUPPORT(tokens, isupport);
+				return { isupport };
+			});
 			break;
 		case irc.RPL_NOTOPIC:
 			var channel = msg.params[1];
