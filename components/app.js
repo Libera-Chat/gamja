@@ -760,6 +760,11 @@ export default class App extends Component {
 				activeBuffer: null,
 			});
 			this.disconnect(buf.network);
+			this.setState((state) => {
+				var networks = new Map(state.networks);
+				networks.delete(buf.network);
+				return { networks };
+			});
 			break;
 		case BufferType.CHANNEL:
 			this.client.send({ command: "PART", params: [buf.name] });
