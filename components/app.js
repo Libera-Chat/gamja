@@ -139,7 +139,6 @@ function getBuffer(state, id) {
 }
 
 export default class App extends Component {
-	client = null;
 	state = {
 		connectParams: {
 			serverURL: null,
@@ -157,6 +156,7 @@ export default class App extends Component {
 		activeBuffer: null,
 		error: null,
 	};
+	clients = new Map();
 	pendingHistory = Promise.resolve(null);
 	endOfHistory = new Map();
 	receipts = new Map();
@@ -368,10 +368,12 @@ export default class App extends Component {
 	}
 
 	addMessage(netID, bufName, msg) {
+		var client = this.clients.get(netID);
+
 		msg.key = messagesCount;
 		messagesCount++;
 
-		msg.isHighlight = irc.isHighlight(msg, this.client.nick);
+		msg.isHighlight = irc.isHighlight(msg, client.nick);
 
 		if (!msg.tags) {
 			msg.tags = {};
@@ -393,7 +395,7 @@ export default class App extends Component {
 			if (msg.isHighlight) {
 				msgUnread = Unread.HIGHLIGHT;
 				kind = "highlight";
-			} else if (target == this.client.nick) {
+			} else if (target == client.nick) {
 				msgUnread = Unread.HIGHLIGHT;
 				kind = "private message";
 			} else {
@@ -416,7 +418,7 @@ export default class App extends Component {
 			}
 		}
 
-		if (msg.prefix.name != this.client.nick && (msg.command != "PART" && msg.comand != "QUIT")) {
+		if (msg.prefix.name != client.nick && (msg.command != "PART" && msg.comand != "QUIT")) {
 			this.createBuffer(netID, bufName);
 		}
 
@@ -456,7 +458,7 @@ export default class App extends Component {
 		});
 		this.setState({ connectParams: params });
 
-		this.client = new Client({
+		var client = new Client({
 			url: params.serverURL,
 			pass: params.serverPass,
 			nick: params.nick,
@@ -465,15 +467,17 @@ export default class App extends Component {
 			saslPlain: params.saslPlain,
 		});
 
-		this.client.addEventListener("close", () => {
+		this.clients.set(netID, client);
+
+		client.addEventListener("close", () => {
 			this.handleClose(netID);
 		});
 
-		this.client.addEventListener("message", (event) => {
+		client.addEventListener("message", (event) => {
 			this.handleMessage(netID, event.detail.message);
 		});
 
-		this.client.addEventListener("error", (event) => {
+		client.addEventListener("error", (event) => {
 			this.setState({
 				error: event.detail,
 			});
@@ -509,10 +513,11 @@ export default class App extends Component {
 		clearTimeout(this.reconnectTimeoutID);
 		this.reconnectTimeoutID = null;
 
-		if (this.client) {
+		var client = this.clients.get(netID);
+		if (client) {
 			// Prevent auto-reconnect from kicking in
-			this.client.removeEventListener("close", this.handleClose);
-			this.client.close();
+			client.removeEventListener("close", this.handleClose);
+			client.close();
 		}
 
 		this.setNetworkState(netID, { status: Status.DISCONNECTED });
@@ -530,12 +535,13 @@ export default class App extends Component {
 	}
 
 	handleMessage(netID, msg) {
+		var client = this.clients.get(netID);
 		switch (msg.command) {
 		case irc.RPL_WELCOME:
 			this.setNetworkState(netID, { status: Status.REGISTERED });
 
 			if (this.state.connectParams.autojoin.length > 0) {
-				this.client.send({
+				client.send({
 					command: "JOIN",
 					params: [this.state.connectParams.autojoin.join(",")],
 				});
@@ -617,7 +623,7 @@ export default class App extends Component {
 		case "NOTICE":
 		case "PRIVMSG":
 			var target = msg.params[0];
-			if (target == this.client.nick) {
+			if (target == client.nick) {
 				target = msg.prefix.name;
 			}
 			this.addMessage(netID, target, msg);
@@ -631,7 +637,7 @@ export default class App extends Component {
 				members.set(msg.prefix.name, null);
 				return { members };
 			});
-			if (msg.prefix.name != this.client.nick) {
+			if (msg.prefix.name != client.nick) {
 				this.addMessage(netID, channel, msg);
 			}
 			if (channel == this.state.connectParams.autojoin[0]) {
@@ -640,10 +646,10 @@ export default class App extends Component {
 			}
 
 			var receipt = this.getReceipt(channel, ReceiptType.READ);
-			if (msg.prefix.name == this.client.nick && receipt && this.client.enabledCaps["draft/chathistory"] && this.client.enabledCaps["server-time"]) {
+			if (msg.prefix.name == client.nick && receipt && client.enabledCaps["draft/chathistory"] && client.enabledCaps["server-time"]) {
 				var after = receipt;
 				var before = { time: msg.tags.time || irc.formatDate(new Date()) };
-				this.fetchHistoryBetween(channel, after, before, CHATHISTORY_MAX_SIZE).catch((err) => {
+				this.fetchHistoryBetween(client, channel, after, before, CHATHISTORY_MAX_SIZE).catch((err) => {
 					this.setState({ error: "Failed to fetch history: " + err });
 					this.receipts.delete(channel);
 					this.saveReceipts();
@@ -660,7 +666,7 @@ export default class App extends Component {
 			});
 			this.addMessage(netID, channel, msg);
 
-			if (msg.prefix.name == this.client.nick) {
+			if (msg.prefix.name == client.nick) {
 				this.receipts.delete(channel);
 				this.saveReceipts();
 			}
@@ -753,13 +759,16 @@ export default class App extends Component {
 	}
 
 	open(target) {
+		var netID = getActiveNetworkID(this.state);
+		var client = this.clients.get(netID);
+
 		if (this.isChannel(target)) {
-			this.client.send({ command: "JOIN", params: [target] });
+			client.send({ command: "JOIN", params: [target] });
 		} else {
-			this.client.send({ command: "WHO", params: [target] });
+			client.send({ command: "WHO", params: [target] });
 		}
-		this.createBuffer(getActiveNetworkID(this.state), target);
-		this.switchBuffer({ name: target });
+		this.createBuffer(netID, target);
+		this.switchBuffer({ network: netID, name: target });
 	}
 
 	close(id) {
@@ -782,17 +791,18 @@ export default class App extends Component {
 			});
 			break;
 		case BufferType.CHANNEL:
-			this.client.send({ command: "PART", params: [buf.name] });
+			var client = this.clients.get(buf.network);
+			client.send({ command: "PART", params: [buf.name] });
 			// fallthrough
 		case BufferType.NICK:
 			this.switchBuffer({ name: SERVER_BUFFER });
 			this.setState((state) => {
 				var buffers = new Map(state.buffers);
-				buffers.delete(target);
+				buffers.delete(buf.name);
 				return { buffers };
 			});
 
-			this.receipts.delete(target);
+			this.receipts.delete(buf.name);
 			this.saveReceipts();
 			break;
 		}
@@ -822,12 +832,15 @@ export default class App extends Component {
 			return;
 		}
 
-		var msg = { command: "PRIVMSG", params: [target, text] };
-		this.client.send(msg);
+		var netID = getActiveNetworkID(this.state);
+		var client = this.clients.get(netID);
 
-		if (!this.client.enabledCaps["echo-message"]) {
-			msg.prefix = { name: this.client.nick };
-			this.addMessage(getActiveNetworkID(this.state), target, msg);
+		var msg = { command: "PRIVMSG", params: [target, text] };
+		client.send(msg);
+
+		if (!client.enabledCaps["echo-message"]) {
+			msg.prefix = { name: client.nick };
+			this.addMessage(netID, target, msg);
 		}
 	}
 
@@ -862,7 +875,11 @@ export default class App extends Component {
 		if (!channel) {
 			return;
 		}
-		this.client.send({ command: "JOIN", params: [channel] });
+
+		var netID = getActiveNetworkID(this.state);
+		var client = this.clients.get(netID);
+
+		client.send({ command: "JOIN", params: [channel] });
 	}
 
 	autocomplete(prefix) {
@@ -895,7 +912,7 @@ export default class App extends Component {
 		return fromList(buf.members.keys(), prefix);
 	}
 
-	roundtripChatHistory(params) {
+	roundtripChatHistory(client, params) {
 		// Don't send multiple CHATHISTORY commands in parallel, we can't
 		// properly handle batches and errors.
 		this.pendingHistory = this.pendingHistory.catch(() => {}).then(() => {
@@ -903,7 +920,7 @@ export default class App extends Component {
 				command: "CHATHISTORY",
 				params,
 			};
-			return this.client.roundtrip(msg, (event) => {
+			return client.roundtrip(msg, (event) => {
 				var msg = event.detail.message;
 
 				switch (msg.command) {
@@ -913,7 +930,7 @@ export default class App extends Component {
 					if (enter) {
 						break;
 					}
-					var batch = this.client.batches.get(name);
+					var batch = client.batches.get(name);
 					if (batch.type == "chathistory") {
 						return batch;
 					}
@@ -930,10 +947,10 @@ export default class App extends Component {
 	}
 
 	/* Fetch history in ascending order */
-	fetchHistoryBetween(target, after, before, limit) {
+	fetchHistoryBetween(client, target, after, before, limit) {
 		var max = Math.min(limit, CHATHISTORY_PAGE_SIZE);
 		var params = ["AFTER", target, "timestamp=" + after.time, max];
-		return this.roundtripChatHistory(params).then((batch) => {
+		return this.roundtripChatHistory(client, params).then((batch) => {
 			limit -= batch.messages.length;
 			if (limit <= 0) {
 				throw new Error("Cannot fetch all chat history: too many messages");
@@ -941,7 +958,7 @@ export default class App extends Component {
 			if (batch.messages.length == max) {
 				// There are still more messages to fetch
 				after.time = batch.messages[batch.messages.length - 1].tags.time;
-				return this.fetchHistoryBetween(target, after, before, limit);
+				return this.fetchHistoryBetween(client, target, after, before, limit);
 			}
 		});
 	}
@@ -951,7 +968,10 @@ export default class App extends Component {
 		if (!buf || buf.type == BufferType.SERVER) {
 			return;
 		}
-		if (!this.client.enabledCaps["draft/chathistory"] || !this.client.enabledCaps["server-time"]) {
+
+		var client = this.clients.get(buf.network);
+
+		if (!client.enabledCaps["draft/chathistory"] || !client.enabledCaps["server-time"]) {
 			return;
 		}
 		if (this.endOfHistory.get(buf.id)) {
@@ -969,7 +989,7 @@ export default class App extends Component {
 		this.endOfHistory.set(buf.id, true);
 
 		var params = ["BEFORE", buf.name, "timestamp=" + before, CHATHISTORY_PAGE_SIZE];
-		this.roundtripChatHistory(params).then((batch) => {
+		this.roundtripChatHistory(client, params).then((batch) => {
 			this.endOfHistory.set(buf.id, batch.messages.length < CHATHISTORY_PAGE_SIZE);
 		});
 	}

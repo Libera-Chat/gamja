@@ -1,5 +1,13 @@
 import { SERVER_BUFFER } from "/state.js";
 
+function getActiveClient(app) {
+	var buf = app.state.buffers.get(app.state.activeBuffer);
+	if (!buf) {
+		return null;
+	}
+	return app.clients.get(buf.network);
+}
+
 export default {
 	"query": (app, args) => {
 		var nick = args[0];
@@ -33,7 +41,7 @@ export default {
 		if (!channel) {
 			throw new Error("Missing channel name");
 		}
-		app.client.send({ command: "JOIN", params: [channel] });
+		getActiveClient(app).send({ command: "JOIN", params: [channel] });
 	},
 	"part": (app, args) => {
 		var reason = args.join(" ");
@@ -45,12 +53,12 @@ export default {
 		if (reason) {
 			params.push(reason);
 		}
-		app.client.send({ command: "PART", params });
+		getActiveClient(app).send({ command: "PART", params });
 	},
 	"msg": (app, args) => {
 		var target = args[0];
 		var text = args.slice(1).join(" ");
-		app.client.send({ command: "PRIVMSG", params: [target, text] });
+		getActiveClient(app).send({ command: "PRIVMSG", params: [target, text] });
 	},
 	"me": (app, args) => {
 		var action = args.join(" ");
@@ -63,12 +71,12 @@ export default {
 	},
 	"nick": (app, args) => {
 		var newNick = args[0];
-		app.client.send({ command: "NICK", params: [newNick] });
+		getActiveClient(app).send({ command: "NICK", params: [newNick] });
 	},
 	"notice": (app, args) => {
 		var target = args[0];
 		var text = args.slice(1).join(" ");
-		app.client.send({ command: "NOTICE", params: [target, text] });
+		getActiveClient(app).send({ command: "NOTICE", params: [target, text] });
 	},
 	"buffer": (app, args) => {
 		var name = args[0];
@@ -89,7 +97,7 @@ export default {
 		if (args.length > 0) {
 			params.push(args.join(" "));
 		}
-		app.client.send({ command: "TOPIC", params });
+		getActiveClient(app).send({ command: "TOPIC", params });
 	},
 	"reconnect": (app, args) => {
 		app.reconnect();
