@@ -21,7 +21,7 @@ export default class Connect extends Component {
 		if (props.params) {
 			this.state = {
 				...this.state,
-				serverURL: props.params.serverURL || "",
+				serverURL: props.params.url || "",
 				nick: props.params.nick || "",
 				rememberMe: props.params.autoconnect || false,
 				username: props.params.username || "",
@@ -45,8 +45,8 @@ export default class Connect extends Component {
 		}
 
 		var params = {
-			serverURL: this.state.serverURL,
-			serverPass: this.state.serverPass,
+			url: this.state.serverURL,
+			pass: this.state.serverPass,
 			nick: this.state.nick,
 			autoconnect: this.state.rememberMe,
 			username: this.state.username || this.state.nick,

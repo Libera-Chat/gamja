@@ -450,14 +450,7 @@ export default class App extends Component {
 		});
 		this.setState({ connectParams: params });
 
-		var client = new Client({
-			url: params.serverURL,
-			pass: params.serverPass,
-			nick: params.nick,
-			username: params.username,
-			realname: params.realname,
-			saslPlain: params.saslPlain,
-		});
+		var client = new Client(params);
 		this.clients.set(netID, client);
 
 		client.addEventListener("status", () => {
