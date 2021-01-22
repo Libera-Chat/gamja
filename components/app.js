@@ -106,6 +106,14 @@ function updateState(state, updater) {
 	return { ...state, ...updated };
 }
 
+function getActiveNetworkID(state) {
+	var buf = state.buffers.get(state.activeBuffer);
+	if (!buf) {
+		return null;
+	}
+	return buf.network;
+}
+
 function getBuffer(state, id) {
 	switch (typeof id) {
 	case "number":
@@ -117,7 +125,7 @@ function getBuffer(state, id) {
 
 		var network = id.network, name = id.name;
 		if (!network) {
-			network = state.activeNetwork;
+			network = getActiveNetworkID(state);
 		}
 		for (var buf of state.buffers.values()) {
 			if (buf.network === network && buf.name === name) {
@@ -146,7 +154,6 @@ export default class App extends Component {
 		status: Status.DISCONNECTED,
 		networks: new Map(),
 		buffers: new Map(),
-		activeNetwork: DEFAULT_NETWORK,
 		activeBuffer: null,
 		error: null,
 	};
@@ -485,6 +492,13 @@ export default class App extends Component {
 	}
 
 	disconnect(netID) {
+		if (!netID) {
+			netID = getActiveNetworkID(this.state);
+			if (!netID) {
+				return;
+			}
+		}
+
 		clearTimeout(this.reconnectTimeoutID);
 		this.reconnectTimeoutID = null;
 
@@ -498,6 +512,13 @@ export default class App extends Component {
 	}
 
 	reconnect(netID) {
+		if (!netID) {
+			netID = getActiveNetworkID(this.state);
+			if (!netID) {
+				return;
+			}
+		}
+
 		this.connect(netID, this.state.connectParams);
 	}
 
@@ -722,7 +743,7 @@ export default class App extends Component {
 		} else {
 			this.client.send({ command: "WHO", params: [target] });
 		}
-		this.createBuffer(this.state.activeNetwork, target);
+		this.createBuffer(getActiveNetworkID(this.state), target);
 		this.switchBuffer({ name: target });
 	}
 
@@ -786,7 +807,7 @@ export default class App extends Component {
 
 		if (!this.client.enabledCaps["echo-message"]) {
 			msg.prefix = { name: this.client.nick };
-			this.addMessage(this.state.activeNetwork, target, msg);
+			this.addMessage(getActiveNetworkID(this.state), target, msg);
 		}
 	}
 
@@ -942,14 +963,10 @@ export default class App extends Component {
 	}
 
 	render() {
-		var activeNetwork = null;
-		if (this.state.activeNetwork) {
-			activeNetwork = this.state.networks.get(this.state.activeNetwork);
-		}
-
-		var activeBuffer = null;
+		var activeBuffer = null, activeNetwork = null;
 		if (this.state.activeBuffer) {
 			activeBuffer = this.state.buffers.get(this.state.activeBuffer);
+			activeNetwork = this.state.networks.get(activeBuffer.network);
 		}
 
 		if (!activeNetwork || (activeNetwork.status != Status.REGISTERED && !activeBuffer)) {

@@ -92,9 +92,9 @@ export default {
 		app.client.send({ command: "TOPIC", params });
 	},
 	"reconnect": (app, args) => {
-		app.reconnect(app.state.activeNetwork);
+		app.reconnect();
 	},
 	"disconnect": (app, args) => {
-		app.disconnect(app.state.activeNetwork);
+		app.disconnect();
 	},
 };
