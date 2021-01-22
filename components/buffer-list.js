@@ -49,7 +49,7 @@ export default function BufferList(props) {
 	return html`
 		<ul>
 			${Array.from(props.buffers.values()).map((buf) => html`
-				<${BufferItem} key=${buf.id} buffer=${buf} network=${props.networks.get(buf.network)} onClick=${() => props.onBufferClick(buf.name)} active=${props.activeBuffer == buf.id}/>
+				<${BufferItem} key=${buf.id} buffer=${buf} network=${props.networks.get(buf.network)} onClick=${() => props.onBufferClick(buf)} active=${props.activeBuffer == buf.id}/>
 			`)}
 		</ul>
 	`;

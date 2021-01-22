@@ -821,8 +821,8 @@ export default class App extends Component {
 		this.privmsg(buf.name, text);
 	}
 
-	handleBufferListClick(name) {
-		this.switchBuffer({ name });
+	handleBufferListClick(id) {
+		this.switchBuffer(id);
 	}
 
 	handleJoinClick(event) {
