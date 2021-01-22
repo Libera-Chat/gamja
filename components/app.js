@@ -954,7 +954,7 @@ export default class App extends Component {
 		if (!this.client.enabledCaps["draft/chathistory"] || !this.client.enabledCaps["server-time"]) {
 			return;
 		}
-		if (this.endOfHistory.get(buf.name)) {
+		if (this.endOfHistory.get(buf.id)) {
 			return;
 		}
 
@@ -966,11 +966,11 @@ export default class App extends Component {
 		}
 
 		// Avoids sending multiple CHATHISTORY commands in parallel
-		this.endOfHistory.set(buf.name, true);
+		this.endOfHistory.set(buf.id, true);
 
 		var params = ["BEFORE", buf.name, "timestamp=" + before, CHATHISTORY_PAGE_SIZE];
 		this.roundtripChatHistory(params).then((batch) => {
-			this.endOfHistory.set(buf.name, batch.messages.length < CHATHISTORY_PAGE_SIZE);
+			this.endOfHistory.set(buf.id, batch.messages.length < CHATHISTORY_PAGE_SIZE);
 		});
 	}
 
