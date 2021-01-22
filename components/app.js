@@ -719,29 +719,35 @@ export default class App extends Component {
 		this.switchBuffer({ name: target });
 	}
 
-	close(target) {
-		if (target == SERVER_BUFFER) {
+	close(id) {
+		var buf = getBuffer(this.state, id);
+		if (!buf) {
+			return;
+		}
+
+		switch (buf.type) {
+		case BufferType.SERVER:
 			this.setState({
 				buffers: new Map(),
 				activeBuffer: null,
 			});
-			this.disconnect(DEFAULT_NETWORK);
-			return;
+			this.disconnect(buf.network);
+			break;
+		case BufferType.CHANNEL:
+			this.client.send({ command: "PART", params: [buf.name] });
+			// fallthrough
+		case BufferType.NICK:
+			this.switchBuffer({ name: SERVER_BUFFER });
+			this.setState((state) => {
+				var buffers = new Map(state.buffers);
+				buffers.delete(target);
+				return { buffers };
+			});
+
+			this.receipts.delete(target);
+			this.saveReceipts();
+			break;
 		}
-
-		if (this.isChannel(target)) {
-			this.client.send({ command: "PART", params: [target] });
-		}
-
-		this.switchBuffer({ name: SERVER_BUFFER });
-		this.setState((state) => {
-			var buffers = new Map(state.buffers);
-			buffers.delete(target);
-			return { buffers };
-		});
-
-		this.receipts.delete(target);
-		this.saveReceipts();
 	}
 
 	executeCommand(s) {
@@ -951,7 +957,7 @@ export default class App extends Component {
 		if (activeBuffer) {
 			bufferHeader = html`
 				<section id="buffer-header">
-					<${BufferHeader} buffer=${activeBuffer} onClose=${() => this.close(activeBuffer.name)}/>
+					<${BufferHeader} buffer=${activeBuffer} onClose=${() => this.close(activeBuffer)}/>
 				</section>
 			`;
 		}
