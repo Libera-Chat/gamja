@@ -29,15 +29,16 @@ function BufferItem(props) {
 		name = getNetworkName(props.network, props.bouncerNetwork, props.bouncer);
 	}
 
-	var activeClass = props.active ? "active" : "";
-
-	var unreadClass = "";
+	var classes = ["type-" + props.buffer.type];
+	if (props.active) {
+		classes.push("active");
+	}
 	if (props.buffer.unread != Unread.NONE) {
-		unreadClass = "unread-" + props.buffer.unread;
+		classes.push("unread-" + props.buffer.unread);
 	}
 
 	return html`
-		<li class="${activeClass} ${unreadClass}">
+		<li class="${classes.join(" ")}">
 			<a href=${getBufferURL(props.buffer)} onClick=${handleClick}>${name}</a>
 		</li>
 	`;

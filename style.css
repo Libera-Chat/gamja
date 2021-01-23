@@ -72,6 +72,9 @@ body {
 #buffer-list li.unread-highlight a {
 	color: #22009b;
 }
+#buffer-list li:not(.type-server) a {
+	padding-left: 20px;
+}
 
 #buffer-header, #member-list-header {
 	color: var(--main-color);
