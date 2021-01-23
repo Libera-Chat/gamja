@@ -13,7 +13,6 @@ import { SERVER_BUFFER, BufferType, ReceiptType, NetworkStatus, Unread } from "/
 import commands from "/commands.js";
 import { setup as setupKeybindings } from "/keybindings.js";
 
-const CHATHISTORY_PAGE_SIZE = 100;
 const CHATHISTORY_MAX_SIZE = 4000;
 
 const DEFAULT_NETWORK = "network"; // TODO: remove this global
@@ -894,9 +893,8 @@ export default class App extends Component {
 		// Avoids sending multiple CHATHISTORY commands in parallel
 		this.endOfHistory.set(buf.id, true);
 
-		var params = ["BEFORE", buf.name, "timestamp=" + before, CHATHISTORY_PAGE_SIZE];
-		client.roundtripChatHistory(params).then((batch) => {
-			this.endOfHistory.set(buf.id, batch.messages.length < CHATHISTORY_PAGE_SIZE);
+		client.fetchHistoryBefore(buf.name, before).then((result) => {
+			this.endOfHistory.set(buf.id, !result.more);
 		});
 	}
 
