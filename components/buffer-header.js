@@ -24,6 +24,10 @@ export default function BufferHeader(props) {
 		event.preventDefault();
 		props.onClose();
 	}
+	function handleJoinClick(event) {
+		event.preventDefault();
+		props.onJoin();
+	}
 
 	var description = null;
 	if (props.buffer.serverInfo) {
@@ -63,9 +67,11 @@ export default function BufferHeader(props) {
 		description = html`<${NickStatus} status=${UserStatus.OFFLINE}/> ${props.buffer.name}`;
 	}
 
+	var actions = null;
 	var closeText = "Close";
 	switch (props.buffer.type) {
 	case BufferType.SERVER:
+		actions = html`<a href="#" onClick=${handleJoinClick}>Join</a>`;
 		closeText = "Disconnect";
 		break;
 	case BufferType.CHANNEL:
@@ -76,6 +82,8 @@ export default function BufferHeader(props) {
 	return html`
 		<span class="description">${description}</span>
 		<span class="actions">
+			${actions}
+			${" "}
 			<a href="#" onClick=${handlePartClick}>${closeText}</a>
 		</span>
 	`;

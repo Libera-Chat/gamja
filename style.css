@@ -50,14 +50,6 @@ body {
 #buffer-list li.unread-highlight a {
 	color: #22009b;
 }
-#buffer-list .actions {
-	flex-shrink: 0;
-	text-align: center;
-}
-#buffer-list .actions a {
-	display: block;
-	padding: 10px;
-}
 
 #buffer-header, #member-list-header {
 	box-sizing: border-box;

@@ -168,7 +168,6 @@ export default class App extends Component {
 		this.handleBufferListClick = this.handleBufferListClick.bind(this);
 		this.handleComposerSubmit = this.handleComposerSubmit.bind(this);
 		this.handleNickClick = this.handleNickClick.bind(this);
-		this.handleJoinClick = this.handleJoinClick.bind(this);
 		this.autocomplete = this.autocomplete.bind(this);
 		this.handleBufferScrollTop = this.handleBufferScrollTop.bind(this);
 		this.dismissError = this.dismissError.bind(this);
@@ -824,15 +823,12 @@ export default class App extends Component {
 		this.switchBuffer(id);
 	}
 
-	handleJoinClick(event) {
-		event.preventDefault();
-
+	handleJoinClick(netID) {
 		var channel = prompt("Join channel:");
 		if (!channel) {
 			return;
 		}
 
-		var netID = getActiveNetworkID(this.state);
 		var client = this.clients.get(netID);
 
 		client.send({ command: "JOIN", params: [channel] });
@@ -925,7 +921,7 @@ export default class App extends Component {
 		if (activeBuffer) {
 			bufferHeader = html`
 				<section id="buffer-header">
-					<${BufferHeader} buffer=${activeBuffer} network=${activeNetwork} onClose=${() => this.close(activeBuffer)}/>
+					<${BufferHeader} buffer=${activeBuffer} network=${activeNetwork} onClose=${() => this.close(activeBuffer)} onJoin=${() => this.handleJoinClick(activeBuffer.network)}/>
 				</section>
 			`;
 		}
@@ -945,9 +941,6 @@ export default class App extends Component {
 		return html`
 			<section id="buffer-list">
 				<${BufferList} buffers=${this.state.buffers} networks=${this.state.networks} activeBuffer=${this.state.activeBuffer} onBufferClick=${this.handleBufferListClick}/>
-				<div class="actions">
-					<a href="#" onClick=${this.handleJoinClick}>Join channel</a>
-				</div>
 			</section>
 			${bufferHeader}
 			<${ScrollManager} target=${this.buffer} scrollKey=${this.state.activeBuffer} onScrollTop=${this.handleBufferScrollTop}>
