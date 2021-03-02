@@ -418,11 +418,11 @@ export default class App extends Component {
 
 		this.setReceipt(bufName, ReceiptType.DELIVERED, msg);
 
-		this.setBufferState({ network: netID, name: bufName}, (buf, state) => {
+		this.setBufferState({ network: netID, name: bufName}, (buf) => {
 			// TODO: set unread if scrolled up
 			var unread = buf.unread;
 			var lastReadReceipt = buf.lastReadReceipt;
-			if (state.activeBuffer != buf.id) {
+			if (this.state.activeBuffer != buf.id) {
 				unread = Unread.union(unread, msgUnread);
 			} else {
 				this.setReceipt(bufName, ReceiptType.READ, msg);
