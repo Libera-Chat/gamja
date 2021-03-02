@@ -1,4 +1,4 @@
-import { ReceiptType, Unread, SERVER_BUFFER } from "/state.js";
+import { ReceiptType, Unread, SERVER_BUFFER } from "./state.js";
 
 export const keybindings = [
 	{

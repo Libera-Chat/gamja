@@ -1,7 +1,7 @@
-import { html, Component } from "/lib/index.js";
-import linkify from "/lib/linkify.js";
-import { strip as stripANSI } from "/lib/ansi.js";
-import { BufferType, NetworkStatus } from "/state.js";
+import { html, Component } from "../lib/index.js";
+import linkify from "../lib/linkify.js";
+import { strip as stripANSI } from "../lib/ansi.js";
+import { BufferType, NetworkStatus } from "../state.js";
 
 const UserStatus = {
 	HERE: "here",

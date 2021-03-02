@@ -1,6 +1,6 @@
-import * as irc from "/lib/irc.js";
-import { html, Component } from "/lib/index.js";
-import { BufferType, Unread, getBufferURL } from "/state.js";
+import * as irc from "../lib/irc.js";
+import { html, Component } from "../lib/index.js";
+import { BufferType, Unread, getBufferURL } from "../state.js";
 
 function getNetworkName(network) {
 	var bouncerStr = network.isupport.get("BOUNCER");

@@ -1,4 +1,4 @@
-import Client from "/lib/client.js";
+import Client from "./lib/client.js";
 
 export const SERVER_BUFFER = "*";
 

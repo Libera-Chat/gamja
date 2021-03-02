@@ -1,4 +1,4 @@
-import { SERVER_BUFFER } from "/state.js";
+import { SERVER_BUFFER } from "./state.js";
 
 function getActiveClient(app) {
 	var buf = app.state.buffers.get(app.state.activeBuffer);

@@ -1,17 +1,17 @@
-import * as irc from "/lib/irc.js";
-import Client from "/lib/client.js";
-import Buffer from "/components/buffer.js";
-import BufferList from "/components/buffer-list.js";
-import BufferHeader from "/components/buffer-header.js";
-import MemberList from "/components/member-list.js";
-import Connect from "/components/connect.js";
-import Composer from "/components/composer.js";
-import ScrollManager from "/components/scroll-manager.js";
-import { html, Component, createRef } from "/lib/index.js";
-import { strip as stripANSI } from "/lib/ansi.js";
-import { SERVER_BUFFER, BufferType, ReceiptType, NetworkStatus, Unread } from "/state.js";
-import commands from "/commands.js";
-import { setup as setupKeybindings } from "/keybindings.js";
+import * as irc from "../lib/irc.js";
+import Client from "../lib/client.js";
+import Buffer from "./buffer.js";
+import BufferList from "./buffer-list.js";
+import BufferHeader from "./buffer-header.js";
+import MemberList from "./member-list.js";
+import Connect from "./connect.js";
+import Composer from "./composer.js";
+import ScrollManager from "./scroll-manager.js";
+import { html, Component, createRef } from "../lib/index.js";
+import { strip as stripANSI } from "../lib/ansi.js";
+import { SERVER_BUFFER, BufferType, ReceiptType, NetworkStatus, Unread } from "../state.js";
+import commands from "../commands.js";
+import { setup as setupKeybindings } from "../keybindings.js";
 
 const CHATHISTORY_MAX_SIZE = 4000;
 
@@ -189,6 +189,10 @@ export default class App extends Component {
 			if (window.location.protocol != "https:") {
 				proto = "ws:";
 			}
+			var path = window.location.pathname || "/";
+			if (!window.location.host) {
+				path = "/";
+			}
 
 			var serverURL;
 			if (params.server) {
@@ -198,7 +202,7 @@ export default class App extends Component {
 					serverURL = params.server;
 				}
 			} else {
-				serverURL = proto + "//" + host + "/socket";
+				serverURL = proto + "//" + host + path + "socket";
 			}
 			this.state.connectParams.serverURL = serverURL;
 

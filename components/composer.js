@@ -1,4 +1,4 @@
-import { html, Component, createRef } from "/lib/index.js";
+import { html, Component, createRef } from "../lib/index.js";
 
 export default class Composer extends Component {
 	state = {

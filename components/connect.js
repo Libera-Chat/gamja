@@ -1,4 +1,4 @@
-import { html, Component } from "/lib/index.js";
+import { html, Component } from "../lib/index.js";
 
 export default class Connect extends Component {
 	state = {

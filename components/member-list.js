@@ -1,5 +1,5 @@
-import { html, Component } from "/lib/index.js";
-import { getNickURL } from "/state.js";
+import { html, Component } from "../lib/index.js";
+import { getNickURL } from "../state.js";
 
 class MemberItem extends Component {
 	constructor(props) {

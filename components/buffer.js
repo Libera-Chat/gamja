@@ -1,8 +1,8 @@
-import { html, Component } from "/lib/index.js";
-import linkify from "/lib/linkify.js";
-import * as irc from "/lib/irc.js";
-import { strip as stripANSI } from "/lib/ansi.js";
-import { BufferType, getNickURL, getMessageURL } from "/state.js";
+import { html, Component } from "../lib/index.js";
+import linkify from "../lib/linkify.js";
+import * as irc from "../lib/irc.js";
+import { strip as stripANSI } from "../lib/ansi.js";
+import { BufferType, getNickURL, getMessageURL } from "../state.js";
 
 function djb2(s) {
 	var hash = 5381;
