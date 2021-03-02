@@ -244,7 +244,7 @@ details summary {
 	border-bottom: 1px solid transparent;
 }
 #buffer .date-separator {
-	color: #ddd;
+	color: #757575;
 }
 #buffer .date-separator::before, #buffer .date-separator::after {
 	border-color: #ddd;
