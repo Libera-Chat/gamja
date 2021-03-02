@@ -118,7 +118,7 @@ class LogLine extends Component {
 		}
 
 		return html`
-			<div class="logline ${lineClass}">
+			<div class="logline ${lineClass}" data-key=${msg.key}>
 				<${Timestamp} date=${new Date(msg.tags.time)} url=${getMessageURL(this.props.buffer, msg)}/>
 				${" "}
 				${content}

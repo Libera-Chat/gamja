@@ -3,8 +3,6 @@ import { html, Component } from "/lib/index.js";
 var store = new Map();
 
 export default class ScrollManager extends Component {
-	stickToBottom = false;
-
 	constructor(props) {
 		super(props);
 
@@ -16,37 +14,43 @@ export default class ScrollManager extends Component {
 		return target.scrollTop >= target.scrollHeight - target.offsetHeight;
 	}
 
-	scroll(pos) {
-		var target = this.props.target.current;
-		if (pos.bottom) {
-			pos.y = target.scrollHeight - target.offsetHeight;
-		}
-		target.scrollTop = pos.y;
-	}
-
 	saveScrollPosition() {
 		var target = this.props.target.current;
-		store.set(this.props.scrollKey, {
-			y: target.scrollTop,
-			bottom: this.isAtBottom(),
-		});
+
+		var sticky = target.querySelectorAll(this.props.stickTo);
+		var stickToKey = null;
+		if (!this.isAtBottom()) {
+			for (var i = 0; i < sticky.length; i++) {
+				var el = sticky[i];
+				if (el.offsetTop >= target.scrollTop + target.offsetTop) {
+					stickToKey = el.dataset.key;
+					break;
+				}
+			}
+		}
+
+		store.set(this.props.scrollKey, stickToKey);
 	}
 
 	restoreScrollPosition() {
 		var target = this.props.target.current;
-		var pos = store.get(this.props.scrollKey);
-		if (!pos) {
-			pos = { bottom: true };
+
+		var stickToKey = store.get(this.props.scrollKey);
+		if (!stickToKey) {
+			target.firstChild.scrollIntoView({ block: "end" });
+		} else {
+			var stickTo = target.querySelector("[data-key=\"" + stickToKey + "\"]");
+			if (stickTo) {
+				stickTo.scrollIntoView();
+			}
 		}
-		this.scroll(pos);
-		this.stickToBottom = pos.bottom;
-		if (this.props.target.current.scrollTop == 0) {
+
+		if (target.scrollTop == 0) {
 			this.props.onScrollTop();
 		}
 	}
 
 	handleScroll() {
-		this.stickToBottom = this.isAtBottom();
 		if (this.props.target.current.scrollTop == 0) {
 			this.props.onScrollTop();
 		}
@@ -58,17 +62,16 @@ export default class ScrollManager extends Component {
 	}
 
 	componentWillReceiveProps(nextProps) {
-		if (this.props.scrollKey !== nextProps.scrollKey) {
+		if (this.props.scrollKey !== nextProps.scrollKey || this.props.children !== nextProps.children) {
 			this.saveScrollPosition();
 		}
 	}
 
 	componentDidUpdate(prevProps) {
-		if (this.props.scrollKey !== prevProps.scrollKey) {
-			this.restoreScrollPosition();
-		} else if (this.stickToBottom) {
-			this.scroll({ bottom: true });
+		if (!this.props.target.current) {
+			return;
 		}
+		this.restoreScrollPosition();
 	}
 
 	componentWillUnmount() {

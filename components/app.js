@@ -943,7 +943,7 @@ export default class App extends Component {
 				<${BufferList} buffers=${this.state.buffers} networks=${this.state.networks} activeBuffer=${this.state.activeBuffer} onBufferClick=${this.handleBufferListClick}/>
 			</section>
 			${bufferHeader}
-			<${ScrollManager} target=${this.buffer} scrollKey=${this.state.activeBuffer} onScrollTop=${this.handleBufferScrollTop}>
+			<${ScrollManager} target=${this.buffer} stickTo=".logline" scrollKey=${this.state.activeBuffer} onScrollTop=${this.handleBufferScrollTop}>
 				<section id="buffer" ref=${this.buffer}>
 					<${Buffer} buffer=${activeBuffer} onNickClick=${this.handleNickClick}/>
 				</section>
