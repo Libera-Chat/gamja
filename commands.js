@@ -1,4 +1,4 @@
-import { SERVER_BUFFER } from "./state.js";
+import { SERVER_BUFFER, BufferType } from "./state.js";
 
 function getActiveClient(app) {
 	var buf = app.state.buffers.get(app.state.activeBuffer);
@@ -20,7 +20,7 @@ export default {
 		if (window.localStorage) {
 			localStorage.removeItem("autoconnect");
 		}
-		app.close(SERVER_BUFFER);
+		app.close({ name: SERVER_BUFFER });
 	},
 	"query": (app, args) => {
 		var nick = args[0];
@@ -30,11 +30,11 @@ export default {
 		app.open(nick);
 	},
 	"close": (app, args) => {
-		var target = app.state.activeBuffer;
-		if (!target || target == SERVER_BUFFER) {
+		var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
+		if (!activeBuffer || activeBuffer.type == BufferType.SERVER) {
 			throw new Error("Not in a user or channel buffer");
 		}
-		app.close(target);
+		app.close(activeBuffer.id);
 	},
 	"join": (app, args) => {
 		var channel = args[0];
@@ -45,11 +45,11 @@ export default {
 	},
 	"part": (app, args) => {
 		var reason = args.join(" ");
-		var channel = app.state.activeBuffer;
-		if (!channel || !app.isChannel(channel)) {
+		var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
+		if (!activeBuffer || !app.isChannel(activeBuffer.name)) {
 			throw new Error("Not in a channel");
 		}
-		var params = [channel];
+		var params = [activeBuffer.name];
 		if (reason) {
 			params.push(reason);
 		}
@@ -62,12 +62,12 @@ export default {
 	},
 	"me": (app, args) => {
 		var action = args.join(" ");
-		var target = app.state.activeBuffer;
-		if (!target) {
+		var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
+		if (!activeBuffer) {
 			throw new Error("Not in a buffer");
 		}
 		var text = `\x01ACTION ${action}\x01`;
-		app.privmsg(target, text);
+		app.privmsg(activeBuffer.name, text);
 	},
 	"nick": (app, args) => {
 		var newNick = args[0];
@@ -89,11 +89,11 @@ export default {
 		throw new Error("Unknown buffer");
 	},
 	"topic": (app, args) => {
-		var channel = app.state.activeBuffer;
-		if (!channel || !app.isChannel(channel)) {
+		var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
+		if (!activeBuffer || !app.isChannel(activeBuffer.name)) {
 			throw new Error("Not in a channel");
 		}
-		var params = [channel];
+		var params = [activeBuffer.name];
 		if (args.length > 0) {
 			params.push(args.join(" "));
 		}
