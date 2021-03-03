@@ -47,9 +47,10 @@ class LogLine extends Component {
 	render() {
 		var msg = this.props.message;
 
+		var onNickClick = this.props.onNickClick;
 		function createNick(nick) {
 			return html`
-				<${Nick} nick=${nick} onClick=${() => props.onNickClick(nick)}/>
+				<${Nick} nick=${nick} onClick=${() => onNickClick(nick)}/>
 			`;
 		}
 
