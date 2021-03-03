@@ -757,7 +757,7 @@ export default class App extends Component {
 			this.switchBuffer({ name: SERVER_BUFFER });
 			this.setState((state) => {
 				var buffers = new Map(state.buffers);
-				buffers.delete(buf.name);
+				buffers.delete(buf.id);
 				return { buffers };
 			});
 
