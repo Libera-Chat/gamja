@@ -9,18 +9,15 @@ function getActiveClient(app) {
 }
 
 export default {
-	"quit": (app, args) => {
-		if (window.localStorage) {
-			localStorage.removeItem("autoconnect");
+	"buffer": (app, args) => {
+		var name = args[0];
+		for (var buf of app.state.buffers.values()) {
+			if (buf.name === name) {
+				app.switchBuffer(buf);
+				return;
+			}
 		}
-		app.close({ name: SERVER_BUFFER });
-	},
-	"query": (app, args) => {
-		var nick = args[0];
-		if (!nick) {
-			throw new Error("Missing nickname");
-		}
-		app.open(nick);
+		throw new Error("Unknown buffer");
 	},
 	"close": (app, args) => {
 		var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
@@ -29,12 +26,38 @@ export default {
 		}
 		app.close(activeBuffer.id);
 	},
+	"disconnect": (app, args) => {
+		app.disconnect();
+	},
 	"join": (app, args) => {
 		var channel = args[0];
 		if (!channel) {
 			throw new Error("Missing channel name");
 		}
 		getActiveClient(app).send({ command: "JOIN", params: [channel] });
+	},
+	"me": (app, args) => {
+		var action = args.join(" ");
+		var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
+		if (!activeBuffer) {
+			throw new Error("Not in a buffer");
+		}
+		var text = `\x01ACTION ${action}\x01`;
+		app.privmsg(activeBuffer.name, text);
+	},
+	"msg": (app, args) => {
+		var target = args[0];
+		var text = args.slice(1).join(" ");
+		getActiveClient(app).send({ command: "PRIVMSG", params: [target, text] });
+	},
+	"nick": (app, args) => {
+		var newNick = args[0];
+		getActiveClient(app).send({ command: "NICK", params: [newNick] });
+	},
+	"notice": (app, args) => {
+		var target = args[0];
+		var text = args.slice(1).join(" ");
+		getActiveClient(app).send({ command: "NOTICE", params: [target, text] });
 	},
 	"part": (app, args) => {
 		var reason = args.join(" ");
@@ -48,38 +71,21 @@ export default {
 		}
 		getActiveClient(app).send({ command: "PART", params });
 	},
-	"msg": (app, args) => {
-		var target = args[0];
-		var text = args.slice(1).join(" ");
-		getActiveClient(app).send({ command: "PRIVMSG", params: [target, text] });
-	},
-	"me": (app, args) => {
-		var action = args.join(" ");
-		var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
-		if (!activeBuffer) {
-			throw new Error("Not in a buffer");
+	"query": (app, args) => {
+		var nick = args[0];
+		if (!nick) {
+			throw new Error("Missing nickname");
 		}
-		var text = `\x01ACTION ${action}\x01`;
-		app.privmsg(activeBuffer.name, text);
+		app.open(nick);
 	},
-	"nick": (app, args) => {
-		var newNick = args[0];
-		getActiveClient(app).send({ command: "NICK", params: [newNick] });
-	},
-	"notice": (app, args) => {
-		var target = args[0];
-		var text = args.slice(1).join(" ");
-		getActiveClient(app).send({ command: "NOTICE", params: [target, text] });
-	},
-	"buffer": (app, args) => {
-		var name = args[0];
-		for (var buf of app.state.buffers.values()) {
-			if (buf.name === name) {
-				app.switchBuffer(buf);
-				return;
-			}
+	"quit": (app, args) => {
+		if (window.localStorage) {
+			localStorage.removeItem("autoconnect");
 		}
-		throw new Error("Unknown buffer");
+		app.close({ name: SERVER_BUFFER });
+	},
+	"reconnect": (app, args) => {
+		app.reconnect();
 	},
 	"topic": (app, args) => {
 		var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
@@ -91,11 +97,5 @@ export default {
 			params.push(args.join(" "));
 		}
 		getActiveClient(app).send({ command: "TOPIC", params });
-	},
-	"reconnect": (app, args) => {
-		app.reconnect();
-	},
-	"disconnect": (app, args) => {
-		app.disconnect();
 	},
 };
