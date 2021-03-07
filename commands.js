@@ -9,13 +9,6 @@ function getActiveClient(app) {
 }
 
 export default {
-	"query": (app, args) => {
-		var nick = args[0];
-		if (!nick) {
-			throw new Error("Missing nickname");
-		}
-		app.open(nick);
-	},
 	"quit": (app, args) => {
 		if (window.localStorage) {
 			localStorage.removeItem("autoconnect");
