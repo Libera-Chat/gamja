@@ -29,6 +29,9 @@ export default {
 	"disconnect": (app, args) => {
 		app.disconnect();
 	},
+	"help": (app, args) => {
+		app.openHelp();
+	},
 	"join": (app, args) => {
 		var channel = args[0];
 		if (!channel) {

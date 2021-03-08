@@ -6,6 +6,7 @@ import BufferHeader from "./buffer-header.js";
 import MemberList from "./member-list.js";
 import Connect from "./connect.js";
 import Join from "./join.js";
+import Help from "./help.js";
 import Composer from "./composer.js";
 import ScrollManager from "./scroll-manager.js";
 import Dialog from "./dialog.js";
@@ -879,6 +880,10 @@ export default class App extends Component {
 		return fromList(buf.members.keys(), prefix);
 	}
 
+	openHelp() {
+		this.setState({ dialog: "help" });
+	}
+
 	handleBufferScrollTop() {
 		var buf = this.state.buffers.get(this.state.activeBuffer);
 		if (!buf || buf.type == BufferType.SERVER) {
@@ -959,6 +964,13 @@ export default class App extends Component {
 
 		var dialog = null;
 		switch (this.state.dialog) {
+		case "help":
+			dialog = html`
+				<${Dialog} title="Help" onDismiss=${this.handleDialogDismiss}>
+					<${Help}/>
+				</>
+			`;
+			break;
 		case "join":
 			dialog = html`
 				<${Dialog} title="Join channel" onDismiss=${this.handleDialogDismiss}>

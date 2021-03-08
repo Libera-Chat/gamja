@@ -301,3 +301,18 @@ details summary {
 .dialog h2 {
 	margin-top: 0;
 }
+
+kbd {
+	background-color: #f0f0f0;
+	border: 1px solid #bfbfbf;
+	box-shadow: inset 0 1px 0 0 #fff, inset 0 -2px 0 0 #d9d9d9;
+	display: inline-block;
+	font-size: 80%;
+	margin: 3px;
+	min-width: 1em;
+	text-align: center;
+	white-space: nowrap;
+	padding: 2px 4px;
+	font-family: monospace;
+	border-radius: 3px;
+}
