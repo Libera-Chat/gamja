@@ -583,7 +583,11 @@ export default class App extends Component {
 		case "PRIVMSG":
 			var target = msg.params[0];
 			if (target == client.nick) {
-				target = msg.prefix.name;
+				if (msg.prefix.name == client.serverPrefix.name) {
+					target = SERVER_BUFFER;
+				} else {
+					target = msg.prefix.name;
+				}
 			}
 			this.addMessage(netID, target, msg);
 			break;
