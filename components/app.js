@@ -18,8 +18,6 @@ import { setup as setupKeybindings } from "../keybindings.js";
 
 const CHATHISTORY_MAX_SIZE = 4000;
 
-const DEFAULT_NETWORK = "network"; // TODO: remove this global
-
 var messagesCount = 0;
 
 function parseQueryString() {
