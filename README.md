@@ -50,7 +50,8 @@ gamja settings can be overridden using URL query parameters:
 
 ## Contributing
 
-Send patches on the [mailing list], report bugs on the [issue tracker].
+Send patches on the [mailing list], report bugs on the [issue tracker]. Discuss
+in #soju on Freenode.
 
 ## License
 
