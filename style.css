@@ -283,11 +283,11 @@ details summary {
 	right: 0;
 	bottom: 0;
 	background-color: rgba(0, 0, 0, 0.5);
+	overflow: auto;
 }
 .dialog .dialog-body {
 	background-color: white;
-	margin: auto;
-	margin-top: 20px;
+	margin: 20px auto;
 	max-width: 500px;
 	padding: 15px;
 	border: 1px solid rgba(0, 0, 0, 0.6);
