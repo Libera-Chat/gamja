@@ -1,5 +1,6 @@
 import { html, Component } from "../lib/index.js";
 import { keybindings } from "../keybindings.js";
+import commands from "../commands.js";
 
 function KeyBindingsHelp() {
 	var l = keybindings.map((binding) => {
@@ -28,9 +29,30 @@ function KeyBindingsHelp() {
 	return html`<dl>${l}</dl>`;
 }
 
+function CommandsHelp() {
+	var l = Object.keys(commands).map((name) => {
+		var cmd = commands[name];
+
+		var usage = "/" + name;
+		if (cmd.usage) {
+			usage += " " + cmd.usage;
+		}
+
+		return html`
+			<dt><strong><code>${usage}</code></strong></dt>
+			<dd>${cmd.description}</dd>
+		`;
+	});
+
+	return html`<dl>${l}</dl>`;
+}
+
 export default function Help() {
 	return html`
 		<h3>Key bindings</h3>
 		<${KeyBindingsHelp}/>
+
+		<h3>Commands</h3>
+		<${CommandsHelp}/>
 	`;
 }

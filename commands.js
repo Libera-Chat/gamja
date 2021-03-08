@@ -9,96 +9,147 @@ function getActiveClient(app) {
 }
 
 export default {
-	"buffer": (app, args) => {
-		var name = args[0];
-		for (var buf of app.state.buffers.values()) {
-			if (buf.name === name) {
-				app.switchBuffer(buf);
-				return;
+	"buffer": {
+		usage: "<name>",
+		description: "Switch to a buffer",
+		execute: (app, args) => {
+			var name = args[0];
+			for (var buf of app.state.buffers.values()) {
+				if (buf.name === name) {
+					app.switchBuffer(buf);
+					return;
+				}
 			}
-		}
-		throw new Error("Unknown buffer");
+			throw new Error("Unknown buffer");
+		},
 	},
-	"close": (app, args) => {
-		var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
-		if (!activeBuffer || activeBuffer.type == BufferType.SERVER) {
-			throw new Error("Not in a user or channel buffer");
-		}
-		app.close(activeBuffer.id);
+	"close": {
+		description: "Close the current buffer",
+		execute: (app, args) => {
+			var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
+			if (!activeBuffer || activeBuffer.type == BufferType.SERVER) {
+				throw new Error("Not in a user or channel buffer");
+			}
+			app.close(activeBuffer.id);
+		},
 	},
-	"disconnect": (app, args) => {
-		app.disconnect();
+	"disconnect": {
+		description: "Disconnect from the server",
+		execute: (app, args) => {
+			app.disconnect();
+		},
 	},
-	"help": (app, args) => {
-		app.openHelp();
+	"help": {
+		description: "Show help menu",
+		execute: (app, args) => {
+			app.openHelp();
+		},
 	},
-	"join": (app, args) => {
-		var channel = args[0];
-		if (!channel) {
-			throw new Error("Missing channel name");
-		}
-		getActiveClient(app).send({ command: "JOIN", params: [channel] });
+	"join": {
+		usage: "<name>",
+		description: "Join a channel",
+		execute: (app, args) => {
+			var channel = args[0];
+			if (!channel) {
+				throw new Error("Missing channel name");
+			}
+			getActiveClient(app).send({ command: "JOIN", params: [channel] });
+		},
 	},
-	"me": (app, args) => {
-		var action = args.join(" ");
-		var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
-		if (!activeBuffer) {
-			throw new Error("Not in a buffer");
-		}
-		var text = `\x01ACTION ${action}\x01`;
-		app.privmsg(activeBuffer.name, text);
+	"me": {
+		usage: "<action>",
+		description: "Send an action message to the current buffer",
+		execute: (app, args) => {
+			var action = args.join(" ");
+			var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
+			if (!activeBuffer) {
+				throw new Error("Not in a buffer");
+			}
+			var text = `\x01ACTION ${action}\x01`;
+			app.privmsg(activeBuffer.name, text);
+		},
 	},
-	"msg": (app, args) => {
-		var target = args[0];
-		var text = args.slice(1).join(" ");
-		getActiveClient(app).send({ command: "PRIVMSG", params: [target, text] });
+	"msg": {
+		usage: "<target> <message>",
+		description: "Send a message to a nickname or a channel",
+		execute: (app, args) => {
+			var target = args[0];
+			var text = args.slice(1).join(" ");
+			getActiveClient(app).send({ command: "PRIVMSG", params: [target, text] });
+		},
 	},
-	"nick": (app, args) => {
-		var newNick = args[0];
-		getActiveClient(app).send({ command: "NICK", params: [newNick] });
+	"nick": {
+		usage: "<nick>",
+		description: "Change current nickname",
+		execute: (app, args) => {
+			var newNick = args[0];
+			getActiveClient(app).send({ command: "NICK", params: [newNick] });
+		},
 	},
-	"notice": (app, args) => {
-		var target = args[0];
-		var text = args.slice(1).join(" ");
-		getActiveClient(app).send({ command: "NOTICE", params: [target, text] });
+	"notice": {
+		usage: "<target> <message>",
+		description: "Send a notice to a nickname or a channel",
+		execute: (app, args) => {
+			var target = args[0];
+			var text = args.slice(1).join(" ");
+			getActiveClient(app).send({ command: "NOTICE", params: [target, text] });
+		},
 	},
-	"part": (app, args) => {
-		var reason = args.join(" ");
-		var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
-		if (!activeBuffer || !app.isChannel(activeBuffer.name)) {
-			throw new Error("Not in a channel");
-		}
-		var params = [activeBuffer.name];
-		if (reason) {
-			params.push(reason);
-		}
-		getActiveClient(app).send({ command: "PART", params });
+	"part": {
+		usage: "[reason]",
+		description: "Leave a channel",
+		execute: (app, args) => {
+			var reason = args.join(" ");
+			var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
+			if (!activeBuffer || !app.isChannel(activeBuffer.name)) {
+				throw new Error("Not in a channel");
+			}
+			var params = [activeBuffer.name];
+			if (reason) {
+				params.push(reason);
+			}
+			getActiveClient(app).send({ command: "PART", params });
+		},
 	},
-	"query": (app, args) => {
-		var nick = args[0];
-		if (!nick) {
-			throw new Error("Missing nickname");
-		}
-		app.open(nick);
+	"query": {
+		usage: "<nick>",
+		description: "Open a buffer to send messages to a nickname",
+		execute: (app, args) => {
+			var nick = args[0];
+			if (!nick) {
+				throw new Error("Missing nickname");
+			}
+			app.open(nick);
+		},
 	},
-	"quit": (app, args) => {
-		if (window.localStorage) {
-			localStorage.removeItem("autoconnect");
-		}
-		app.close({ name: SERVER_BUFFER });
+	"quit": {
+		description: "Quit",
+		execute: (app, args) => {
+			if (window.localStorage) {
+				localStorage.removeItem("autoconnect");
+			}
+			app.close({ name: SERVER_BUFFER });
+		},
 	},
-	"reconnect": (app, args) => {
-		app.reconnect();
+	"reconnect": {
+		description: "Reconnect to the server",
+		execute: (app, args) => {
+			app.reconnect();
+		},
 	},
-	"topic": (app, args) => {
-		var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
-		if (!activeBuffer || !app.isChannel(activeBuffer.name)) {
-			throw new Error("Not in a channel");
-		}
-		var params = [activeBuffer.name];
-		if (args.length > 0) {
-			params.push(args.join(" "));
-		}
-		getActiveClient(app).send({ command: "TOPIC", params });
+	"topic": {
+		usage: "<topic>",
+		description: "Change the topic of the current channel",
+		execute: (app, args) => {
+			var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
+			if (!activeBuffer || !app.isChannel(activeBuffer.name)) {
+				throw new Error("Not in a channel");
+			}
+			var params = [activeBuffer.name];
+			if (args.length > 0) {
+				params.push(args.join(" "));
+			}
+			getActiveClient(app).send({ command: "TOPIC", params });
+		},
 	},
 };
