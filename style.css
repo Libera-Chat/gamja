@@ -136,10 +136,11 @@ body {
 	margin: 0 auto;
 	max-width: 300px;
 }
-#connect input[type="text"],
-#connect input[type="username"],
-#connect input[type="password"],
-#connect input[type="url"] {
+
+form input[type="text"],
+form input[type="username"],
+form input[type="password"],
+form input[type="url"] {
 	box-sizing: border-box;
 	width: 100%;
 }
@@ -273,4 +274,30 @@ details summary {
 
 .error-text {
 	color: red;
+}
+
+.dialog {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(0, 0, 0, 0.5);
+}
+.dialog .dialog-body {
+	background-color: white;
+	margin: auto;
+	margin-top: 20px;
+	max-width: 500px;
+	padding: 15px;
+	border: 1px solid rgba(0, 0, 0, 0.6);
+}
+.dialog a.dialog-close {
+	float: right;
+	text-decoration: none;
+	font-size: 1.5em;
+	color: inherit;
+}
+.dialog h2 {
+	margin-top: 0;
 }

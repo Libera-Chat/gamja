@@ -5,8 +5,10 @@ import BufferList from "./buffer-list.js";
 import BufferHeader from "./buffer-header.js";
 import MemberList from "./member-list.js";
 import Connect from "./connect.js";
+import Join from "./join.js";
 import Composer from "./composer.js";
 import ScrollManager from "./scroll-manager.js";
+import Dialog from "./dialog.js";
 import { html, Component, createRef } from "../lib/index.js";
 import { strip as stripANSI } from "../lib/ansi.js";
 import { SERVER_BUFFER, BufferType, ReceiptType, NetworkStatus, Unread } from "../state.js";
@@ -151,6 +153,7 @@ export default class App extends Component {
 		networks: new Map(),
 		buffers: new Map(),
 		activeBuffer: null,
+		dialog: null,
 		error: null,
 	};
 	clients = new Map();
@@ -165,11 +168,13 @@ export default class App extends Component {
 		super(props);
 
 		this.handleConnectSubmit = this.handleConnectSubmit.bind(this);
+		this.handleJoinSubmit = this.handleJoinSubmit.bind(this);
 		this.handleBufferListClick = this.handleBufferListClick.bind(this);
 		this.handleComposerSubmit = this.handleComposerSubmit.bind(this);
 		this.handleNickClick = this.handleNickClick.bind(this);
 		this.autocomplete = this.autocomplete.bind(this);
 		this.handleBufferScrollTop = this.handleBufferScrollTop.bind(this);
+		this.handleDialogDismiss = this.handleDialogDismiss.bind(this);
 		this.dismissError = this.dismissError.bind(this);
 
 		this.saveReceipts = debounce(this.saveReceipts.bind(this), 500);
@@ -833,14 +838,15 @@ export default class App extends Component {
 	}
 
 	handleJoinClick(netID) {
-		var channel = prompt("Join channel:");
-		if (!channel) {
-			return;
-		}
+		this.setState({ dialog: "join", joinDialog: { network: netID } });
+	}
 
-		var client = this.clients.get(netID);
+	handleJoinSubmit(data) {
+		var client = this.clients.get(this.state.joinDialog.network);
 
-		client.send({ command: "JOIN", params: [channel] });
+		client.send({ command: "JOIN", params: [data.channel] });
+
+		this.setState({ dialog: null, joinDialog: null });
 	}
 
 	autocomplete(prefix) {
@@ -903,6 +909,10 @@ export default class App extends Component {
 		});
 	}
 
+	handleDialogDismiss() {
+		this.setState({ dialog: null });
+	}
+
 	componentDidMount() {
 		if (this.state.connectParams.autoconnect) {
 			this.connect(this.state.connectParams);
@@ -947,6 +957,17 @@ export default class App extends Component {
 			`;
 		}
 
+		var dialog = null;
+		switch (this.state.dialog) {
+		case "join":
+			dialog = html`
+				<${Dialog} title="Join channel" onDismiss=${this.handleDialogDismiss}>
+					<${Join} onSubmit=${this.handleJoinSubmit}/>
+				</>
+			`;
+			break;
+		}
+
 		var error = null;
 		if (this.state.error) {
 			error = html`
@@ -966,6 +987,7 @@ export default class App extends Component {
 			</>
 			${memberList}
 			<${Composer} ref=${this.composer} readOnly=${activeBuffer && activeBuffer.type == BufferType.SERVER} onSubmit=${this.handleComposerSubmit} autocomplete=${this.autocomplete}/>
+			${dialog}
 			${error}
 		`;
 	}
