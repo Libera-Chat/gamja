@@ -41,6 +41,13 @@ Start your IRC WebSocket server, e.g. on port 8080. Then run:
 This will start a development HTTP server for gamja. Connect to it and append
 `?server=ws://localhost:8080` to the URL.
 
+## Query parameters
+
+gamja settings can be overridden using URL query parameters:
+
+- `server`: path or URL to the WebSocket server
+- `channels`: comma-separated list of channels to join
+
 ## Contributing
 
 Send patches on the [mailing list], report bugs on the [issue tracker].
