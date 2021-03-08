@@ -28,6 +28,10 @@ export default function BufferHeader(props) {
 		event.preventDefault();
 		props.onJoin();
 	}
+	function handleAddNetworkClick(event) {
+		event.preventDefault();
+		props.onAddNetwork();
+	}
 
 	var description = null;
 	if (props.buffer.serverInfo) {
@@ -71,7 +75,11 @@ export default function BufferHeader(props) {
 	var closeText = "Close";
 	switch (props.buffer.type) {
 	case BufferType.SERVER:
-		actions = html`<a href="#" onClick=${handleJoinClick}>Join</a>`;
+		if (props.isBouncer && !props.network.isupport.get("BOUNCER_NETID")) {
+			actions = html`<a href="#" onClick=${handleAddNetworkClick}>Add network</a>`;
+		} else {
+			actions = html`<a href="#" onClick=${handleJoinClick}>Join</a>`;
+		}
 		closeText = "Disconnect";
 		break;
 	case BufferType.CHANNEL:

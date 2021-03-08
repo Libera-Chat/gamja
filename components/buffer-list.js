@@ -26,7 +26,7 @@ function BufferItem(props) {
 
 	var name = props.buffer.name;
 	if (props.buffer.type == BufferType.SERVER) {
-		name = getNetworkName(props.network, props.bouncerNetwork, props.bouncer);
+		name = getNetworkName(props.network, props.bouncerNetwork, props.isBouncer);
 	}
 
 	var classes = ["type-" + props.buffer.type];
@@ -46,9 +46,6 @@ function BufferItem(props) {
 
 
 export default function BufferList(props) {
-	// TODO: check bouncer-networks cap instead
-	var bouncer = props.bouncerNetworks.size > 0;
-
 	var items = Array.from(props.buffers.values()).map((buf) => {
 		var network = props.networks.get(buf.network);
 
@@ -59,7 +56,7 @@ export default function BufferList(props) {
 		}
 
 		return html`
-			<${BufferItem} key=${buf.id} buffer=${buf} network=${network} bouncer=${bouncer} bouncerNetwork=${bouncerNetwork} onClick=${() => props.onBufferClick(buf)} active=${props.activeBuffer == buf.id}/>
+			<${BufferItem} key=${buf.id} buffer=${buf} network=${network} isBouncer=${props.isBouncer} bouncerNetwork=${bouncerNetwork} onClick=${() => props.onBufferClick(buf)} active=${props.activeBuffer == buf.id}/>
 		`;
 	});
 

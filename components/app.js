@@ -7,6 +7,7 @@ import MemberList from "./member-list.js";
 import ConnectForm from "./connect-form.js";
 import JoinForm from "./join-form.js";
 import Help from "./help.js";
+import NetworkForm from "./network-form.js";
 import Composer from "./composer.js";
 import ScrollManager from "./scroll-manager.js";
 import Dialog from "./dialog.js";
@@ -185,6 +186,8 @@ export default class App extends Component {
 		this.autocomplete = this.autocomplete.bind(this);
 		this.handleBufferScrollTop = this.handleBufferScrollTop.bind(this);
 		this.handleDialogDismiss = this.handleDialogDismiss.bind(this);
+		this.handleAddNetworkClick = this.handleAddNetworkClick.bind(this);
+		this.handleAddNetworkSubmit = this.handleAddNetworkSubmit.bind(this);
 		this.dismissError = this.dismissError.bind(this);
 
 		this.saveReceipts = debounce(this.saveReceipts.bind(this), 500);
@@ -980,6 +983,23 @@ export default class App extends Component {
 		this.setState({ dialog: null });
 	}
 
+	handleAddNetworkClick() {
+		this.setState({ dialog: "add-network" });
+	}
+
+	handleAddNetworkSubmit(attrs) {
+		var client = this.clients.values().next().value;
+		client.send({
+			command: "BOUNCER",
+			params: ["ADDNETWORK", irc.formatTags({
+				...attrs,
+				name: attrs.host,
+				tls: 1,
+			})],
+		});
+		this.setState({ dialog: null });
+	}
+
 	componentDidMount() {
 		if (this.state.connectParams.autoconnect) {
 			this.connect(this.state.connectParams);
@@ -990,9 +1010,13 @@ export default class App extends Component {
 
 	render() {
 		var activeBuffer = null, activeNetwork = null;
+		var isBouncer = false;
 		if (this.state.buffers.get(this.state.activeBuffer)) {
 			activeBuffer = this.state.buffers.get(this.state.activeBuffer);
 			activeNetwork = this.state.networks.get(activeBuffer.network);
+
+			var activeClient = this.clients.get(activeBuffer.network);
+			isBouncer = activeClient && activeClient.enabledCaps["soju.im/bouncer-networks"];
 		}
 
 		if (!activeNetwork || (activeNetwork.status !== NetworkStatus.REGISTERED && !activeBuffer)) {
@@ -1017,8 +1041,10 @@ export default class App extends Component {
 					<${BufferHeader}
 						buffer=${activeBuffer}
 						network=${activeNetwork}
+						isBouncer=${isBouncer}
 						onClose=${() => this.close(activeBuffer)}
 						onJoin=${() => this.handleJoinClick(activeBuffer.network)}
+						onAddNetwork=${this.handleAddNetworkClick}
 					/>
 				</section>
 			`;
@@ -1041,6 +1067,13 @@ export default class App extends Component {
 
 		var dialog = null;
 		switch (this.state.dialog) {
+		case "add-network":
+			dialog = html`
+				<${Dialog} title="Add network" onDismiss=${this.handleDialogDismiss}>
+					<${NetworkForm} onSubmit=${this.handleAddNetworkSubmit}/>
+				</>
+			`;
+			break;
 		case "help":
 			dialog = html`
 				<${Dialog} title="Help" onDismiss=${this.handleDialogDismiss}>
@@ -1074,6 +1107,7 @@ export default class App extends Component {
 					buffers=${this.state.buffers}
 					networks=${this.state.networks}
 					bouncerNetworks=${this.state.bouncerNetworks}
+					isBouncer=${isBouncer}
 					activeBuffer=${this.state.activeBuffer}
 					onBufferClick=${this.handleBufferListClick}
 				/>
