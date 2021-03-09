@@ -474,7 +474,9 @@ export default class App extends Component {
 		});
 
 		this.createBuffer(netID, SERVER_BUFFER);
-		this.switchBuffer({ network: netID, name: SERVER_BUFFER });
+		if (!this.state.activeBuffer) {
+			this.switchBuffer({ network: netID, name: SERVER_BUFFER });
+		}
 	}
 
 	disconnect(netID) {
