@@ -685,6 +685,11 @@ export default class App extends Component {
 				return { who };
 			});
 			break;
+		case "FAIL":
+			var description = msg.params[msg.params.length - 1];
+			this.setState({ error: description });
+			this.addMessage(netID, SERVER_BUFFER, msg);
+			break;
 		case "CAP":
 		case "AUTHENTICATE":
 		case "PING":
