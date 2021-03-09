@@ -1,6 +1,6 @@
 import { html, Component } from "../lib/index.js";
 
-export default class Connect extends Component {
+export default class ConnectForm extends Component {
 	state = {
 		serverURL: "",
 		serverPass: "",

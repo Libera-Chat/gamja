@@ -1,6 +1,6 @@
 import { html, Component } from "../lib/index.js";
 
-export default class Join extends Component {
+export default class JoinForm extends Component {
 	state = {
 		channel: "#",
 	};

@@ -4,8 +4,8 @@ import Buffer from "./buffer.js";
 import BufferList from "./buffer-list.js";
 import BufferHeader from "./buffer-header.js";
 import MemberList from "./member-list.js";
-import Connect from "./connect.js";
-import Join from "./join.js";
+import ConnectForm from "./connect-form.js";
+import JoinForm from "./join-form.js";
 import Help from "./help.js";
 import Composer from "./composer.js";
 import ScrollManager from "./scroll-manager.js";
@@ -930,7 +930,7 @@ export default class App extends Component {
 		if (!activeNetwork || (activeNetwork.status !== NetworkStatus.REGISTERED && !activeBuffer)) {
 			return html`
 				<section id="connect">
-					<${Connect} error=${this.state.error} params=${this.state.connectParams} disabled=${activeNetwork} onSubmit=${this.handleConnectSubmit}/>
+					<${ConnectForm} error=${this.state.error} params=${this.state.connectParams} disabled=${activeNetwork} onSubmit=${this.handleConnectSubmit}/>
 				</section>
 			`;
 		}
@@ -968,7 +968,7 @@ export default class App extends Component {
 		case "join":
 			dialog = html`
 				<${Dialog} title="Join channel" onDismiss=${this.handleDialogDismiss}>
-					<${Join} onSubmit=${this.handleJoinSubmit}/>
+					<${JoinForm} onSubmit=${this.handleJoinSubmit}/>
 				</>
 			`;
 			break;
