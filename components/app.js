@@ -930,7 +930,12 @@ export default class App extends Component {
 		if (!activeNetwork || (activeNetwork.status !== NetworkStatus.REGISTERED && !activeBuffer)) {
 			return html`
 				<section id="connect">
-					<${ConnectForm} error=${this.state.error} params=${this.state.connectParams} disabled=${activeNetwork} onSubmit=${this.handleConnectSubmit}/>
+					<${ConnectForm}
+						error=${this.state.error}
+						params=${this.state.connectParams}
+						disabled=${activeNetwork}
+						onSubmit=${this.handleConnectSubmit}
+					/>
 				</section>
 			`;
 		}
@@ -939,7 +944,12 @@ export default class App extends Component {
 		if (activeBuffer) {
 			bufferHeader = html`
 				<section id="buffer-header">
-					<${BufferHeader} buffer=${activeBuffer} network=${activeNetwork} onClose=${() => this.close(activeBuffer)} onJoin=${() => this.handleJoinClick(activeBuffer.network)}/>
+					<${BufferHeader}
+						buffer=${activeBuffer}
+						network=${activeNetwork}
+						onClose=${() => this.close(activeBuffer)}
+						onJoin=${() => this.handleJoinClick(activeBuffer.network)}
+					/>
 				</section>
 			`;
 		}
@@ -951,7 +961,10 @@ export default class App extends Component {
 					${activeBuffer.members.size} users
 				</section>
 				<section id="member-list">
-					<${MemberList} members=${activeBuffer.members} onNickClick=${this.handleNickClick}/>
+					<${MemberList}
+						members=${activeBuffer.members}
+						onNickClick=${this.handleNickClick}
+					/>
 				</section>
 			`;
 		}
@@ -977,22 +990,40 @@ export default class App extends Component {
 		var error = null;
 		if (this.state.error) {
 			error = html`
-				<p id="error-msg">${this.state.error} <a href="#" onClick=${this.dismissError}>×</a></p>
+				<p id="error-msg">
+					${this.state.error}
+					<a href="#" onClick=${this.dismissError}>×</a>
+				</p>
 			`;
 		}
 
 		return html`
 			<section id="buffer-list">
-				<${BufferList} buffers=${this.state.buffers} networks=${this.state.networks} activeBuffer=${this.state.activeBuffer} onBufferClick=${this.handleBufferListClick}/>
+				<${BufferList}
+					buffers=${this.state.buffers}
+					networks=${this.state.networks}
+					activeBuffer=${this.state.activeBuffer}
+					onBufferClick=${this.handleBufferListClick}
+				/>
 			</section>
 			${bufferHeader}
-			<${ScrollManager} target=${this.buffer} stickTo=".logline" scrollKey=${this.state.activeBuffer} onScrollTop=${this.handleBufferScrollTop}>
+			<${ScrollManager}
+				target=${this.buffer}
+				stickTo=".logline"
+				scrollKey=${this.state.activeBuffer}
+				onScrollTop=${this.handleBufferScrollTop}
+			>
 				<section id="buffer" ref=${this.buffer}>
 					<${Buffer} buffer=${activeBuffer} onNickClick=${this.handleNickClick}/>
 				</section>
 			</>
 			${memberList}
-			<${Composer} ref=${this.composer} readOnly=${activeBuffer && activeBuffer.type == BufferType.SERVER} onSubmit=${this.handleComposerSubmit} autocomplete=${this.autocomplete}/>
+			<${Composer}
+				ref=${this.composer}
+				readOnly=${activeBuffer && activeBuffer.type == BufferType.SERVER}
+				onSubmit=${this.handleComposerSubmit}
+				autocomplete=${this.autocomplete}
+			/>
 			${dialog}
 			${error}
 		`;
