@@ -301,6 +301,12 @@ details summary {
 .dialog h2 {
 	margin-top: 0;
 }
+.dialog form button:not([type="button"]) {
+	float: right;
+}
+.dialog form {
+	overflow: auto; /* hack to clear floating elements */
+}
 
 kbd {
 	background-color: #f0f0f0;
