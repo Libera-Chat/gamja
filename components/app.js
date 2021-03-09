@@ -426,7 +426,7 @@ export default class App extends Component {
 
 		this.setReceipt(bufName, ReceiptType.DELIVERED, msg);
 
-		this.setBufferState({ network: netID, name: bufName}, (buf) => {
+		this.setBufferState({ network: netID, name: bufName }, (buf) => {
 			// TODO: set unread if scrolled up
 			var unread = buf.unread;
 			var lastReadReceipt = buf.lastReadReceipt;
@@ -516,7 +516,7 @@ export default class App extends Component {
 				name: msg.params[1],
 				version: msg.params[2],
 			};
-			this.setBufferState({ network: netID, name: SERVER_BUFFER}, { serverInfo });
+			this.setBufferState({ network: netID, name: SERVER_BUFFER }, { serverInfo });
 			break;
 		case irc.RPL_ISUPPORT:
 			var tokens = msg.params.slice(1, -1);
@@ -529,13 +529,13 @@ export default class App extends Component {
 		case irc.RPL_NOTOPIC:
 			var channel = msg.params[1];
 
-			this.setBufferState({ network: netID, name: channel}, { topic: null });
+			this.setBufferState({ network: netID, name: channel }, { topic: null });
 			break;
 		case irc.RPL_TOPIC:
 			var channel = msg.params[1];
 			var topic = msg.params[2];
 
-			this.setBufferState({ network: netID, name: channel}, { topic });
+			this.setBufferState({ network: netID, name: channel }, { topic });
 			break;
 		case irc.RPL_TOPICWHOTIME:
 			// Ignore
@@ -544,7 +544,7 @@ export default class App extends Component {
 			var channel = msg.params[2];
 			var membersList = msg.params[3].split(" ");
 
-			this.setBufferState({ network: netID, name: channel}, (buf) => {
+			this.setBufferState({ network: netID, name: channel }, (buf) => {
 				var members = new Map(buf.members);
 				membersList.forEach((s) => {
 					var member = irc.parseMembership(s);
@@ -567,13 +567,13 @@ export default class App extends Component {
 				realname: last.slice(last.indexOf(" ") + 1),
 			};
 
-			this.setBufferState({ network: netID, name: who.nick}, { who, offline: false });
+			this.setBufferState({ network: netID, name: who.nick }, { who, offline: false });
 			break;
 		case irc.RPL_ENDOFWHO:
 			var target = msg.params[1];
 			if (!this.isChannel(target) && target.indexOf("*") < 0) {
 				// Not a channel nor a mask, likely a nick
-				this.setBufferState({ network: netID, name: target}, (buf) => {
+				this.setBufferState({ network: netID, name: target }, (buf) => {
 					// TODO: mark user offline if we have old WHO info but this
 					// WHO reply is empty
 					if (buf.who) {
@@ -599,7 +599,7 @@ export default class App extends Component {
 			var channel = msg.params[0];
 
 			this.createBuffer(netID, channel);
-			this.setBufferState({ network: netID, name: channel}, (buf) => {
+			this.setBufferState({ network: netID, name: channel }, (buf) => {
 				var members = new Map(buf.members);
 				members.set(msg.prefix.name, null);
 				return { members };
@@ -626,7 +626,7 @@ export default class App extends Component {
 		case "PART":
 			var channel = msg.params[0];
 
-			this.setBufferState({ network: netID, name: channel}, (buf) => {
+			this.setBufferState({ network: netID, name: channel }, (buf) => {
 				var members = new Map(buf.members);
 				members.delete(msg.prefix.name);
 				return { members };
@@ -680,13 +680,13 @@ export default class App extends Component {
 			var channel = msg.params[0];
 			var topic = msg.params[1];
 
-			this.setBufferState({ network: netID, name: channel}, { topic });
+			this.setBufferState({ network: netID, name: channel }, { topic });
 			this.addMessage(netID, channel, msg);
 			break;
 		case "AWAY":
 			var awayMessage = msg.params[0];
 
-			this.setBufferState({ network: netID, name: msg.prefix.name}, (buf) => {
+			this.setBufferState({ network: netID, name: msg.prefix.name }, (buf) => {
 				var who = { ...buf.who, away: !!awayMessage };
 				return { who };
 			});
