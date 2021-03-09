@@ -1,20 +1,40 @@
 import { html, Component } from "../lib/index.js";
 
+const defaultParams = {
+	name: "",
+	host: "",
+	port: 6697,
+	nickname: "",
+	username: "",
+	realname: "",
+	pass: "",
+};
+
 export default class NetworkForm extends Component {
+	prevParams = null;
 	state = {
-		host: "",
-		port: 6697,
-		nickname: "",
-		username: "",
-		realname: "",
-		pass: "",
+		...defaultParams,
+		isNew: true,
 	};
 
 	constructor(props) {
 		super(props);
 
+		this.prevParams = { ...defaultParams };
+
 		this.handleChange = this.handleChange.bind(this);
 		this.handleSubmit = this.handleSubmit.bind(this);
+
+		this.state.isNew = !props.params;
+
+		if (props.params) {
+			Object.keys(defaultParams).forEach((k) => {
+				if (props.params[k] !== undefined) {
+					this.state[k] = props.params[k];
+					this.prevParams[k] = props.params[k];
+				}
+			});
+		}
 	}
 
 	handleChange(event) {
@@ -26,19 +46,27 @@ export default class NetworkForm extends Component {
 	handleSubmit(event) {
 		event.preventDefault();
 
-		var params = {
-			host: this.state.host,
-			port: this.state.port,
-			nickname: this.state.nickname,
-			username: this.state.username,
-			realname: this.state.realname,
-			pass: this.state.pass,
-		};
+		var params = {};
+		Object.keys(defaultParams).forEach((k) => {
+			if (this.prevParams[k] == this.state[k]) {
+				return;
+			}
+			params[k] = this.state[k];
+		});
 
 		this.props.onSubmit(params);
 	}
 
 	render() {
+		var removeNetwork = null;
+		if (!this.state.isNew) {
+			removeNetwork = html`
+				<button type="button" onClick=${() => this.props.onRemove()}>
+					Remove network
+				</button>
+			`;
+		}
+
 		return html`
 			<form onChange=${this.handleChange} onSubmit=${this.handleSubmit}>
 				<label>
@@ -55,6 +83,12 @@ export default class NetworkForm extends Component {
 					<label>
 						Port:<br/>
 						<input type="number" name="port" value=${this.state.port}/>
+					</label>
+					<br/><br/>
+
+					<label>
+						Network name:<br/>
+						<input type="text" name="name" value=${this.state.name}/>
 					</label>
 					<br/><br/>
 
@@ -84,7 +118,11 @@ export default class NetworkForm extends Component {
 				</details>
 
 				<br/>
-				<button>Add network</button>
+				${removeNetwork}
+				${" "}
+				<button>
+					${this.state.isNew ? "Add network" : "Save network"}
+				</button>
 			</form>
 		`;
 	}

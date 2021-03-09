@@ -20,7 +20,7 @@ function NickStatus(props) {
 }
 
 export default function BufferHeader(props) {
-	function handlePartClick(event) {
+	function handleCloseClick(event) {
 		event.preventDefault();
 		props.onClose();
 	}
@@ -31,6 +31,10 @@ export default function BufferHeader(props) {
 	function handleAddNetworkClick(event) {
 		event.preventDefault();
 		props.onAddNetwork();
+	}
+	function handleManageNetworkClick(event) {
+		event.preventDefault();
+		props.onManageNetwork();
 	}
 
 	var description = null;
@@ -72,27 +76,40 @@ export default function BufferHeader(props) {
 	}
 
 	var actions = null;
-	var closeText = "Close";
 	switch (props.buffer.type) {
 	case BufferType.SERVER:
-		if (props.isBouncer && !props.network.isupport.get("BOUNCER_NETID")) {
-			actions = html`<a href="#" onClick=${handleAddNetworkClick}>Add network</a>`;
+		if (props.isBouncer) {
+			if (props.network.isupport.get("BOUNCER_NETID")) {
+				actions = html`
+					<a href="#" onClick=${handleJoinClick}>Join</a>
+					${" "}
+					<a href="#" onClick=${handleManageNetworkClick}>Manage network</a>
+				`;
+			} else {
+				actions = html`
+					<a href="#" onClick=${handleAddNetworkClick}>Add network</a>
+					${" "}
+					<a href="#" onClick=${handleCloseClick}>Disconnect</a>
+				`;
+			}
 		} else {
-			actions = html`<a href="#" onClick=${handleJoinClick}>Join</a>`;
+			actions = html`
+				<a href="#" onClick=${handleJoinClick}>Join</a>
+				${" "}
+				<a href="#" onClick=${handleCloseClick}>Disconnect</a>
+			`;
 		}
-		closeText = "Disconnect";
 		break;
 	case BufferType.CHANNEL:
-		closeText = "Part";
+		actions = html`<a href="#" onClick=${handleCloseClick}>Part</a>`;
+		break;
+	case BufferType.NICK:
+		actions = html`<a href="#" onClick=${handleCloseClick}>Close</a>`;
 		break;
 	}
 
 	return html`
 		<span class="description">${description}</span>
-		<span class="actions">
-			${actions}
-			${" "}
-			<a href="#" onClick=${handlePartClick}>${closeText}</a>
-		</span>
+		<span class="actions">${actions}</span>
 	`;
 }

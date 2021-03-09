@@ -187,7 +187,8 @@ export default class App extends Component {
 		this.handleBufferScrollTop = this.handleBufferScrollTop.bind(this);
 		this.handleDialogDismiss = this.handleDialogDismiss.bind(this);
 		this.handleAddNetworkClick = this.handleAddNetworkClick.bind(this);
-		this.handleAddNetworkSubmit = this.handleAddNetworkSubmit.bind(this);
+		this.handleNetworkSubmit = this.handleNetworkSubmit.bind(this);
+		this.handleNetworkRemove = this.handleNetworkRemove.bind(this);
 		this.dismissError = this.dismissError.bind(this);
 
 		this.saveReceipts = debounce(this.saveReceipts.bind(this), 500);
@@ -984,20 +985,55 @@ export default class App extends Component {
 	}
 
 	handleAddNetworkClick() {
-		this.setState({ dialog: "add-network" });
+		this.setState({ dialog: "network", networkDialog: null });
 	}
 
-	handleAddNetworkSubmit(attrs) {
+	handleManageNetworkClick(netID) {
+		var network = this.state.networks.get(netID);
+		var bouncerNetID = network.isupport.get("BOUNCER_NETID");
+		var bouncerNetwork = this.state.bouncerNetworks.get(bouncerNetID);
+		this.setState({
+			dialog: "network",
+			networkDialog: {
+				id: bouncerNetID,
+				params: bouncerNetwork,
+			},
+		});
+	}
+
+	handleNetworkSubmit(attrs) {
 		var client = this.clients.values().next().value;
+
+		if (this.state.networkDialog && this.state.networkDialog.id) {
+			if (Object.keys(attrs).length == 0) {
+				this.setState({ dialog: null });
+				return;
+			}
+
+			client.send({
+				command: "BOUNCER",
+				params: ["CHANGENETWORK", this.state.networkDialog.id, irc.formatTags(attrs)],
+			});
+		} else {
+			attrs = { ...attrs, tls: "1" };
+			client.send({
+				command: "BOUNCER",
+				params: ["ADDNETWORK", irc.formatTags(attrs)],
+			});
+		}
+
+		this.setState({ dialog: null, networkDialog: null });
+	}
+
+	handleNetworkRemove() {
+		var client = this.clients.values().next().value;
+
 		client.send({
 			command: "BOUNCER",
-			params: ["ADDNETWORK", irc.formatTags({
-				...attrs,
-				name: attrs.host,
-				tls: 1,
-			})],
+			params: ["DELNETWORK", this.state.networkDialog.id],
 		});
-		this.setState({ dialog: null });
+
+		this.setState({ dialog: null, networkDialog: null });
 	}
 
 	componentDidMount() {
@@ -1045,6 +1081,7 @@ export default class App extends Component {
 						onClose=${() => this.close(activeBuffer)}
 						onJoin=${() => this.handleJoinClick(activeBuffer.network)}
 						onAddNetwork=${this.handleAddNetworkClick}
+						onManageNetwork=${() => this.handleManageNetworkClick(activeBuffer.network)}
 					/>
 				</section>
 			`;
@@ -1067,10 +1104,15 @@ export default class App extends Component {
 
 		var dialog = null;
 		switch (this.state.dialog) {
-		case "add-network":
+		case "network":
+			var title = this.state.networkDialog ? "Edit network" : "Add network";
 			dialog = html`
-				<${Dialog} title="Add network" onDismiss=${this.handleDialogDismiss}>
-					<${NetworkForm} onSubmit=${this.handleAddNetworkSubmit}/>
+				<${Dialog} title=${title} onDismiss=${this.handleDialogDismiss}>
+					<${NetworkForm}
+						onSubmit=${this.handleNetworkSubmit}
+						onRemove=${this.handleNetworkRemove}
+						params=${this.state.networkDialog ? this.state.networkDialog.params : null}
+					/>
 				</>
 			`;
 			break;
