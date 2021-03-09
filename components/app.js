@@ -67,28 +67,22 @@ function debounce(f, delay) {
 	};
 }
 
+function isServerBuffer(buf) {
+	return buf.type == BufferType.SERVER;
+}
+
+/* Returns 1 if a should appear after b, -1 if a should appear before b, or
+ * 0 otherwise. */
 function compareBuffers(a, b) {
-	if (a.network < b.network) {
-		return -1;
+	if (a.network != b.network) {
+		return a.network > b.network ? 1 : -1;
 	}
-	if (a.network > b.network) {
-		return 1;
+	if (isServerBuffer(a) != isServerBuffer(b)) {
+		return isServerBuffer(b) ? 1 : -1;
 	}
-
-	if (a.type == BufferType.SERVER) {
-		return -1;
+	if (a.name != b.name) {
+		return a.name > b.name ? 1 : -1;
 	}
-	if (b.type == BufferType.SERVER) {
-		return 1;
-	}
-
-	if (a.name < b.name) {
-		return -1;
-	}
-	if (a.name > b.name) {
-		return 1;
-	}
-
 	return 0;
 }
 
