@@ -462,9 +462,7 @@ export default class App extends Component {
 		});
 
 		client.addEventListener("error", (event) => {
-			this.setState({
-				error: event.detail,
-			});
+			this.setState({ error: event.detail });
 		});
 
 		this.createBuffer(netID, SERVER_BUFFER);
@@ -992,6 +990,7 @@ export default class App extends Component {
 			error = html`
 				<p id="error-msg">
 					${this.state.error}
+					${" "}
 					<a href="#" onClick=${this.dismissError}>×</a>
 				</p>
 			`;
