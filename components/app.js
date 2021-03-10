@@ -542,19 +542,19 @@ export default class App extends Component {
 		}
 	}
 
+	networkFromBouncerNetwork(bouncerNetworkID) {
+		for (var [id, client] of this.clients) {
+			if (client.params.bouncerNetwork === bouncerNetworkID) {
+				return id;
+			}
+		}
+		return null;
+	}
+
 	handleMessage(netID, msg) {
 		var client = this.clients.get(netID);
 		switch (msg.command) {
 		case irc.RPL_WELCOME:
-			if (client.enabledCaps["soju.im/bouncer-networks"] && !client.params.bouncerNetwork) {
-				client.listBouncerNetworks().then((bouncerNetworks) => {
-					this.setState((state) => {
-						return { bouncerNetworks };
-					});
-					this.openSecondaryClients(client, bouncerNetworks);
-				});
-			}
-
 			if (this.state.connectParams.autojoin.length > 0) {
 				client.send({
 					command: "JOIN",
@@ -745,25 +745,52 @@ export default class App extends Component {
 			this.setState({ error: description });
 			this.addMessage(netID, SERVER_BUFFER, msg);
 			break;
+		case "BOUNCER":
+			if (msg.params[0] !== "NETWORK") {
+				break; // We're only interested in network updates
+			}
+
+			var id = msg.params[1];
+			var attrs = null;
+			if (msg.params[2] !== "*") {
+				attrs = irc.parseTags(msg.params[2]);
+			}
+
+			var isNew = false;
+			this.setState((state) => {
+				var bouncerNetworks = new Map(state.bouncerNetworks);
+				if (!attrs) {
+					bouncerNetworks.delete(id);
+				} else {
+					var prev = bouncerNetworks.get(id);
+					isNew = prev === undefined;
+					attrs = { ...prev, ...attrs };
+					bouncerNetworks.set(id, attrs);
+				}
+				return { bouncerNetworks };
+			}, () => {
+				if (!attrs) {
+					var netID = this.networkFromBouncerNetwork(id);
+					if (netID) {
+						this.close({ network: netID, name: SERVER_BUFFER });
+					}
+				} else if (isNew) {
+					this.connect({
+						...client.params,
+						bouncerNetwork: id,
+					});
+				}
+			});
+			break;
 		case "CAP":
 		case "AUTHENTICATE":
 		case "PING":
 		case "BATCH":
-		case "BOUNCER":
 			// Ignore these
 			break;
 		default:
 			this.addMessage(netID, SERVER_BUFFER, msg);
 		}
-	}
-
-	openSecondaryClients(client, bouncerNetworks) {
-		bouncerNetworks.forEach((attrs, id) => {
-			this.connect({
-				...client.params,
-				bouncerNetwork: id,
-			});
-		});
 	}
 
 	handleConnectSubmit(connectParams) {
