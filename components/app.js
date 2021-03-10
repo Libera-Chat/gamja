@@ -478,6 +478,7 @@ export default class App extends Component {
 
 		var client = this.clients.get(netID);
 		if (client) {
+			this.clients.delete(netID);
 			client.disconnect();
 		}
 	}
