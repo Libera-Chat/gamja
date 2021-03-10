@@ -1099,7 +1099,7 @@ export default class App extends Component {
 	}
 
 	render() {
-		var activeBuffer = null, activeNetwork = null;
+		var activeBuffer = null, activeNetwork = null, activeBouncerNetwork = null;
 		var isBouncer = false;
 		if (this.state.buffers.get(this.state.activeBuffer)) {
 			activeBuffer = this.state.buffers.get(this.state.activeBuffer);
@@ -1107,6 +1107,11 @@ export default class App extends Component {
 
 			var activeClient = this.clients.get(activeBuffer.network);
 			isBouncer = activeClient && activeClient.enabledCaps["soju.im/bouncer-networks"];
+
+			var bouncerNetID = activeNetwork.isupport.get("BOUNCER_NETID");
+			if (bouncerNetID) {
+				activeBouncerNetwork = this.state.bouncerNetworks.get(bouncerNetID);
+			}
 		}
 
 		if (!activeNetwork || (activeNetwork.status !== NetworkStatus.REGISTERED && !activeBuffer)) {
@@ -1132,6 +1137,7 @@ export default class App extends Component {
 						buffer=${activeBuffer}
 						network=${activeNetwork}
 						isBouncer=${isBouncer}
+						bouncerNetwork=${activeBouncerNetwork}
 						onClose=${() => this.close(activeBuffer)}
 						onJoin=${() => this.handleJoinClick(activeBuffer.network)}
 						onAddNetwork=${this.handleAddNetworkClick}

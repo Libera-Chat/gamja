@@ -50,8 +50,22 @@ export default function BufferHeader(props) {
 			description = "Logging in...";
 			break;
 		case NetworkStatus.REGISTERED:
-			var serverInfo = props.buffer.serverInfo;
-			description = `Connected to ${serverInfo.name}`;
+			if (props.bouncerNetwork) {
+				switch (props.bouncerNetwork.state) {
+				case "disconnected":
+					description = "Bouncer disconnected from network";
+					break;
+				case "connecting":
+					description = "Bouncer connecting to network...";
+					break;
+				case "connected":
+					description = `Connected to ${props.bouncerNetwork.host}`;
+					break;
+				}
+			} else {
+				var serverInfo = props.buffer.serverInfo;
+				description = `Connected to ${serverInfo.name}`;
+			}
 			break;
 		}
 	} else if (props.buffer.topic) {
