@@ -810,16 +810,43 @@ export default class App extends Component {
 
 		switch (buf.type) {
 		case BufferType.SERVER:
-			this.setState({
-				buffers: new Map(),
-				activeBuffer: null,
+			this.setState((state) => {
+				var buffers = new Map(state.buffers);
+				for (var [id, b] of state.buffers) {
+					if (b.network === buf.network) {
+						buffers.delete(id);
+					}
+				}
+
+				var activeBuffer = state.activeBuffer;
+				if (activeBuffer && state.buffers.get(activeBuffer).network === buf.network) {
+					if (buffers.size > 0) {
+						activeBuffer = buffers.keys().next().value;
+					} else {
+						activeBuffer = null;
+					}
+				}
+
+				return { buffers, activeBuffer };
 			});
+
+			var client = this.clients.get(buf.network);
+			var disconnectAll = client && !client.params.bouncerNetwork && client.enabledCaps["soju.im/bouncer-networks"];
+
 			this.disconnect(buf.network);
+
 			this.setState((state) => {
 				var networks = new Map(state.networks);
 				networks.delete(buf.network);
 				return { networks };
 			});
+
+			if (disconnectAll) {
+				for (var netID of this.clients.keys()) {
+					this.close({ network: netID, name: SERVER_BUFFER });
+				}
+			}
+
 			// TODO: only clear local storage if this network is stored there
 			if (buf.network == 1 && window.localStorage) {
 				localStorage.removeItem("autoconnect");
