@@ -322,3 +322,123 @@ kbd {
 	font-family: monospace;
 	border-radius: 3px;
 }
+
+@media (prefers-color-scheme: dark) {
+	#buffer-list {
+		background-color: #131618;
+	}
+
+	#buffer,
+	#connect,
+	#member-list {
+		color: #f8f9fa;
+		background: #212529;
+	}
+
+	#buffer-list li.active a {
+		color: #131618;
+		background-color: white;
+	}
+	#buffer-list li.unread-message a {
+		color: #53b266;
+	}
+	#buffer-list li.unread-highlight a {
+		color: #0062cc;
+	}
+
+	#buffer-header,
+	#member-list-header {
+		color: #f8f9fa;
+		background-color: #212529;
+		border-bottom: 1px solid #131618;
+	}
+
+	#buffer-header .status-here {
+		color: #53b266;
+	}
+	#buffer-header .status-gone {
+		color: #fb885b;
+	}
+	#buffer-header .status-offline {
+		color: #fb615b;
+	}
+
+	#member-list-header,
+	#member-list {
+		border-left: 1px solid #131618;
+	}
+
+	#composer {
+		border-top: 1px solid #131618;
+	}
+
+	#composer {
+		color: #f8f9fa;
+		background: #212529;
+	}
+
+	form input[type="text"],
+	form input[type="username"],
+	form input[type="password"],
+	form input[type="url"] {
+		color: #ffffff;
+		background: #131618;
+	}
+
+	a {
+		color: #53b266;
+	}
+
+	#buffer-list li a,
+	a.timestamp,
+	a.nick {
+		color: #f8f9fa;
+	}
+
+	#buffer {
+		color: #f8f9fa;
+		background: #212529;
+	}
+	#buffer .talk {
+		color: #f8f9fa;
+	}
+	#buffer .error {
+		color: #fb615b;
+	}
+	#buffer .me-tell {
+		color: #c42560;
+	}
+	#buffer .highlight .nick {
+		color: #1e0010;
+		background-color: #0062cc;
+	}
+
+	#buffer .date-separator {
+		color: #757575;
+	}
+
+	#buffer .date-separator::before,
+	#buffer .date-separator::after {
+		border-color: white;
+	}
+	#buffer .unread-separator {
+		color: #53b266;
+	}
+	#buffer .unread-separator::before,
+	#buffer .unread-separator::after {
+		border-color: #53b266;
+	}
+
+	#error-msg {
+		color: black;
+		background-color: #efa3aa;
+	}
+
+	#error-msg a {
+		color: black;
+	}
+
+	.error-text {
+		color: #efa3aa;
+	}
+}
