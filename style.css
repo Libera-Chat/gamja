@@ -383,6 +383,15 @@ kbd {
 	form input[type="url"] {
 		color: #ffffff;
 		background: #131618;
+		border: 1px solid #495057;
+		padding: .25rem .375rem;
+	}
+	form input[type="text"]:focus,
+	form input[type="username"]:focus,
+	form input[type="password"]:focus,
+	form input[type="url"]:focus {
+		outline: 0;
+		border-color: #3897ff;
 	}
 
 	a {
