@@ -140,7 +140,8 @@ body {
 form input[type="text"],
 form input[type="username"],
 form input[type="password"],
-form input[type="url"] {
+form input[type="url"],
+form input[type="email"] {
 	box-sizing: border-box;
 	width: 100%;
 }
@@ -380,7 +381,8 @@ kbd {
 	form input[type="text"],
 	form input[type="username"],
 	form input[type="password"],
-	form input[type="url"] {
+	form input[type="url"],
+	form input[type="email"] {
 		color: #ffffff;
 		background: #131618;
 		border: 1px solid #495057;
@@ -389,7 +391,8 @@ kbd {
 	form input[type="text"]:focus,
 	form input[type="username"]:focus,
 	form input[type="password"]:focus,
-	form input[type="url"]:focus {
+	form input[type="url"]:focus,
+	form input[type="email"]:focus {
 		outline: 0;
 		border-color: #3897ff;
 	}
