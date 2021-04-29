@@ -1,3 +1,23 @@
+:root {
+	--main-background: white;
+	--main-color: black;
+	--sidebar-background: #e3e3e3;
+	--green: green;
+
+	--gray: #4a4a4a;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--main-background: #212529;
+		--main-color: #f8f9fa;
+		--sidebar-background: #131618;
+		--green: #53b266;
+
+		--red: #fb615b;
+	}
+}
+
 html, body {
 	height: 100%;
 	padding: 0;
@@ -13,6 +33,8 @@ body {
 }
 
 #buffer-list, #buffer, #connect, #member-list {
+	color: var(--main-color);
+	background: var(--main-background);
 	width: 100%;
 	height: 100%;
 	overflow-x: hidden;
@@ -20,7 +42,7 @@ body {
 }
 
 #buffer-list {
-	background-color: #e3e3e3;
+	background-color: var(--sidebar-background);
 	grid-column: 1;
 	grid-row: 1 / 4;
 
@@ -42,7 +64,7 @@ body {
 }
 #buffer-list li.active a {
 	color: white;
-	background-color: #4a4a4a;
+	background-color: var(--gray);
 }
 #buffer-list li.unread-message a {
 	color: #b37400;
@@ -52,9 +74,11 @@ body {
 }
 
 #buffer-header, #member-list-header {
+	color: var(--main-color);
+	background-color: var(--main-background);
 	box-sizing: border-box;
 	padding: 5px 10px;
-	border-bottom: 1px solid #e3e3e3;
+	border-bottom: 1px solid var(--sidebar-background);
 }
 
 #buffer-header {
@@ -63,7 +87,7 @@ body {
 }
 
 #buffer-header .status-here {
-	color: green;
+	color: var(--green);
 }
 #buffer-header .status-gone {
 	color: orange;
@@ -84,12 +108,12 @@ body {
 #member-list-header {
 	grid-row: 1;
 	grid-column: 3;
-	border-left: 1px solid #e3e3e3;
+	border-left: 1px solid var(--sidebar-background);
 }
 #member-list {
 	grid-row: 2;
 	grid-column: 3;
-	border-left: 1px solid #e3e3e3;
+	border-left: 1px solid var(--sidebar-background);
 }
 
 #member-list ul {
@@ -105,9 +129,11 @@ body {
 }
 
 #composer {
+	color: var(--main-color);
+	background: var(--main-background);
 	grid-row: 3;
 	grid-column: 2 / 4;
-	border-top: 1px solid #e3e3e3;
+	border-top: 1px solid var(--sidebar-background);
 }
 #composer input {
 	display: block;
@@ -130,7 +156,6 @@ body {
 	top: 0;
 	left: 0;
 	height: 100%;
-	background: white;
 }
 #connect form {
 	margin: 0 auto;
@@ -147,10 +172,10 @@ form input[type="email"] {
 }
 
 a {
-	color: green;
+	color: var(--green);
 }
 #buffer-list li a, a.timestamp, a.nick {
-	color: #4a4a4a;
+	color: var(--gray);
 	text-decoration: none;
 }
 #buffer-list li a:hover, #buffer-list li a:active,
@@ -165,7 +190,7 @@ details summary {
 
 #buffer {
 	box-sizing: border-box;
-	color: #4a4a4a;
+	color: var(--gray);
 	word-wrap: break-word;
 }
 #buffer .logline-list {
@@ -325,57 +350,22 @@ kbd {
 }
 
 @media (prefers-color-scheme: dark) {
-	#buffer-list {
-		background-color: #131618;
-	}
-
-	#buffer,
-	#connect,
-	#member-list {
-		color: #f8f9fa;
-		background: #212529;
-	}
-
 	#buffer-list li.active a {
-		color: #131618;
+		color: var(--sidebar-background);
 		background-color: white;
 	}
 	#buffer-list li.unread-message a {
-		color: #53b266;
+		color: var(--green);
 	}
 	#buffer-list li.unread-highlight a {
 		color: #0062cc;
 	}
 
-	#buffer-header,
-	#member-list-header {
-		color: #f8f9fa;
-		background-color: #212529;
-		border-bottom: 1px solid #131618;
-	}
-
-	#buffer-header .status-here {
-		color: #53b266;
-	}
 	#buffer-header .status-gone {
 		color: #fb885b;
 	}
 	#buffer-header .status-offline {
-		color: #fb615b;
-	}
-
-	#member-list-header,
-	#member-list {
-		border-left: 1px solid #131618;
-	}
-
-	#composer {
-		border-top: 1px solid #131618;
-	}
-
-	#composer {
-		color: #f8f9fa;
-		background: #212529;
+		color: var(--red);
 	}
 
 	form input[type="text"],
@@ -384,9 +374,9 @@ kbd {
 	form input[type="url"],
 	form input[type="email"] {
 		color: #ffffff;
-		background: #131618;
+		background: var(--sidebar-background);
 		border: 1px solid #495057;
-		padding: .25rem .375rem;
+		padding: 0.25rem 0.375rem;
 	}
 	form input[type="text"]:focus,
 	form input[type="username"]:focus,
@@ -397,25 +387,21 @@ kbd {
 		border-color: #3897ff;
 	}
 
-	a {
-		color: #53b266;
-	}
-
 	#buffer-list li a,
 	a.timestamp,
 	a.nick {
-		color: #f8f9fa;
+		color: var(--main-color);
 	}
 
 	#buffer {
-		color: #f8f9fa;
-		background: #212529;
+		color: var(--main-color);
+		background: var(--main-background);
 	}
 	#buffer .talk {
-		color: #f8f9fa;
+		color: var(--main-color);
 	}
 	#buffer .error {
-		color: #fb615b;
+		color: var(--red);
 	}
 	#buffer .me-tell {
 		color: #c42560;
@@ -434,11 +420,11 @@ kbd {
 		border-color: white;
 	}
 	#buffer .unread-separator {
-		color: #53b266;
+		color: var(--green);
 	}
 	#buffer .unread-separator::before,
 	#buffer .unread-separator::after {
-		border-color: #53b266;
+		border-color: var(--green);
 	}
 
 	#error-msg {
