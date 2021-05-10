@@ -926,7 +926,7 @@ export default class App extends Component {
 
 	render() {
 		var activeBuffer = null, activeNetwork = null;
-		if (this.state.activeBuffer) {
+		if (this.state.buffers.get(this.state.activeBuffer)) {
 			activeBuffer = this.state.buffers.get(this.state.activeBuffer);
 			activeNetwork = this.state.networks.get(activeBuffer.network);
 		}
