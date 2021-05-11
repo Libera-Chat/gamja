@@ -904,7 +904,7 @@ export default class App extends Component {
 		// Avoids sending multiple CHATHISTORY commands in parallel
 		this.endOfHistory.set(buf.id, true);
 
-		client.fetchHistoryBefore(buf.name, before).then((result) => {
+		client.fetchHistoryBefore(buf.name, before, 100).then((result) => {
 			this.endOfHistory.set(buf.id, !result.more);
 		});
 	}
