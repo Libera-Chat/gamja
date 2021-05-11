@@ -514,11 +514,8 @@ export default class App extends Component {
 			this.setBufferState({ network: netID, name: SERVER_BUFFER }, { serverInfo });
 			break;
 		case irc.RPL_ISUPPORT:
-			var tokens = msg.params.slice(1, -1);
 			this.setNetworkState(netID, (network) => {
-				var isupport = new Map(network.isupport);
-				irc.parseISUPPORT(tokens, isupport);
-				return { isupport };
+				return { isupport: new Map(client.isupport) };
 			});
 			break;
 		case irc.RPL_NOTOPIC:
