@@ -450,6 +450,20 @@ export default class App extends Component {
 		this.saveReceipts();
 	}
 
+	latestReceipt(type) {
+		var last = null;
+		this.receipts.forEach((receipts, target) => {
+			var delivery = receipts[type];
+			if (target == "*" || !delivery || !delivery.time) {
+				return;
+			}
+			if (!last || delivery.time > last.time) {
+				last = delivery;
+			}
+		});
+		return last;
+	}
+
 	addMessage(netID, bufName, msg) {
 		var client = this.clients.get(netID);
 
@@ -608,6 +622,21 @@ export default class App extends Component {
 					params: [this.state.connectParams.autojoin.join(",")],
 				});
 			}
+
+			var lastReceipt = this.latestReceipt(ReceiptType.READ);
+			if (lastReceipt && lastReceipt.time && client.enabledCaps["draft/chathistory"] && (!client.enabledCaps["soju.im/bouncer-networks"] || client.params.bouncerNetwork)) {
+				var now = irc.formatDate(new Date());
+				client.fetchHistoryTargets(now, lastReceipt.time).then((targets) => {
+					targets.forEach((target) => {
+						var from = this.getReceipt(target, ReceiptType.READ);
+						if (!from) {
+							from = lastReceipt;
+						}
+						var to = { time: msg.tags.time || irc.formatDate(new Date()) };
+						this.fetchBacklog(client, target.name, from, to);
+					});
+				});
+			}
 			break;
 		case irc.RPL_MYINFO:
 			// TODO: parse available modes
@@ -728,17 +757,6 @@ export default class App extends Component {
 			if (channel == this.switchToChannel) {
 				this.switchBuffer({ network: netID, name: channel });
 				this.switchToChannel = null;
-			}
-
-			var receipt = this.getReceipt(channel, ReceiptType.READ);
-			if (client.isMyNick(msg.prefix.name) && receipt && client.enabledCaps["draft/chathistory"] && client.enabledCaps["server-time"]) {
-				var after = receipt;
-				var before = { time: msg.tags.time || irc.formatDate(new Date()) };
-				client.fetchHistoryBetween(channel, after, before, CHATHISTORY_MAX_SIZE).catch((err) => {
-					this.setState({ error: "Failed to fetch history: " + err });
-					this.receipts.delete(channel);
-					this.saveReceipts();
-				});
 			}
 			break;
 		case "PART":
@@ -886,6 +904,7 @@ export default class App extends Component {
 		case "PONG":
 		case "BATCH":
 		case "TAGMSG":
+		case "CHATHISTORY":
 			// Ignore these
 			break;
 		default:
@@ -926,6 +945,14 @@ export default class App extends Component {
 	isChannel(name) {
 		// TODO: use the ISUPPORT token if available
 		return irc.STD_CHANNEL_TYPES.indexOf(name[0]) >= 0;
+	}
+
+	fetchBacklog(client, target, after, before) {
+		client.fetchHistoryBetween(target, after, before, CHATHISTORY_MAX_SIZE).catch((err) => {
+			this.setState({ error: "Failed to fetch history for '" + taregt + "': " + err });
+			this.receipts.delete(channel);
+			this.saveReceipts();
+		});
 	}
 
 	open(target) {
