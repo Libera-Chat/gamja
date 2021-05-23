@@ -69,6 +69,13 @@ export default {
 			app.privmsg(activeBuffer.name, text);
 		},
 	},
+	"mode": {
+		usage: "<target> <modes> [mode args...]",
+		description: "Change channel or user mode",
+		execute: (app, args) => {
+			getActiveClient(app).send({ command: "MODE", params: args });
+		},
+	},
 	"msg": {
 		usage: "<target> <message>",
 		description: "Send a message to a nickname or a channel",
