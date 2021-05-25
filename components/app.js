@@ -796,6 +796,10 @@ export default class App extends Component {
 				networks.delete(buf.network);
 				return { networks };
 			});
+			// TODO: only clear local storage if this network is stored there
+			if (buf.network == 1 && window.localStorage) {
+				localStorage.removeItem("autoconnect");
+			}
 			break;
 		case BufferType.CHANNEL:
 			var client = this.clients.get(buf.network);
