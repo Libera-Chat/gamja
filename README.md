@@ -66,7 +66,7 @@ gamja default settings can be set using a `config.json` file at the root:
 ## Contributing
 
 Send patches on the [mailing list], report bugs on the [issue tracker]. Discuss
-in #soju on Freenode.
+in #soju on Libera Chat.
 
 ## License
 
