@@ -750,6 +750,12 @@ export default class App extends Component {
 				break; // We're only interested in network updates
 			}
 
+			if (client.isupport.has("BOUNCER_NETID")) {
+				// This cn happen if the user has specified a network to bind
+				// to via other means, e.g. "<username>/<network>".
+				break;
+			}
+
 			var id = msg.params[1];
 			var attrs = null;
 			if (msg.params[2] !== "*") {
