@@ -725,6 +725,12 @@ export default class App extends Component {
 			});
 			affectedBuffers.forEach((name) => this.addMessage(netID, name, msg));
 			break;
+		case "SETNAME":
+			this.setBufferState({ network: netID, name: msg.prefix.name }, (buf) => {
+				var who = { ...buf.who, realname: msg.params[0] };
+				return { who }
+			});
+			break;
 		case "TOPIC":
 			var channel = msg.params[0];
 			var topic = msg.params[1];

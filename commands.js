@@ -144,6 +144,18 @@ export default {
 			app.reconnect();
 		},
 	},
+	"setname": {
+		usage: "<realname>",
+		description: "Change current realname",
+		execute: (app, args) => {
+			var newRealname = args.join(" ");
+			var client = getActiveClient(app);
+			if (!client.enabledCaps["setname"]) {
+				throw new Error("Server doesn't support changing the realname");
+			}
+			client.send({ command: "SETNAME", params: [newRealname] });
+		},
+	},
 	"topic": {
 		usage: "<topic>",
 		description: "Change the topic of the current channel",
