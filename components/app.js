@@ -934,7 +934,7 @@ export default class App extends Component {
 
 		var client = this.clients.get(buf.network);
 
-		if (!client.enabledCaps["draft/chathistory"] || !client.enabledCaps["server-time"]) {
+		if (!client || !client.enabledCaps["draft/chathistory"] || !client.enabledCaps["server-time"]) {
 			return;
 		}
 		if (this.endOfHistory.get(buf.id)) {
