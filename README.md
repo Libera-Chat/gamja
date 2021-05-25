@@ -48,6 +48,21 @@ gamja settings can be overridden using URL query parameters:
 - `server`: path or URL to the WebSocket server
 - `channels`: comma-separated list of channels to join
 
+## Configuration file
+
+gamja default settings can be set using a `config.json` file at the root:
+
+```js
+{
+	"server": {
+		// WebSocket URL to connect to (string)
+		"url": "wss://irc.example.org",
+		// Channel(s) to auto-join (string or array of strings)
+		"autojoin": "#gamja"
+	}
+}
+```
+
 ## Contributing
 
 Send patches on the [mailing list], report bugs on the [issue tracker]. Discuss

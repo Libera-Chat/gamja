@@ -16,6 +16,21 @@ import { SERVER_BUFFER, BufferType, ReceiptType, NetworkStatus, Unread } from ".
 import commands from "../commands.js";
 import { setup as setupKeybindings } from "../keybindings.js";
 
+const configPromise = fetch("../config.json")
+	.then((resp) => {
+		if (resp.ok) {
+			return resp.json();
+		}
+		if (resp.status !== 404) {
+			console.error("Failed to fetch config: HTTP error:", resp.status, resp.statusText);
+		}
+		return {};
+	})
+	.catch((err) => {
+		console.error("Failed to fetch config:", err);
+		return {};
+	});
+
 const CHATHISTORY_MAX_SIZE = 4000;
 
 var messagesCount = 0;
@@ -179,40 +194,63 @@ export default class App extends Component {
 				...connectParams,
 				autoconnect: true,
 			};
-		} else {
-			var params = parseQueryString();
-
-			var host = window.location.host || "localhost:8080";
-			var proto = "wss:";
-			if (window.location.protocol != "https:") {
-				proto = "ws:";
-			}
-			var path = window.location.pathname || "/";
-			if (!window.location.host) {
-				path = "/";
-			}
-
-			var serverURL;
-			if (params.server) {
-				if (params.server.startsWith("/")) {
-					serverURL = proto + "//" + host + params.server;
-				} else {
-					serverURL = params.server;
-				}
-			} else {
-				serverURL = proto + "//" + host + path + "socket";
-			}
-			this.state.connectParams.serverURL = serverURL;
-
-			if (params.channels) {
-				this.state.connectParams.autojoin = params.channels.split(",");
-			}
 		}
 
 		if (window.localStorage && localStorage.getItem("receipts")) {
 			var obj = JSON.parse(localStorage.getItem("receipts"));
 			this.receipts = new Map(Object.entries(obj));
 		}
+
+		configPromise.then((config) => {
+			this.handleConfig(config);
+			return config;
+		});
+	}
+
+	handleConfig(config) {
+		if (this.state.connectParams.autoconnect) {
+			// Connection params have already been loaded from local storage
+			return;
+		}
+
+		var host = window.location.host || "localhost:8080";
+		var proto = "wss:";
+		if (window.location.protocol != "https:") {
+			proto = "ws:";
+		}
+		var path = window.location.pathname || "/";
+		if (!window.location.host) {
+			path = "/";
+		}
+
+		var connectParams = {
+			serverURL: proto + "//" + host + path + "socket",
+		};
+
+		if (config.server) {
+			connectParams.serverURL = config.server.url;
+			if (Array.isArray(config.server.autojoin)) {
+				connectParams.autojoin = config.server.autojoin;
+			} else {
+				connectParams.autojoin = [config.server.autojoin];
+			}
+		}
+
+		var queryParams = parseQueryString();
+		if (queryParams.server) {
+			if (queryParams.server.startsWith("/")) {
+				connectParams.serverURL = proto + "//" + host + queryParams.server;
+			} else {
+				connectParams.serverURL = queryParams.server;
+			}
+		}
+		if (queryParams.channels) {
+			connectParams.autojoin = queryParams.channels.split(",");
+		}
+
+		this.setState((state) => {
+			return { connectParams: { ...state.connectParams, ...connectParams } };
+		});
 	}
 
 	dismissError(event) {
@@ -929,6 +967,7 @@ export default class App extends Component {
 		}
 
 		if (!activeNetwork || (activeNetwork.status !== NetworkStatus.REGISTERED && !activeBuffer)) {
+			// TODO: using key=connectParams trashes the ConnectForm state on update
 			return html`
 				<section id="connect">
 					<${ConnectForm}
@@ -936,6 +975,7 @@ export default class App extends Component {
 						params=${this.state.connectParams}
 						disabled=${activeNetwork}
 						onSubmit=${this.handleConnectSubmit}
+						key=${this.state.connectParams}
 					/>
 				</section>
 			`;
