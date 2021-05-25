@@ -31,7 +31,7 @@ export const ReceiptType = {
 };
 
 export function getNickURL(nick) {
-	return "irc:///" + encodeURIComponent(nick) + ",isnick";
+	return "irc:///" + encodeURIComponent(nick) + ",isuser";
 }
 
 export function getBufferURL(buf) {
