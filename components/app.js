@@ -171,6 +171,7 @@ export default class App extends Component {
 	composer = createRef();
 	lastNetworkID = 0;
 	lastBufferID = 0;
+	switchToChannel = null;
 
 	constructor(props) {
 		super(props);
@@ -507,6 +508,10 @@ export default class App extends Component {
 		if (!this.state.activeBuffer) {
 			this.switchBuffer({ network: netID, name: SERVER_BUFFER });
 		}
+
+		if (params.autojoin.length > 0) {
+			this.switchToChannel = params.autojoin[0];
+		}
 	}
 
 	disconnect(netID) {
@@ -637,9 +642,9 @@ export default class App extends Component {
 			if (msg.prefix.name != client.nick) {
 				this.addMessage(netID, channel, msg);
 			}
-			if (channel == this.state.connectParams.autojoin[0]) {
-				// TODO: only switch once right after connect
+			if (channel == this.switchToChannel) {
 				this.switchBuffer({ network: netID, name: channel });
+				this.switchToChannel = null;
 			}
 
 			var receipt = this.getReceipt(channel, ReceiptType.READ);
