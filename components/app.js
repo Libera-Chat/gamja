@@ -16,6 +16,7 @@ import { strip as stripANSI } from "../lib/ansi.js";
 import { SERVER_BUFFER, BufferType, ReceiptType, NetworkStatus, Unread } from "../state.js";
 import commands from "../commands.js";
 import { setup as setupKeybindings } from "../keybindings.js";
+import * as store from "../store.js";
 
 const configPromise = fetch("../config.json")
 	.then((resp) => {
@@ -193,8 +194,8 @@ export default class App extends Component {
 
 		this.saveReceipts = debounce(this.saveReceipts.bind(this), 500);
 
-		if (window.localStorage && localStorage.getItem("autoconnect")) {
-			var connectParams = JSON.parse(localStorage.getItem("autoconnect"));
+		var connectParams = store.autoconnect.load();
+		if (connectParams) {
 			this.state.connectParams = {
 				...this.state.connectParams,
 				...connectParams,
@@ -202,10 +203,7 @@ export default class App extends Component {
 			};
 		}
 
-		if (window.localStorage && localStorage.getItem("receipts")) {
-			var obj = JSON.parse(localStorage.getItem("receipts"));
-			this.receipts = new Map(Object.entries(obj));
-		}
+		this.receipts = store.receipts.load();
 
 		configPromise.then((config) => {
 			this.handleConfig(config);
@@ -376,10 +374,7 @@ export default class App extends Component {
 	}
 
 	saveReceipts() {
-		if (window.localStorage) {
-			var obj = Object.fromEntries(this.receipts);
-			localStorage.setItem("receipts", JSON.stringify(obj));
-		}
+		store.receipts.put(this.receipts);
 	}
 
 	getReceipt(target, type) {
@@ -808,12 +803,10 @@ export default class App extends Component {
 	handleConnectSubmit(connectParams) {
 		this.setState({ error: null });
 
-		if (window.localStorage) {
-			if (connectParams.autoconnect) {
-				localStorage.setItem("autoconnect", JSON.stringify(connectParams));
-			} else {
-				localStorage.removeItem("autoconnect");
-			}
+		if (connectParams.autoconnect) {
+			store.autoconnect.put(connectParams);
+		} else {
+			store.autoconnect.put(null);
 		}
 
 		this.connect(connectParams);
@@ -887,8 +880,8 @@ export default class App extends Component {
 			}
 
 			// TODO: only clear local storage if this network is stored there
-			if (buf.network == 1 && window.localStorage) {
-				localStorage.removeItem("autoconnect");
+			if (buf.network == 1) {
+				store.autoconnect.put(null);
 			}
 			break;
 		case BufferType.CHANNEL:

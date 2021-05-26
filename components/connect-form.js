@@ -74,17 +74,6 @@ export default class ConnectForm extends Component {
 	}
 
 	render() {
-		var rememberMe = null;
-		if (window.localStorage) {
-			rememberMe = html`
-				<label>
-					<input type="checkbox" name="rememberMe" checked=${this.state.rememberMe} disabled=${this.props.disabled}/>
-					Remember me
-				</label>
-				<br/><br/>
-			`;
-		}
-
 		return html`
 			<form onChange=${this.handleChange} onSubmit=${this.handleSubmit}>
 				<h2>Connect to IRC</h2>
@@ -101,7 +90,11 @@ export default class ConnectForm extends Component {
 				</label>
 				<br/><br/>
 
-				${rememberMe}
+				<label>
+					<input type="checkbox" name="rememberMe" checked=${this.state.rememberMe} disabled=${this.props.disabled}/>
+					Remember me
+				</label>
+				<br/><br/>
 
 				<details>
 					<summary>Advanced options</summary>

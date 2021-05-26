@@ -132,9 +132,6 @@ export default {
 	"quit": {
 		description: "Quit",
 		execute: (app, args) => {
-			if (window.localStorage) {
-				localStorage.removeItem("autoconnect");
-			}
 			app.close({ name: SERVER_BUFFER });
 		},
 	},
