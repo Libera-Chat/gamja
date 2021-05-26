@@ -252,6 +252,10 @@ export default class App extends Component {
 			connectParams.autojoin = queryParams.channels.split(",");
 		}
 
+		if (window.location.hash) {
+			connectParams.autojoin = window.location.hash.split(",");
+		}
+
 		this.setState((state) => {
 			return { connectParams: { ...state.connectParams, ...connectParams } };
 		});
