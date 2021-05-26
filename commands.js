@@ -56,6 +56,22 @@ export default {
 			getActiveClient(app).send({ command: "JOIN", params: [channel] });
 		},
 	},
+	"kick": {
+		usage: "<user>",
+		description: "Remove a user from the channel",
+		execute: (app, args) => {
+			var user = args[0];
+			var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
+			if (!activeBuffer || !app.isChannel(activeBuffer.name)) {
+				throw new Error("Not in a channel");
+			}
+			var params = [activeBuffer.name, user];
+			if (args.length > 1) {
+				params.push(args.slice(1).join(" "));
+			}
+			getActiveClient(app).send({ command: "KICK", params });
+		},
+	},
 	"me": {
 		usage: "<action>",
 		description: "Send an action message to the current buffer",

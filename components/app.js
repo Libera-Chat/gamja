@@ -695,6 +695,22 @@ export default class App extends Component {
 				this.saveReceipts();
 			}
 			break;
+		case "KICK":
+			var channel = msg.params[0];
+			var user = msg.params[1];
+
+			this.setBufferState({ network: netID, name: channel }, (buf) => {
+				var members = new Map(buf.members);
+				members.delete(user);
+				return { members };
+			});
+			this.addMessage(netID, channel, msg);
+
+			if (msg.prefix.name == client.nick) {
+				this.receipts.delete(channel);
+				this.saveReceipts();
+			}
+			break;
 		case "QUIT":
 			var affectedBuffers = [];
 			this.setState((state) => {

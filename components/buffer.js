@@ -94,6 +94,11 @@ class LogLine extends Component {
 				${createNick(msg.prefix.name)} has left
 			`;
 			break;
+		case "KICK":
+			content = html`
+				${createNick(msg.params[1])} was kicked by ${createNick(msg.prefix.name)} (${msg.params.slice(2)})
+			`;
+			break;
 		case "QUIT":
 			content = html`
 				${createNick(msg.prefix.name)} has quit
