@@ -18,7 +18,7 @@ import commands from "../commands.js";
 import { setup as setupKeybindings } from "../keybindings.js";
 import * as store from "../store.js";
 
-const configPromise = fetch("../config.json")
+const configPromise = fetch("./config.json")
 	.then((resp) => {
 		if (resp.ok) {
 			return resp.json();
