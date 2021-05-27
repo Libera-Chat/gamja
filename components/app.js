@@ -770,11 +770,6 @@ export default class App extends Component {
 				return { who };
 			});
 			break;
-		case "FAIL":
-			var description = msg.params[msg.params.length - 1];
-			this.setState({ error: description });
-			this.addMessage(netID, SERVER_BUFFER, msg);
-			break;
 		case "BOUNCER":
 			if (msg.params[0] !== "NETWORK") {
 				break; // We're only interested in network updates
@@ -825,6 +820,10 @@ export default class App extends Component {
 			// Ignore these
 			break;
 		default:
+			if (irc.isError(msg.command) && msg.command != irc.ERR_NOMOTD) {
+				var description = msg.params[msg.params.length - 1];
+				this.setState({ error: description });
+			}
 			this.addMessage(netID, SERVER_BUFFER, msg);
 		}
 	}
