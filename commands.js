@@ -46,6 +46,23 @@ export default {
 			app.close(activeBuffer.id);
 		},
 	},
+	"deop": {
+		usage: "<nick>",
+		description: "Removes operator status for a user on this channel",
+		execute: (app, args) => {
+			var nick = args[0];
+			if (!nick) {
+				throw new Error("Missing nick");
+			}
+			var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
+			if (!activeBuffer || !app.isChannel(activeBuffer.name)) {
+				throw new Error("Not in a channel");
+			}
+			getActiveClient(app).send({ command: "MODE", params: [
+				activeBuffer.name, "-o", user,
+			]});
+		},
+	},
 	"disconnect": {
 		description: "Disconnect from the server",
 		execute: (app, args) => {
@@ -128,6 +145,23 @@ export default {
 			var target = args[0];
 			var text = args.slice(1).join(" ");
 			getActiveClient(app).send({ command: "NOTICE", params: [target, text] });
+		},
+	},
+	"op": {
+		usage: "<nick>",
+		description: "Gives a user operator status on this channel",
+		execute: (app, args) => {
+			var nick = args[0];
+			if (!nick) {
+				throw new Error("Missing nick");
+			}
+			var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
+			if (!activeBuffer || !app.isChannel(activeBuffer.name)) {
+				throw new Error("Not in a channel");
+			}
+			getActiveClient(app).send({ command: "MODE", params: [
+				activeBuffer.name, "+o", nick,
+			]});
 		},
 	},
 	"part": {
