@@ -5,8 +5,18 @@
 	--expander-background: #b5b5b5;
 	--expander-background-hover: #a6a6a6;
 	--expander-border: #6c6c6c;
-	--green: green;
 
+	--button-color: #eff7ef;
+	--button-background: #282879;
+	--button-background-hover: #00007C;
+	--button-border: #222;
+
+	--danger-button-color: #eff7ef;
+	--danger-button-background: red;
+	--danger-button-background-hover: #B20000;
+	--danger-button-border: #222;
+
+	--green: green;
 	--gray: #4a4a4a;
 }
 
@@ -17,6 +27,10 @@
 		--sidebar-background: #131618;
 		--expander-background: #424446;
 		--expander-background-hover: #2a2d2f;
+		--button-background: #282879;
+		--button-background-hover: #00007C;
+		--danger-button-background: #B20000;
+		--danger-button-background-hover: red;
 		--green: #53b266;
 
 		--red: #fb615b;
@@ -35,6 +49,32 @@ body {
 	grid-template-rows: auto 1fr max-content;
 	grid-template-columns: max-content 1fr max-content;
 	font-family: monospace;
+}
+
+button {
+	background: var(--button-background);
+	transition: background 0.25s linear;
+	color: var(--button-color);
+	cursor: pointer;
+	padding: 0.25rem 0.5rem;
+	border-style: solid;
+	border-color: var(--button-border);
+	border-width: 1px;
+	font-size: 0.8rem;
+}
+
+button:hover {
+	background: var(--button-background-hover);
+}
+
+button.danger {
+	background: var(--danger-button-background);
+	color: var(--danger-button-color);
+	border-color: var(--danger-button-border);
+}
+
+button.danger:hover {
+	background: var(--danger-button-background-hover);
 }
 
 #buffer, #connect {
@@ -66,7 +106,7 @@ body {
 	padding: 0;
 	margin: 0;
 	background: var(--expander-background);
-	transition: background 0.25s linear;
+	transition: background 0.2s linear;
 	border: none;
 	width: 10px;
 }
@@ -113,7 +153,7 @@ body {
 	padding-left: 20px;
 }
 
-#buffer-header, #member-list-header {
+#member-list-header {
 	color: var(--main-color);
 	background-color: var(--main-background);
 	box-sizing: border-box;
@@ -122,8 +162,27 @@ body {
 }
 
 #buffer-header {
+	color: var(--main-color);
+	background-color: var(--main-background);
+	box-sizing: border-box;
+	border-bottom: 1px solid var(--sidebar-background);
+
 	grid-row: 1;
 	grid-column: 2;
+
+	display: flex;
+	flex-direction: row;
+}
+
+#buffer-header .title {
+	display: none;
+	padding: 5px 10px;
+	align-self: center;
+}
+
+#buffer-header .description {
+	flex-grow: 1;
+	padding: 5px 10px;
 }
 
 #buffer-header .status-here {
@@ -136,8 +195,14 @@ body {
 	color: red;
 }
 
-#buffer-header .actions {
-	float: right;
+.actions {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+}
+
+.actions button {
+	border-width: 0 0 1px 1px;
 }
 
 #buffer {
@@ -559,5 +624,9 @@ kbd {
 
 	#member-list-header {
 		border-left: none;
+	}
+
+	#buffer-header .title {
+		display: block;
 	}
 }

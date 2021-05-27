@@ -96,34 +96,64 @@ export default function BufferHeader(props) {
 		if (props.isBouncer) {
 			if (props.network.isupport.get("BOUNCER_NETID")) {
 				actions = html`
-					<a href="#" onClick=${handleJoinClick}>Join</a>
-					${" "}
-					<a href="#" onClick=${handleManageNetworkClick}>Manage network</a>
+					<button
+						key="join"
+						onClick=${handleJoinClick}
+					>Join channel</button>
+					<button
+						key="manage"
+						onClick=${handleManageNetworkClick}
+					>Manage network</button>
 				`;
 			} else {
 				actions = html`
-					<a href="#" onClick=${handleAddNetworkClick}>Add network</a>
-					${" "}
-					<a href="#" onClick=${handleCloseClick}>Disconnect</a>
+					<button
+						key="add"
+						onClick=${handleAddNetworkClick}
+					>Add network</button>
+					<button
+						key="disconnect"
+						class="danger"
+						onClick=${handleCloseClick}
+					>Disconnect</button>
 				`;
 			}
 		} else {
 			actions = html`
-				<a href="#" onClick=${handleJoinClick}>Join</a>
-				${" "}
-				<a href="#" onClick=${handleCloseClick}>Disconnect</a>
+				<button
+					key="join"
+					onClick=${handleJoinClick}
+				>Join channel</button>
+				<button
+					key="disconnect"
+					class="danger"
+					onClick=${handleCloseClick}
+				>Disconnect</button>
 			`;
 		}
 		break;
 	case BufferType.CHANNEL:
-		actions = html`<a href="#" onClick=${handleCloseClick}>Part</a>`;
+			actions = html`
+				<button
+					key="part"
+					class="danger"
+					onClick=${handleCloseClick}
+				>Leave</button>
+			`;
 		break;
 	case BufferType.NICK:
-		actions = html`<a href="#" onClick=${handleCloseClick}>Close</a>`;
+			actions = html`
+				<button
+					key="close"
+					class="danger"
+					onClick=${handleCloseClick}
+				>Close</button>
+			`;
 		break;
 	}
 
 	return html`
+		<span class="title">${props.buffer.name}</span>
 		<span class="description">${description}</span>
 		<span class="actions">${actions}</span>
 	`;
