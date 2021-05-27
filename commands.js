@@ -9,6 +9,18 @@ function getActiveClient(app) {
 	return app.clients.get(buf.network);
 }
 
+const join = {
+	usage: "<name>",
+	description: "Join a channel",
+	execute: (app, args) => {
+		var channel = args[0];
+		if (!channel) {
+			throw new Error("Missing channel name");
+		}
+		getActiveClient(app).send({ command: "JOIN", params: [channel] });
+	},
+};
+
 export default {
 	"buffer": {
 		usage: "<name>",
@@ -46,17 +58,8 @@ export default {
 			app.openHelp();
 		},
 	},
-	"join": {
-		usage: "<name>",
-		description: "Join a channel",
-		execute: (app, args) => {
-			var channel = args[0];
-			if (!channel) {
-				throw new Error("Missing channel name");
-			}
-			getActiveClient(app).send({ command: "JOIN", params: [channel] });
-		},
-	},
+	"j": join,
+	"join": join,
 	"kick": {
 		usage: "<user>",
 		description: "Remove a user from the channel",
