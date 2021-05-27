@@ -17,7 +17,7 @@ const join = {
 		if (!channel) {
 			throw new Error("Missing channel name");
 		}
-		getActiveClient(app).send({ command: "JOIN", params: [channel] });
+		app.open(channel);
 	},
 };
 

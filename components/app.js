@@ -899,12 +899,13 @@ export default class App extends Component {
 		var client = this.clients.get(netID);
 
 		if (this.isChannel(target)) {
+			this.switchToChannel = target;
 			client.send({ command: "JOIN", params: [target] });
 		} else {
 			client.send({ command: "WHO", params: [target] });
+			this.createBuffer(netID, target);
+			this.switchBuffer({ network: netID, name: target });
 		}
-		this.createBuffer(netID, target);
-		this.switchBuffer({ network: netID, name: target });
 	}
 
 	close(id) {
@@ -1084,6 +1085,7 @@ export default class App extends Component {
 	handleJoinSubmit(data) {
 		var client = this.clients.get(this.state.joinDialog.network);
 
+		this.switchToChannel = data.channel;
 		client.send({ command: "JOIN", params: [data.channel] });
 
 		this.setState({ dialog: null, joinDialog: null });
