@@ -93,6 +93,14 @@ export default {
 		usage: "<target> <modes> [mode args...]",
 		description: "Change channel or user mode",
 		execute: (app, args) => {
+			var target = args[0];
+			if (target.startsWith("+") || target.startsWith("-")) {
+				var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
+				if (!activeBuffer || !app.isChannel(activeBuffer.name)) {
+					throw new Error("Not in a channel");
+				}
+				args = [activeBuffer.name, ...args];
+			}
 			getActiveClient(app).send({ command: "MODE", params: args });
 		},
 	},
