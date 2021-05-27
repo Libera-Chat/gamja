@@ -1,3 +1,4 @@
+import * as irc from "../lib/irc.js";
 import { SERVER_BUFFER, BufferType } from "./state.js";
 
 function getActiveClient(app) {
@@ -149,6 +150,19 @@ export default {
 		description: "Quit",
 		execute: (app, args) => {
 			app.close({ name: SERVER_BUFFER });
+		},
+	},
+	"quote": {
+		usage: "<command>",
+		description: "Send a raw IRC command to the server",
+		execute: (app, args) => {
+			var msg;
+			try {
+				msg = irc.parseMessage(args.join(" "));
+			} catch (err) {
+				throw new Error("failed to parse IRC command: " + err.message);
+			}
+			getActiveClient(app).send(msg);
 		},
 	},
 	"reconnect": {
