@@ -46,7 +46,11 @@ This will start a development HTTP server for gamja. Connect to it and append
 gamja settings can be overridden using URL query parameters:
 
 - `server`: path or URL to the WebSocket server
-- `channels`: comma-separated list of channels to join
+- `nick`: nickname
+- `channels`: comma-separated list of channels to join (`#` needs to be escaped)
+
+Alternatively, the channels can be set with the URL fragment (ie, by just
+appending the channel name to the gamja URL).
 
 ## Configuration file
 

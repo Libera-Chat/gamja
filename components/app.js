@@ -253,6 +253,9 @@ export default class App extends Component {
 				connectParams.serverURL = queryParams.server;
 			}
 		}
+		if (queryParams.nick) {
+			connectParams.nick = queryParams.nick;
+		}
 		if (queryParams.channels) {
 			connectParams.autojoin = queryParams.channels.split(",");
 		}
