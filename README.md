@@ -31,6 +31,23 @@ webroot = /path/to/gamja
 Then connect to webircgateway and append `?server=/webirc/websocket/` to the
 URL.
 
+### nginx
+
+If you use nginx as a reverse HTTP proxy, make sure to bump the default read
+timeout to a value higher than the IRC server PING interval. Example:
+
+```
+location /socket {
+	proxy_pass http://127.0.0.1:8080;
+	proxy_read_timeout 600s;
+	proxy_http_version 1.1;
+	proxy_set_header Upgrade $http_upgrade;
+	proxy_set_header Connection "Upgrade";
+	proxy_set_header X-Forwarded-For $remote_addr;
+	proxy_set_header X-Forwarded-Proto $scheme;
+}
+```
+
 ### Development server
 
 Start your IRC WebSocket server, e.g. on port 8080. Then run:
