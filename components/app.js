@@ -945,8 +945,8 @@ export default class App extends Component {
 		try {
 			cmd.execute(this, args);
 		} catch (error) {
-			console.error("Failed to execute command '" + name + "'", error);
-			this.setState({ error });
+			console.error("Failed to execute command '" + name + "':", error);
+			this.setState({ error: error.message });
 		}
 	}
 
