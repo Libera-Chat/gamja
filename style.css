@@ -315,7 +315,8 @@ details summary {
 	overflow: auto;
 }
 .dialog .dialog-body {
-	background-color: white;
+	background-color: var(--main-background);
+	color: var(--main-color);
 	margin: 20px auto;
 	max-width: 500px;
 	padding: 15px;
@@ -441,5 +442,13 @@ kbd {
 
 	.error-text {
 		color: #efa3aa;
+	}
+
+	kbd {
+		--outline-color: #6e7681;
+
+		background-color: transparent;
+		border: 1px solid var(--outline-color);
+		box-shadow: inset 0 -1px 0 var(--outline-color);
 	}
 }
