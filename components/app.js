@@ -733,6 +733,9 @@ export default class App extends Component {
 			this.setState((state) => {
 				var buffers = new Map(state.buffers);
 				state.buffers.forEach((buf) => {
+					if (buf.network != netID) {
+						return;
+					}
 					if (!buf.members.has(msg.prefix.name) && buf.name != msg.prefix.name) {
 						return;
 					}
@@ -753,6 +756,9 @@ export default class App extends Component {
 			this.setState((state) => {
 				var buffers = new Map(state.buffers);
 				state.buffers.forEach((buf) => {
+					if (buf.network != netID) {
+						return;
+					}
 					if (!buf.members.has(msg.prefix.name)) {
 						return;
 					}
