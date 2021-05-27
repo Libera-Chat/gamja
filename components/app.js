@@ -194,15 +194,6 @@ export default class App extends Component {
 
 		this.saveReceipts = debounce(this.saveReceipts.bind(this), 500);
 
-		var connectParams = store.autoconnect.load();
-		if (connectParams) {
-			this.state.connectParams = {
-				...this.state.connectParams,
-				...connectParams,
-				autoconnect: true,
-			};
-		}
-
 		this.receipts = store.receipts.load();
 
 		configPromise.then((config) => {
@@ -211,12 +202,17 @@ export default class App extends Component {
 		});
 	}
 
+	/**
+	 * Handle configuration data and populate the connection parameters.
+	 *
+	 * The priority order is:
+	 *
+	 * - URL params
+	 * - Saved parameters in local storage
+	 * - Configuration data (fetched from the config.json file)
+	 * - Default server URL constructed from the current URL location
+	 */
 	handleConfig(config) {
-		if (this.state.connectParams.autoconnect) {
-			// Connection params have already been loaded from local storage
-			return;
-		}
-
 		var host = window.location.host || "localhost:8080";
 		var proto = "wss:";
 		if (window.location.protocol != "https:") {
@@ -240,6 +236,15 @@ export default class App extends Component {
 			}
 		}
 
+		var autoconnect = store.autoconnect.load();
+		if (autoconnect) {
+			connectParams = {
+				...connectParams,
+				...autoconnect,
+				autoconnect: true,
+			};
+		}
+
 		var queryParams = parseQueryString();
 		if (queryParams.server) {
 			if (queryParams.server.startsWith("/")) {
@@ -259,6 +264,10 @@ export default class App extends Component {
 		this.setState((state) => {
 			return { connectParams: { ...state.connectParams, ...connectParams } };
 		});
+
+		if (connectParams.autoconnect) {
+			this.connect(connectParams);
+		}
 	}
 
 	dismissError(event) {
@@ -1100,10 +1109,6 @@ export default class App extends Component {
 	}
 
 	componentDidMount() {
-		if (this.state.connectParams.autoconnect) {
-			this.connect(this.state.connectParams);
-		}
-
 		setupKeybindings(this);
 	}
 
