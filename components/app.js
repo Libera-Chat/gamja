@@ -133,12 +133,20 @@ function getBuffer(state, id) {
 			return state.buffers.get(id.id);
 		}
 
-		var network = id.network, name = id.name;
-		if (!network) {
-			network = getActiveNetworkID(state);
+		var netID = id.network, name = id.name;
+		if (!netID) {
+			netID = getActiveNetworkID(state);
 		}
+
+		var cm = irc.CaseMapping.RFC1459;
+		var network = state.networks.get(netID);
+		if (network) {
+			cm = irc.CaseMapping.byName(network.isupport.get("CASEMAPPING")) || cm;
+		}
+
+		var nameCM = cm(name);
 		for (var buf of state.buffers.values()) {
-			if (buf.network === network && buf.name === name) {
+			if (buf.network === netID && cm(buf.name) === nameCM) {
 				return buf;
 			}
 		}
@@ -480,7 +488,7 @@ export default class App extends Component {
 			}
 		}
 
-		if (msg.prefix.name != client.nick && (msg.command != "PART" && msg.comand != "QUIT")) {
+		if (!client.isMyNick(msg.prefix.name) && (msg.command != "PART" && msg.comand != "QUIT")) {
 			this.createBuffer(netID, bufName);
 		}
 
@@ -682,7 +690,7 @@ export default class App extends Component {
 		case "PRIVMSG":
 			var target = msg.params[0];
 			if (target == client.nick) {
-				if (msg.prefix.name == client.serverPrefix.name) {
+				if (client.cm(msg.prefix.name) == client.cm(client.serverPrefix.name)) {
 					target = SERVER_BUFFER;
 				} else {
 					target = msg.prefix.name;
@@ -699,7 +707,7 @@ export default class App extends Component {
 				members.set(msg.prefix.name, null);
 				return { members };
 			});
-			if (msg.prefix.name != client.nick) {
+			if (!client.isMyNick(msg.prefix.name)) {
 				this.addMessage(netID, channel, msg);
 			}
 			if (channel == this.switchToChannel) {
@@ -708,7 +716,7 @@ export default class App extends Component {
 			}
 
 			var receipt = this.getReceipt(channel, ReceiptType.READ);
-			if (msg.prefix.name == client.nick && receipt && client.enabledCaps["draft/chathistory"] && client.enabledCaps["server-time"]) {
+			if (client.isMyNick(msg.prefix.name) && receipt && client.enabledCaps["draft/chathistory"] && client.enabledCaps["server-time"]) {
 				var after = receipt;
 				var before = { time: msg.tags.time || irc.formatDate(new Date()) };
 				client.fetchHistoryBetween(channel, after, before, CHATHISTORY_MAX_SIZE).catch((err) => {
@@ -728,7 +736,7 @@ export default class App extends Component {
 			});
 			this.addMessage(netID, channel, msg);
 
-			if (msg.prefix.name == client.nick) {
+			if (client.isMyNick(msg.prefix.name)) {
 				this.receipts.delete(channel);
 				this.saveReceipts();
 			}
@@ -744,7 +752,7 @@ export default class App extends Component {
 			});
 			this.addMessage(netID, channel, msg);
 
-			if (msg.prefix.name == client.nick) {
+			if (client.isMyNick(msg.prefix.name)) {
 				this.receipts.delete(channel);
 				this.saveReceipts();
 			}
@@ -757,12 +765,12 @@ export default class App extends Component {
 					if (buf.network != netID) {
 						return;
 					}
-					if (!buf.members.has(msg.prefix.name) && buf.name != msg.prefix.name) {
+					if (!buf.members.has(msg.prefix.name) && client.cm(buf.name) !== client.cm(msg.prefix.name)) {
 						return;
 					}
 					var members = new irc.CaseMapMap(buf.members);
 					members.delete(msg.prefix.name);
-					var offline = buf.name == msg.prefix.name;
+					var offline = client.cm(buf.name) === client.cm(msg.prefix.name);
 					buffers.set(buf.id, { ...buf, members, offline });
 					affectedBuffers.push(buf.name);
 				});
