@@ -166,6 +166,10 @@ export default class App extends Component {
 		activeBuffer: null,
 		dialog: null,
 		error: null,
+		openPanels: {
+			bufferList: false,
+			memberList: false,
+		},
 	};
 	clients = new Map();
 	endOfHistory = new Map();
@@ -182,6 +186,8 @@ export default class App extends Component {
 		this.handleConnectSubmit = this.handleConnectSubmit.bind(this);
 		this.handleJoinSubmit = this.handleJoinSubmit.bind(this);
 		this.handleBufferListClick = this.handleBufferListClick.bind(this);
+		this.toggleBufferList = this.toggleBufferList.bind(this);
+		this.toggleMemberList = this.toggleMemberList.bind(this);
 		this.handleComposerSubmit = this.handleComposerSubmit.bind(this);
 		this.handleNickClick = this.handleNickClick.bind(this);
 		this.autocomplete = this.autocomplete.bind(this);
@@ -1028,6 +1034,47 @@ export default class App extends Component {
 
 	handleBufferListClick(id) {
 		this.switchBuffer(id);
+		this.closeBufferList();
+	}
+
+	toggleBufferList() {
+		this.setState((state) => {
+			var openPanels = {
+				...state.openPanels,
+				bufferList: !state.openPanels.bufferList,
+			};
+			return { openPanels };
+		});
+	}
+
+	toggleMemberList() {
+		this.setState((state) => {
+			var openPanels = {
+				...state.openPanels,
+				memberList: !state.openPanels.memberList,
+			};
+			return { openPanels };
+		});
+	}
+
+	closeBufferList() {
+		this.setState((state) => {
+			var openPanels = {
+				...state.openPanels,
+				bufferList: false,
+			};
+			return { openPanels };
+		});
+	}
+
+	closeMemberList() {
+		this.setState((state) => {
+			var openPanels = {
+				...state.openPanels,
+				memberList: false,
+			};
+			return { openPanels };
+		});
 	}
 
 	handleJoinClick(netID) {
@@ -1218,14 +1265,26 @@ export default class App extends Component {
 		var memberList = null;
 		if (activeBuffer && activeBuffer.type == BufferType.CHANNEL) {
 			memberList = html`
-				<section id="member-list-header">
-					${activeBuffer.members.size} users
-				</section>
-				<section id="member-list">
-					<${MemberList}
-						members=${activeBuffer.members}
-						onNickClick=${this.handleNickClick}
-					/>
+				<section
+						id="member-list"
+						class=${this.state.openPanels.memberList ? "expand" : ""}
+				>
+					<button
+						class="expander"
+						onClick=${this.toggleMemberList}
+					>
+						<span></span>
+						<span></span>
+					</button>
+					<section>
+						<section id="member-list-header">
+							${activeBuffer.members.size} users
+						</section>
+						<${MemberList}
+							members=${activeBuffer.members}
+							onNickClick=${this.handleNickClick}
+						/>
+					</section>
 				</section>
 			`;
 		}
@@ -1272,7 +1331,10 @@ export default class App extends Component {
 		}
 
 		return html`
-			<section id="buffer-list">
+			<section
+					id="buffer-list"
+					class=${this.state.openPanels.bufferList ? "expand" : ""}
+			>
 				<${BufferList}
 					buffers=${this.state.buffers}
 					networks=${this.state.networks}
@@ -1281,6 +1343,13 @@ export default class App extends Component {
 					activeBuffer=${this.state.activeBuffer}
 					onBufferClick=${this.handleBufferListClick}
 				/>
+				<button
+					class="expander"
+					onClick=${this.toggleBufferList}
+				>
+					<span></span>
+					<span></span>
+				</button>
 			</section>
 			${bufferHeader}
 			<${ScrollManager}
