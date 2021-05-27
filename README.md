@@ -48,6 +48,10 @@ location /socket {
 }
 ```
 
+If you are unable to configure the proxy timeout accordingly, you can set the
+`server.ping` option in `config.json` to an interval, in seconds, between which
+gamja will send opportunistic pings.
+
 ### Development server
 
 Start your IRC WebSocket server, e.g. on port 8080. Then run:

@@ -213,6 +213,8 @@ export default class App extends Component {
 	 * - Default server URL constructed from the current URL location
 	 */
 	handleConfig(config) {
+		this.config = config;
+
 		var host = window.location.host || "localhost:8080";
 		var proto = "wss:";
 		if (window.location.protocol != "https:") {
@@ -531,6 +533,13 @@ export default class App extends Component {
 		if (params.autojoin.length > 0) {
 			this.switchToChannel = params.autojoin[0];
 		}
+
+		if (this.config.server && this.config.server.ping > 0) {
+			// TODO: unregister setInterval on disconnect
+			setInterval(() => {
+				client.send({ command: "PING", params: ["gamja"] });
+			}, this.config.server.ping * 1000);
+		}
 	}
 
 	disconnect(netID) {
@@ -845,6 +854,7 @@ export default class App extends Component {
 		case "CAP":
 		case "AUTHENTICATE":
 		case "PING":
+		case "PONG":
 		case "BATCH":
 			// Ignore these
 			break;
