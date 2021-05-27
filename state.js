@@ -15,9 +15,9 @@ export const Unread = {
 	MESSAGE: "message",
 	HIGHLIGHT: "highlight",
 
-	union: (a, b) => {
+	union(a, b) {
 		const priority = {
-			[Unread.None]: 0,
+			[Unread.NONE]: 0,
 			[Unread.MESSAGE]: 1,
 			[Unread.HIGHLIGHT]: 2,
 		};
