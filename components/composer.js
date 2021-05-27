@@ -81,7 +81,15 @@ export default class Composer extends Component {
 	render() {
 		return html`
 			<form id="composer" class="${this.props.readOnly && !this.state.text ? "read-only" : ""}" onInput=${this.handleInput} onSubmit=${this.handleSubmit}>
-				<input type="text" name="text" ref=${this.textInput} value=${this.state.text} placeholder="Type a message" onKeyDown=${this.handleInputKeyDown}/>
+				<input
+					type="text"
+					name="text"
+					ref=${this.textInput}
+					value=${this.state.text}
+					autocomplete="off"
+					placeholder="Type a message"
+					onKeyDown=${this.handleInputKeyDown}
+				/>
 			</form>
 		`;
 	}
