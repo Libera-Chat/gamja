@@ -186,6 +186,21 @@ export default {
 			client.send({ command: "SETNAME", params: [newRealname] });
 		},
 	},
+	"stats": {
+		usage: "<query> [<server>]",
+		description: "Requests server statistics",
+		execute: (app, args) => {
+			var query = args[0];
+			if (!query) {
+				throw new Error("Missing query");
+			}
+			var params = [query];
+			if (args.length > 1) {
+				params.push(args.slice(1).join(" "));
+			}
+			getActiveClient(app).send({ command: "STATS", params });
+		},
+	},
 	"topic": {
 		usage: "<topic>",
 		description: "Change the topic of the current channel",
