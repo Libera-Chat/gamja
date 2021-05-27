@@ -1,4 +1,4 @@
-import * as irc from "../lib/irc.js";
+import * as irc from "./lib/irc.js";
 import { SERVER_BUFFER, BufferType } from "./state.js";
 
 function getActiveClient(app) {
