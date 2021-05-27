@@ -408,7 +408,7 @@ kbd {
 		color: var(--red);
 	}
 	#buffer .me-tell {
-		color: #c42560;
+		color: #e16b97;
 	}
 	#buffer .highlight .nick {
 		color: #1e0010;
@@ -442,6 +442,25 @@ kbd {
 
 	.error-text {
 		color: #efa3aa;
+	}
+
+	#buffer .nick-8 {
+		color: #6bccc7;
+	}
+	#buffer .nick-10 {
+		color: #6296c1;
+	}
+	#buffer .nick-11 {
+		color: #c6b5df;
+	}
+	#buffer .nick-12 {
+		color: #9995df;
+	}
+	#buffer .nick-13 {
+		color: #8b62b3;
+	}
+	#buffer .nick-15 {
+		color: #e3418b;
 	}
 
 	kbd {
