@@ -258,4 +258,15 @@ export default {
 			getActiveClient(app).send({ command: "TOPIC", params });
 		},
 	},
+	"whois": {
+		usage: "<nick>",
+		description: "Retrieve information about a user",
+		execute: (app, args) => {
+			var nick = args[0];
+			if (!nick) {
+				throw new Error("Missing nick");
+			}
+			getActiveClient(app).whois(nick);
+		},
+	},
 };
