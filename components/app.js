@@ -862,6 +862,7 @@ export default class App extends Component {
 		case "PING":
 		case "PONG":
 		case "BATCH":
+		case "TAGMSG":
 			// Ignore these
 			break;
 		default:
