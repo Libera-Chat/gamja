@@ -59,7 +59,8 @@ export default function BufferHeader(props) {
 					description = "Bouncer connecting to network...";
 					break;
 				case "connected":
-					description = `Connected to ${props.bouncerNetwork.host}`;
+					// host can be undefined e.g. when using UNIX domain sockets
+					description = `Connected to ${props.bouncerNetwork.host || "network"}`;
 					break;
 				}
 			} else {
