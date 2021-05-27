@@ -940,14 +940,14 @@ export default class App extends Component {
 
 		var cmd = commands[name];
 		if (!cmd) {
-			this.setState({ error: "Unknown command '" + name + "'" });
+			this.setState({ error: `Unknown command "${name}" (run "/help" to get a command list)` });
 			return;
 		}
 
 		try {
 			cmd.execute(this, args);
 		} catch (error) {
-			console.error("Failed to execute command '" + name + "':", error);
+			console.error(`Failed to execute command "${name}":`, error);
 			this.setState({ error: error.message });
 		}
 	}
