@@ -9,6 +9,39 @@ function getActiveClient(app) {
 	return app.clients.get(buf.network);
 }
 
+const ban = {
+	usage: "<nick>",
+	description: "Bans a user from the channel",
+	execute: (app, args) => {
+		var nick = args[0];
+		if (!nick) {
+			throw new Error("Missing nick");
+		}
+		var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
+		if (!activeBuffer || !app.isChannel(activeBuffer.name)) {
+			throw new Error("Not in a channel");
+		}
+		var params = [activeBuffer.name, nick];
+		if (args.length > 1) {
+			params.push(args.slice(1).join(" "));
+		}
+		const client = getActiveClient(app);
+		client.whois(nick).then((whois) => {
+			if (whois === null) {
+				throw new Error("No such nick");
+			};
+			const info = whois[irc.RPL_WHOISUSER].params;
+			const user = info[2];
+			const host = info[3];
+			client.send({ command: "MODE", params: [
+				activeBuffer.name,
+				"+b",
+				`*!${user}@${host}`
+			]});
+		});
+	},
+};
+
 const join = {
 	usage: "<name>",
 	description: "Join a channel",
@@ -21,7 +54,25 @@ const join = {
 	},
 };
 
+const kick = {
+	usage: "<nick>",
+	description: "Remove a user from the channel",
+	execute: (app, args) => {
+		var nick = args[0];
+		var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
+		if (!activeBuffer || !app.isChannel(activeBuffer.name)) {
+			throw new Error("Not in a channel");
+		}
+		var params = [activeBuffer.name, nick];
+		if (args.length > 1) {
+			params.push(args.slice(1).join(" "));
+		}
+		getActiveClient(app).send({ command: "KICK", params });
+	},
+};
+
 export default {
+	"ban": ban,
 	"buffer": {
 		usage: "<name>",
 		description: "Switch to a buffer",
@@ -77,20 +128,13 @@ export default {
 	},
 	"j": join,
 	"join": join,
-	"kick": {
-		usage: "<user>",
-		description: "Remove a user from the channel",
+	"kick": kick,
+	"kickban": {
+		usage: "<target>",
+		description: "Bans a user and removes them from the channel",
 		execute: (app, args) => {
-			var user = args[0];
-			var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
-			if (!activeBuffer || !app.isChannel(activeBuffer.name)) {
-				throw new Error("Not in a channel");
-			}
-			var params = [activeBuffer.name, user];
-			if (args.length > 1) {
-				params.push(args.slice(1).join(" "));
-			}
-			getActiveClient(app).send({ command: "KICK", params });
+			kick.execute(app, args);
+			ban.execute(app, args);
 		},
 	},
 	"me": {
