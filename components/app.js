@@ -657,6 +657,12 @@ export default class App extends Component {
 				});
 			}
 			break;
+		case "MODE":
+			var target = msg.params[0];
+			if (this.isChannel(target)) {
+				this.addMessage(netID, target, msg);
+			}
+			break;
 		case "NOTICE":
 		case "PRIVMSG":
 			var target = msg.params[0];

@@ -104,6 +104,11 @@ class LogLine extends Component {
 				${createNick(msg.prefix.name)} has quit
 			`;
 			break;
+		case "MODE":
+			content = html`
+				* ${createNick(msg.prefix.name)} sets mode ${msg.params.slice(1).join(" ")}
+			`;
+			break;
 		case "NICK":
 			var newNick = msg.params[0];
 			content = html`
