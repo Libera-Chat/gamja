@@ -333,6 +333,9 @@ export default class App extends Component {
 				type = BufferType.NICK;
 			}
 
+			var client = this.clients.get(netID);
+			var cm = client ? client.cm : irc.CaseMapping.RFC1459;
+
 			var bufferList = Array.from(state.buffers.values());
 			bufferList.push({
 				id,
@@ -341,7 +344,7 @@ export default class App extends Component {
 				network: netID,
 				serverInfo: null, // if server
 				topic: null, // if channel
-				members: new Map(), // if channel
+				members: new irc.CaseMapMap(null, cm), // if channel
 				who: null, // if nick
 				offline: false, // if nick
 				messages: [],
@@ -585,6 +588,17 @@ export default class App extends Component {
 			this.setNetworkState(netID, (network) => {
 				return { isupport: new Map(client.isupport) };
 			});
+			this.setState((state) => {
+				var buffers = new Map(state.buffers);
+				state.buffers.forEach((buf) => {
+					if (buf.network != netID) {
+						return;
+					}
+					var members = new irc.CaseMapMap(buf.members, client.cm);
+					buffers.set(buf.id, { ...buf, members });
+				});
+				return { buffers };
+			});
 			break;
 		case irc.RPL_NOTOPIC:
 			var channel = msg.params[1];
@@ -605,7 +619,7 @@ export default class App extends Component {
 			var membersList = msg.params[3].split(" ");
 
 			this.setBufferState({ network: netID, name: channel }, (buf) => {
-				var members = new Map(buf.members);
+				var members = new irc.CaseMapMap(buf.members);
 				membersList.forEach((s) => {
 					var member = irc.parseMembership(s);
 					members.set(member.nick, member.prefix);
@@ -660,7 +674,7 @@ export default class App extends Component {
 
 			this.createBuffer(netID, channel);
 			this.setBufferState({ network: netID, name: channel }, (buf) => {
-				var members = new Map(buf.members);
+				var members = new irc.CaseMapMap(buf.members);
 				members.set(msg.prefix.name, null);
 				return { members };
 			});
@@ -687,7 +701,7 @@ export default class App extends Component {
 			var channel = msg.params[0];
 
 			this.setBufferState({ network: netID, name: channel }, (buf) => {
-				var members = new Map(buf.members);
+				var members = new irc.CaseMapMap(buf.members);
 				members.delete(msg.prefix.name);
 				return { members };
 			});
@@ -703,7 +717,7 @@ export default class App extends Component {
 			var user = msg.params[1];
 
 			this.setBufferState({ network: netID, name: channel }, (buf) => {
-				var members = new Map(buf.members);
+				var members = new irc.CaseMapMap(buf.members);
 				members.delete(user);
 				return { members };
 			});
@@ -722,7 +736,7 @@ export default class App extends Component {
 					if (!buf.members.has(msg.prefix.name) && buf.name != msg.prefix.name) {
 						return;
 					}
-					var members = new Map(buf.members);
+					var members = new irc.CaseMapMap(buf.members);
 					members.delete(msg.prefix.name);
 					var offline = buf.name == msg.prefix.name;
 					buffers.set(buf.id, { ...buf, members, offline });
@@ -742,7 +756,7 @@ export default class App extends Component {
 					if (!buf.members.has(msg.prefix.name)) {
 						return;
 					}
-					var members = new Map(buf.members);
+					var members = new irc.CaseMapMap(buf.members);
 					members.set(newNick, members.get(msg.prefix.name));
 					members.delete(msg.prefix.name);
 					buffers.set(buf.id, { ...buf, members });

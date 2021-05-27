@@ -34,7 +34,7 @@ export default class MemberList extends Component {
 	render() {
 		return html`
 			<ul>
-				${Array.from(this.props.members.entries()).sort().map(([nick, membership]) => html`
+				${Array.from(this.props.members).sort().map(([nick, membership]) => html`
 					<${MemberItem} key=${nick} nick=${nick} membership=${membership} onClick=${() => this.props.onNickClick(nick)}/>
 				`)}
 			</ul>
