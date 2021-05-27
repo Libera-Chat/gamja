@@ -9,12 +9,12 @@
 	--button-color: #eff7ef;
 	--button-background: #282879;
 	--button-background-hover: #00007C;
-	--button-border: #222;
+	--button-border: #e3e3e3;
 
 	--danger-button-color: #eff7ef;
 	--danger-button-background: red;
 	--danger-button-background-hover: #B20000;
-	--danger-button-border: #222;
+	--danger-button-border: #e3e3e3;
 
 	--green: green;
 	--gray: #4a4a4a;
@@ -29,8 +29,10 @@
 		--expander-background-hover: #2a2d2f;
 		--button-background: #282879;
 		--button-background-hover: #00007C;
+		--button-border: #131618;
 		--danger-button-background: #B20000;
 		--danger-button-background-hover: red;
+		--danger-button-border: #131618;
 		--green: #53b266;
 
 		--red: #fb615b;
@@ -202,7 +204,7 @@ button.danger:hover {
 }
 
 .actions button {
-	border-width: 0 0 1px 1px;
+	border-width: 0 0 0px 1px;
 }
 
 #buffer {
