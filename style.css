@@ -329,7 +329,7 @@ details summary {
 #buffer .logline-list {
 	padding: 10px;
 }
-#buffer .talk {
+#buffer .talk, #buffer .motd {
 	color: var(--main-color);
 }
 #buffer .error {

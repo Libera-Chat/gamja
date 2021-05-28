@@ -121,6 +121,10 @@ class LogLine extends Component {
 				${createNick(msg.prefix.name)} changed the topic to: ${linkify(stripANSI(topic))}
 			`;
 			break;
+		case irc.RPL_MOTD:
+			lineClass = "motd";
+			content = msg.params[1];
+			break;
 		default:
 			if (irc.isError(msg.command) && msg.command != irc.ERR_NOMOTD) {
 				lineClass = "error";
