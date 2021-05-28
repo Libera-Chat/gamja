@@ -162,6 +162,13 @@ export default {
 			ban.execute(app, args);
 		},
 	},
+	"lusers": {
+		usage: "[<mask> [<target>]]",
+		description: "Requests user statistics about the network",
+		execute: (app, args) => {
+			getActiveClient(app).send({ command: "LUSERS", params: args });
+		},
+	},
 	"me": {
 		usage: "<action>",
 		description: "Send an action message to the current buffer",
