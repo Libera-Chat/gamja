@@ -39,6 +39,46 @@ function Timestamp({ date, url }) {
 	`;
 }
 
+/**
+ * Check whether a message can be folded.
+ *
+ * Unimportant and noisy messages that may clutter the discussion should be
+ * folded.
+ */
+function canFoldMessage(msg) {
+	switch (msg.command) {
+	case "JOIN":
+	case "PART":
+	case "QUIT":
+	case "NICK":
+		return true;
+	}
+	return false;
+}
+
+function getFoldableMessageContent(msg, createNick) {
+	switch (msg.command) {
+	case "JOIN":
+		return html`
+			${createNick(msg.prefix.name)} has joined
+		`;
+	case "PART":
+		return html`
+			${createNick(msg.prefix.name)} has left
+		`;
+	case "QUIT":
+		return html`
+			${createNick(msg.prefix.name)} has quit
+		`;
+	case "NICK":
+		var newNick = msg.params[0];
+		return html`
+			${createNick(msg.prefix.name)} is now known as ${createNick(newNick)}
+		`;
+	}
+	throw new Error(`Message "${msg.command}" cannot be folded`);
+}
+
 class LogLine extends Component {
 	shouldComponentUpdate(nextProps) {
 		return this.props.message !== nextProps.message;
@@ -84,35 +124,14 @@ class LogLine extends Component {
 				lineClass += " highlight";
 			}
 			break;
-		case "JOIN":
-			content = html`
-				${createNick(msg.prefix.name)} has joined
-			`;
-			break;
-		case "PART":
-			content = html`
-				${createNick(msg.prefix.name)} has left
-			`;
-			break;
 		case "KICK":
 			content = html`
 				${createNick(msg.params[1])} was kicked by ${createNick(msg.prefix.name)} (${msg.params.slice(2)})
 			`;
 			break;
-		case "QUIT":
-			content = html`
-				${createNick(msg.prefix.name)} has quit
-			`;
-			break;
 		case "MODE":
 			content = html`
 				* ${createNick(msg.prefix.name)} sets mode ${msg.params.slice(1).join(" ")}
-			`;
-			break;
-		case "NICK":
-			var newNick = msg.params[0];
-			content = html`
-				${createNick(msg.prefix.name)} is now known as ${createNick(newNick)}
 			`;
 			break;
 		case "TOPIC":
@@ -129,12 +148,50 @@ class LogLine extends Component {
 			if (irc.isError(msg.command) && msg.command != irc.ERR_NOMOTD) {
 				lineClass = "error";
 			}
-			content = html`${msg.command} ${msg.params.join(" ")}`;
+			if (canFoldMessage(msg)) {
+				content = getFoldableMessageContent(msg, createNick);
+			} else {
+				content = html`${msg.command} ${msg.params.join(" ")}`;
+			}
 		}
 
 		return html`
 			<div class="logline ${lineClass}" data-key=${msg.key}>
 				<${Timestamp} date=${new Date(msg.tags.time)} url=${getMessageURL(this.props.buffer, msg)}/>
+				${" "}
+				${content}
+			</div>
+		`;
+	}
+}
+
+class FoldGroup extends Component {
+	shouldComponentUpdate(nextProps) {
+		return this.props.message !== nextProps.message;
+	}
+
+	render() {
+		var msgs = this.props.messages;
+
+		var onNickClick = this.props.onNickClick;
+		function createNick(nick) {
+			return html`
+				<${Nick} nick=${nick} onClick=${() => onNickClick(nick)}/>
+			`;
+		}
+
+		var content = msgs.map((msg, i) => {
+			var item = getFoldableMessageContent(msg, createNick);
+			if (i === 0) {
+				return item;
+			} else {
+				return [", ", item];
+			}
+		});
+
+		return html`
+			<div class="logline" data-key=${msgs[0].key}>
+				<${Timestamp} date=${new Date(msgs[0].tags.time)} url=${getMessageURL(this.props.buffer, msgs[0])}/>
 				${" "}
 				${content}
 			</div>
@@ -227,24 +284,70 @@ export default class Buffer extends Component {
 			children.push(html`<${NotificationNagger}/>`);
 		}
 
+		var onNickClick = this.props.onNickClick;
+		function createLogLine(msg) {
+			return html`
+				<${LogLine}
+					key=${"msg-" + msg.key}
+					message=${msg}
+					buffer=${buf}
+					onNickClick=${onNickClick}
+				/>
+			`;
+		}
+		function createFoldGroup(msgs) {
+			if (msgs.length === 0) {
+				return null;
+			} else if (msgs.length === 1) {
+				return createLogLine(msgs[0]);
+			}
+			return html`
+				<${FoldGroup}
+					key=${"fold-" + msgs[0].key + "-" + msgs.length}
+					messages=${msgs}
+					buffer=${buf}
+					onNickClick=${onNickClick}
+				/>
+			`;
+		}
+
 		var hasUnreadSeparator = false;
 		var prevDate = new Date();
+		var foldMessages = [];
 		buf.messages.forEach((msg) => {
+			var sep = [];
+
 			if (!hasUnreadSeparator && buf.type != BufferType.SERVER && buf.lastReadReceipt && msg.tags.time > buf.lastReadReceipt.time) {
-				children.push(html`<${UnreadSeparator} key="unread"/>`);
+				sep.push(html`<${UnreadSeparator} key="unread"/>`);
 				hasUnreadSeparator = true;
 			}
 
 			var date = new Date(msg.tags.time);
 			if (!sameDate(prevDate, date)) {
-				children.push(html`<${DateSeparator} key=${"date-" + date} date=${date}/>`);
+				sep.push(html`<${DateSeparator} key=${"date-" + date} date=${date}/>`);
 			}
 			prevDate = date;
 
-			children.push(html`
-				<${LogLine} key=${"msg-" + msg.key} message=${msg} buffer=${buf} onNickClick=${this.props.onNickClick}/>
-			`);
+			if (sep.length > 0) {
+				children.push(createFoldGroup(foldMessages));
+				children.push(sep);
+				foldMessages = [];
+			}
+
+			// TODO: consider checking the time difference too
+			if (canFoldMessage(msg)) {
+				foldMessages.push(msg);
+				return;
+			}
+
+			if (foldMessages.length > 0) {
+				children.push(createFoldGroup(foldMessages));
+				foldMessages = [];
+			}
+
+			children.push(createLogLine(msg));
 		});
+		children.push(createFoldGroup(foldMessages));
 
 		return html`
 			<div class="logline-list">
