@@ -172,6 +172,7 @@ class FoldGroup extends Component {
 
 	render() {
 		var msgs = this.props.messages;
+		var buf = this.props.buffer;
 
 		var onNickClick = this.props.onNickClick;
 		function createNick(nick) {
@@ -189,9 +190,25 @@ class FoldGroup extends Component {
 			}
 		});
 
+		var lastMsg = msgs[msgs.length - 1];
+		var firstDate = new Date(msgs[0].tags.time);
+		var lastDate = new Date(lastMsg.tags.time);
+		var timestamp = html`
+			<${Timestamp} date=${firstDate} url=${getMessageURL(buf, msgs[0])}/>
+		`;
+		if (lastDate - firstDate > 60 * 100) {
+			timestamp = [
+				timestamp,
+				" — ",
+				html`
+					<${Timestamp} date=${lastDate} url=${getMessageURL(buf, lastMsg)}/>
+				`,
+			];
+		}
+
 		return html`
 			<div class="logline" data-key=${msgs[0].key}>
-				<${Timestamp} date=${new Date(msgs[0].tags.time)} url=${getMessageURL(this.props.buffer, msgs[0])}/>
+				${timestamp}
 				${" "}
 				${content}
 			</div>
