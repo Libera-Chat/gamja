@@ -280,7 +280,7 @@ export default {
 		},
 	},
 	"stats": {
-		usage: "<query> [<server>]",
+		usage: "<query> [server]",
 		description: "Requests server statistics",
 		execute: (app, args) => {
 			var query = args[0];
