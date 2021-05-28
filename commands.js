@@ -134,6 +134,23 @@ export default {
 			app.openHelp();
 		},
 	},
+	"invite": {
+		usage: "<nick>",
+		description: "Invites a user to the channel",
+		execute: (app, args) => {
+			var nick = args[0];
+			if (!nick) {
+				throw new Error("Missing nick");
+			}
+			var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
+			if (!activeBuffer || !app.isChannel(activeBuffer.name)) {
+				throw new Error("Not in a channel");
+			}
+			getActiveClient(app).send({ command: "INVITE", params: [
+				nick, activeBuffer.name,
+			]});
+		},
+	},
 	"j": join,
 	"join": join,
 	"kick": kick,
