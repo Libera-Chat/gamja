@@ -151,7 +151,7 @@ export default {
 		},
 	},
 	"mode": {
-		usage: "<target> <modes> [mode args...]",
+		usage: "[target] <modes> [mode args...]",
 		description: "Change channel or user mode",
 		execute: (app, args) => {
 			var target = args[0];
@@ -163,6 +163,13 @@ export default {
 				args = [activeBuffer.name, ...args];
 			}
 			getActiveClient(app).send({ command: "MODE", params: args });
+		},
+	},
+	"motd": {
+		usage: "[server]",
+		description: "Get the Message Of The Day",
+		execute: (app, args) => {
+			getActiveClient(app).send({ command: "MOTD", params: args });
 		},
 	},
 	"msg": {
