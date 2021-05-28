@@ -548,11 +548,8 @@ export default class App extends Component {
 			this.switchToChannel = params.autojoin[0];
 		}
 
-		if (this.config.server && this.config.server.ping > 0) {
-			// TODO: unregister setInterval on disconnect
-			setInterval(() => {
-				client.send({ command: "PING", params: ["gamja"] });
-			}, this.config.server.ping * 1000);
+		if (this.config.server && typeof this.config.server.ping === "number") {
+			client.setPingInterval(this.config.server.ping);
 		}
 	}
 
