@@ -7,12 +7,12 @@
 	--expander-border: #6c6c6c;
 
 	--button-color: #eff7ef;
-	--button-background: #282879;
+	--button-background: #545499;
 	--button-background-hover: #00007C;
 	--button-border: #e3e3e3;
 
 	--danger-button-color: #eff7ef;
-	--danger-button-background: red;
+	--danger-button-background: #db2626;
 	--danger-button-background-hover: #B20000;
 	--danger-button-border: #e3e3e3;
 
@@ -34,6 +34,7 @@
 		--danger-button-background-hover: red;
 		--danger-button-border: #131618;
 		--green: #53b266;
+		--gray: #979797;
 
 		--red: #fb615b;
 	}
@@ -329,7 +330,7 @@ details summary {
 	padding: 10px;
 }
 #buffer .talk {
-	color: black;
+	color: var(--main-color);
 }
 #buffer .error {
 	color: red;
@@ -521,17 +522,12 @@ kbd {
 	}
 
 	#buffer-list li a,
-	a.timestamp,
 	a.nick {
 		color: var(--main-color);
 	}
 
 	#buffer {
-		color: var(--main-color);
 		background: var(--main-background);
-	}
-	#buffer .talk {
-		color: var(--main-color);
 	}
 	#buffer .error {
 		color: var(--red);
