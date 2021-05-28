@@ -56,29 +56,6 @@ function canFoldMessage(msg) {
 	return false;
 }
 
-function getFoldableMessageContent(msg, createNick) {
-	switch (msg.command) {
-	case "JOIN":
-		return html`
-			${createNick(msg.prefix.name)} has joined
-		`;
-	case "PART":
-		return html`
-			${createNick(msg.prefix.name)} has left
-		`;
-	case "QUIT":
-		return html`
-			${createNick(msg.prefix.name)} has quit
-		`;
-	case "NICK":
-		var newNick = msg.params[0];
-		return html`
-			${createNick(msg.prefix.name)} is now known as ${createNick(newNick)}
-		`;
-	}
-	throw new Error(`Message "${msg.command}" cannot be folded`);
-}
-
 class LogLine extends Component {
 	shouldComponentUpdate(nextProps) {
 		return this.props.message !== nextProps.message;
@@ -124,6 +101,27 @@ class LogLine extends Component {
 				lineClass += " highlight";
 			}
 			break;
+		case "JOIN":
+			content = html`
+				${createNick(msg.prefix.name)} has joined
+			`;
+			break;
+		case "PART":
+			content = html`
+				${createNick(msg.prefix.name)} has left
+			`;
+			break;
+		case "QUIT":
+			content = html`
+				${createNick(msg.prefix.name)} has quit
+			`;
+			break;
+		case "NICK":
+			var newNick = msg.params[0];
+			content = html`
+				${createNick(msg.prefix.name)} is now known as ${createNick(newNick)}
+			`;
+			break;
 		case "KICK":
 			content = html`
 				${createNick(msg.params[1])} was kicked by ${createNick(msg.prefix.name)} (${msg.params.slice(2)})
@@ -148,11 +146,7 @@ class LogLine extends Component {
 			if (irc.isError(msg.command) && msg.command != irc.ERR_NOMOTD) {
 				lineClass = "error";
 			}
-			if (canFoldMessage(msg)) {
-				content = getFoldableMessageContent(msg, createNick);
-			} else {
-				content = html`${msg.command} ${msg.params.join(" ")}`;
-			}
+			content = html`${msg.command} ${msg.params.join(" ")}`;
 		}
 
 		return html`
@@ -163,6 +157,27 @@ class LogLine extends Component {
 			</div>
 		`;
 	}
+}
+
+function createNickList(nicks, createNick) {
+	if (nicks.length === 0) {
+		return null;
+	} else if (nicks.length === 1) {
+		return createNick(nicks[0]);
+	}
+
+	var l = nicks.slice(0, nicks.length - 1).map((nick, i) => {
+		if (i === 0) {
+			return createNick(nick);
+		} else {
+			return [", ", createNick(nick)];
+		}
+	});
+
+	l.push(" and ");
+	l.push(createNick(nicks[nicks.length - 1]));
+
+	return l;
 }
 
 class FoldGroup extends Component {
@@ -182,13 +197,60 @@ class FoldGroup extends Component {
 			`;
 		}
 
-		var content = msgs.map((msg, i) => {
-			var item = getFoldableMessageContent(msg, createNick);
-			if (i === 0) {
-				return item;
-			} else {
-				return [", ", item];
+		var byCommand = {
+			"JOIN": [],
+			"PART": [],
+			"QUIT": [],
+			"NICK": [],
+		};
+		msgs.forEach((msg) => {
+			byCommand[msg.command].push(msg);
+		});
+
+		var first = true;
+		var content = [];
+		["JOIN", "PART", "QUIT"].forEach((cmd) => {
+			if (byCommand[cmd].length === 0) {
+				return;
 			}
+
+			var plural = byCommand[cmd].length > 1;
+			var action;
+			switch (cmd) {
+			case "JOIN":
+				action = plural ? "have joined" : "has joined";
+				break;
+			case "PART":
+				action = plural ? "have left" : "has left";
+				break;
+			case "QUIT":
+				action = plural ? "have quit" : "has quit";
+				break;
+			}
+
+			if (first) {
+				first = false;
+			} else {
+				content.push(", ");
+			}
+
+			var nicks = byCommand[cmd].map((msg) => msg.prefix.name);
+
+			content.push(createNickList(nicks, createNick));
+			content.push(" " + action);
+		});
+
+		byCommand["NICK"].forEach((msg) => {
+			if (first) {
+				first = true;
+			} else {
+				content.push(", ");
+			}
+
+			var newNick = msg.params[0];
+			content.push(html`
+				${createNick(msg.prefix.name)} is now known as ${createNick(newNick)}
+			`);
 		});
 
 		var lastMsg = msgs[msgs.length - 1];
