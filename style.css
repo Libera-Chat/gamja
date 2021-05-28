@@ -261,6 +261,22 @@ button.danger:hover {
 	box-sizing: border-box;
 }
 
+.membership.owner {
+	color: red;
+}
+.membership.admin {
+	color: blue;
+}
+.membership.op {
+	color: var(--green);
+}
+.membership.halfop {
+	color: orange;
+}
+.membership.voice {
+	color: yellow;
+}
+
 #composer {
 	color: var(--main-color);
 	background: var(--main-background);

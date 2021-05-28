@@ -683,6 +683,7 @@ export default class App extends Component {
 			if (this.isChannel(target)) {
 				this.addMessage(netID, target, msg);
 			}
+			this.handleMode(netID, msg);
 			break;
 		case "NOTICE":
 		case "PRIVMSG":
@@ -1216,6 +1217,89 @@ export default class App extends Component {
 		});
 
 		this.setState({ dialog: null, networkDialog: null });
+	}
+
+	handleMode(netID, msg) {
+		var client = this.clients.get(netID);
+		var chanmodes = client.isupport.get("CHANMODES") || irc.STD_CHANMODES;
+		var prefix = client.isupport.get("PREFIX") || "";
+
+		var prefixByMode = new Map(irc.parseMemberships(prefix).map((membership) => {
+			return [membership.mode, membership.prefix];
+		}));
+
+		var typeByMode = new Map();
+		var [a, b, c, d] = chanmodes.split(",");
+		Array.from(a).forEach((mode) => typeByMode.set(mode, "A"));
+		Array.from(b).forEach((mode) => typeByMode.set(mode, "B"));
+		Array.from(c).forEach((mode) => typeByMode.set(mode, "C"));
+		Array.from(d).forEach((mode) => typeByMode.set(mode, "D"));
+		prefixByMode.forEach((prefix, mode) => typeByMode.set(mode, "B"));
+
+		var channel = msg.params[0];
+		var change = msg.params[1];
+		var args = msg.params.slice(2);
+
+		var plusMinus = null;
+		var j = 0;
+		for (var i = 0; i < change.length; i++) {
+			if (change[i] === "+" || change[i] === "-") {
+				plusMinus = change[i];
+				continue;
+			}
+			if (!plusMinus) {
+				throw new Error("malformed mode string: missing plus/minus");
+			}
+
+			var mode = change[i];
+			var add = plusMinus === "+";
+
+			var modeType = typeByMode.get(mode);
+			if (!modeType) {
+				continue;
+			}
+
+			var arg = null;
+			if (modeType === "A" || modeType === "B" || (modeType === "C" && add)) {
+				arg = args[j];
+				j++;
+			}
+
+			if (prefixByMode.has(mode)) {
+				this.handlePrefixChange(netID, channel, arg, prefixByMode.get(mode), add);
+			}
+
+			// XXX: If we eventually want to handle any mode changes with
+			// some special logic, this would be the place to. Not sure
+			// what we'd want to do in that regard, though.
+		}
+	}
+
+	handlePrefixChange(netID, channel, nick, letter, add) {
+		var client = this.clients.get(netID);
+		var prefix = client.isupport.get("PREFIX") || "";
+
+		var prefixPrivs = new Map(irc.parseMemberships(prefix).map((membership, i) => {
+			return [membership.prefix, i];
+		}));
+
+		this.setBufferState({ network: netID, name: channel }, (buf) => {
+			var members = new irc.CaseMapMap(buf.members);
+			var membership = members.get(nick);
+			if (add) {
+				var i = membership.indexOf(letter);
+				if (i < 0) {
+					membership += letter;
+				}
+			} else {
+				membership = membership.replace(letter, "");
+			}
+			membership = Array.from(membership).sort((a, b) => {
+				return prefixPrivs.get(a) - prefixPrivs.get(b);
+			}).join("");
+			members.set(nick, membership);
+			return { members };
+		});
 	}
 
 	componentDidMount() {
