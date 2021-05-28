@@ -686,8 +686,8 @@ export default class App extends Component {
 		case "NOTICE":
 		case "PRIVMSG":
 			var target = msg.params[0];
-			if (target == client.nick) {
-				if (client.cm(msg.prefix.name) == client.cm(client.serverPrefix.name)) {
+			if (client.isMyNick(target)) {
+				if (client.cm(msg.prefix.name) === client.cm(client.serverPrefix.name)) {
 					target = SERVER_BUFFER;
 				} else {
 					target = msg.prefix.name;
