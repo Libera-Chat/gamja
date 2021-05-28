@@ -296,6 +296,23 @@ export default class Buffer extends Component {
 			`;
 		}
 		function createFoldGroup(msgs) {
+			// Filter out PART → JOIN pairs
+			var partIndexes = new Map();
+			var keep = [];
+			msgs.forEach((msg, i) => {
+				if (msg.command === "PART" || msg.command === "QUIT") {
+					partIndexes.set(msg.prefix.name, i);
+				}
+				if (msg.command === "JOIN" && partIndexes.has(msg.prefix.name)) {
+					keep[partIndexes.get(msg.prefix.name)] = false;
+					partIndexes.delete(msg.prefix.name);
+					keep.push(false);
+				} else {
+					keep.push(true);
+				}
+			});
+			msgs = msgs.filter((msg, i) => keep[i]);
+
 			if (msgs.length === 0) {
 				return null;
 			} else if (msgs.length === 1) {
