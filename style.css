@@ -546,7 +546,7 @@ kbd {
 
 	#buffer .date-separator::before,
 	#buffer .date-separator::after {
-		border-color: white;
+		border-color: #373737;
 	}
 	#buffer .unread-separator {
 		color: var(--green);
