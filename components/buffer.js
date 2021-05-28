@@ -167,7 +167,8 @@ class LogLine extends Component {
 
 class FoldGroup extends Component {
 	shouldComponentUpdate(nextProps) {
-		return this.props.message !== nextProps.message;
+		return this.props.messages[0] !== nextProps.messages[0] ||
+			this.props.messages[this.props.messages.length - 1] !== nextProps.messages[nextProps.messages.length - 1];
 	}
 
 	render() {
@@ -337,7 +338,7 @@ export default class Buffer extends Component {
 			}
 			return html`
 				<${FoldGroup}
-					key=${"fold-" + msgs[0].key + "-" + msgs.length}
+					key=${"fold-" + msgs[0].key + "-" + msgs[msgs.length - 1].key}
 					messages=${msgs}
 					buffer=${buf}
 					onNickClick=${onNickClick}
