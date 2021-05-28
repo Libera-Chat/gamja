@@ -71,6 +71,21 @@ const kick = {
 	},
 };
 
+function givemode(app, args, mode) {
+	// TODO: Handle several users at once
+	var nick = args[0];
+	if (!nick) {
+		throw new Error("Missing nick");
+	}
+	var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
+	if (!activeBuffer || !app.isChannel(activeBuffer.name)) {
+		throw new Error("Not in a channel");
+	}
+	getActiveClient(app).send({ command: "MODE", params: [
+		activeBuffer.name, mode, nick,
+	]});
+}
+
 export default {
 	"ban": ban,
 	"buffer": {
@@ -100,19 +115,12 @@ export default {
 	"deop": {
 		usage: "<nick>",
 		description: "Removes operator status for a user on this channel",
-		execute: (app, args) => {
-			var nick = args[0];
-			if (!nick) {
-				throw new Error("Missing nick");
-			}
-			var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
-			if (!activeBuffer || !app.isChannel(activeBuffer.name)) {
-				throw new Error("Not in a channel");
-			}
-			getActiveClient(app).send({ command: "MODE", params: [
-				activeBuffer.name, "-o", user,
-			]});
-		},
+		execute: (app, args) => givemode(app, args, "-o"),
+	},
+	"devoice": {
+		usage: "<nick>",
+		description: "Removes voiced status for a user on this channel",
+		execute: (app, args) => givemode(app, args, "-v"),
 	},
 	"disconnect": {
 		description: "Disconnect from the server",
@@ -201,19 +209,7 @@ export default {
 	"op": {
 		usage: "<nick>",
 		description: "Gives a user operator status on this channel",
-		execute: (app, args) => {
-			var nick = args[0];
-			if (!nick) {
-				throw new Error("Missing nick");
-			}
-			var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
-			if (!activeBuffer || !app.isChannel(activeBuffer.name)) {
-				throw new Error("Not in a channel");
-			}
-			getActiveClient(app).send({ command: "MODE", params: [
-				activeBuffer.name, "+o", nick,
-			]});
-		},
+		execute: (app, args) => givemode(app, args, "+o"),
 	},
 	"part": {
 		usage: "[reason]",
@@ -308,6 +304,11 @@ export default {
 			}
 			getActiveClient(app).send({ command: "TOPIC", params });
 		},
+	},
+	"voice": {
+		usage: "<nick>",
+		description: "Gives a user voiced status on this channel",
+		execute: (app, args) => givemode(app, args, "+v"),
 	},
 	"whois": {
 		usage: "<nick>",
