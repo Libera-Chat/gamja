@@ -88,6 +88,7 @@ export default class Composer extends Component {
 					value=${this.state.text}
 					autocomplete="off"
 					placeholder="Type a message"
+					enterkeyhint="send"
 					onKeyDown=${this.handleInputKeyDown}
 				/>
 			</form>
