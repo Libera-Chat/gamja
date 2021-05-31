@@ -1,5 +1,15 @@
 import { ReceiptType, Unread, BufferType, SERVER_BUFFER } from "./state.js";
 
+function getSiblingBuffer(buffers, bufID, delta) {
+	var bufList = Array.from(buffers.values());
+	var i = bufList.findIndex((buf) => buf.id === bufID);
+	if (i < 0) {
+		return null;
+	}
+	i = (i + bufList.length + delta) % bufList.length;
+	return bufList[i];
+}
+
 export const keybindings = [
 	{
 		key: "h",
@@ -56,15 +66,9 @@ export const keybindings = [
 		altKey: true,
 		description: "Jump to the previous buffer",
 		execute: (app) => {
-			var prev = null;
-			for (var buf of app.state.buffers.values()) {
-				if (app.state.activeBuffer == buf.id) {
-					if (prev) {
-						app.switchBuffer(prev);
-					}
-					break;
-				}
-				prev = buf;
+			var prev = getSiblingBuffer(app.state.buffers, app.state.activeBuffer, -1);
+			if (prev) {
+				app.switchBuffer(prev);
 			}
 		},
 	},
@@ -73,14 +77,9 @@ export const keybindings = [
 		altKey: true,
 		description: "Jump to the next buffer",
 		execute: (app) => {
-			var found = false;
-			for (var buf of app.state.buffers.values()) {
-				if (found) {
-					app.switchBuffer(buf);
-					break;
-				} else if (app.state.activeBuffer == buf.id) {
-					found = true;
-				}
+			var next = getSiblingBuffer(app.state.buffers, app.state.activeBuffer, 1);
+			if (next) {
+				app.switchBuffer(next);
 			}
 		},
 	},
