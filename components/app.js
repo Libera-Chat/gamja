@@ -914,7 +914,7 @@ export default class App extends Component {
 			this.switchToChannel = target;
 			client.send({ command: "JOIN", params: [target] });
 		} else {
-			client.send({ command: "WHO", params: [target] });
+			client.who(target);
 			this.createBuffer(netID, target);
 			this.switchBuffer({ network: netID, name: target });
 		}
