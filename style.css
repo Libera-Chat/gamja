@@ -292,7 +292,9 @@ button.danger:hover {
 }
 #connect form {
 	margin: 0 auto;
-	max-width: 300px;
+	max-width: 350px;
+	padding: 10px;
+	box-sizing: border-box;
 }
 
 form input[type="text"],
