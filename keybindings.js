@@ -13,7 +13,7 @@ export const keybindings = [
 						var lastMsg = buf.messages[buf.messages.length - 1];
 						app.setReceipt(buf.name, ReceiptType.READ, lastMsg);
 					}
-					buffers.set(buf.name, {
+					buffers.set(buf.id, {
 						...buf,
 						unread: Unread.NONE,
 					});
