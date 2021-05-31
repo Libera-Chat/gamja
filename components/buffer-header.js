@@ -37,8 +37,9 @@ export default function BufferHeader(props) {
 		props.onManageNetwork();
 	}
 
-	var description = null;
-	if (props.buffer.serverInfo) {
+	var description = null, actions = null;
+	switch (props.buffer.type) {
+	case BufferType.SERVER:
 		switch (props.network.status) {
 		case NetworkStatus.DISCONNECTED:
 			description = "Disconnected";
@@ -63,36 +64,15 @@ export default function BufferHeader(props) {
 					description = `Connected to ${props.bouncerNetwork.host || "network"}`;
 					break;
 				}
-			} else {
+			} else if (props.buffer.serverInfo) {
 				var serverInfo = props.buffer.serverInfo;
 				description = `Connected to ${serverInfo.name}`;
+			} else {
+				description = "Connected";
 			}
 			break;
 		}
-	} else if (props.buffer.topic) {
-		description = linkify(stripANSI(props.buffer.topic));
-	} else if (props.buffer.who) {
-		var who = props.buffer.who;
 
-		var realname = stripANSI(who.realname || "");
-
-		var status = UserStatus.HERE;
-		if (who.away) {
-			status = UserStatus.GONE;
-		}
-		if (props.buffer.offline) {
-			status = UserStatus.OFFLINE;
-		}
-
-		description = html`<${NickStatus} status=${status}/> ${realname} (${who.username}@${who.hostname})`;
-	} else if (props.buffer.offline) {
-		// User is offline, but we don't have WHO information
-		description = html`<${NickStatus} status=${UserStatus.OFFLINE}/> ${props.buffer.name}`;
-	}
-
-	var actions = null;
-	switch (props.buffer.type) {
-	case BufferType.SERVER:
 		if (props.isBouncer) {
 			if (props.network.isupport.get("BOUNCER_NETID")) {
 				actions = html`
@@ -133,22 +113,44 @@ export default function BufferHeader(props) {
 		}
 		break;
 	case BufferType.CHANNEL:
-			actions = html`
-				<button
-					key="part"
-					class="danger"
-					onClick=${handleCloseClick}
-				>Leave</button>
-			`;
+		if (props.buffer.topic) {
+			description = linkify(stripANSI(props.buffer.topic));
+		}
+		actions = html`
+			<button
+				key="part"
+				class="danger"
+				onClick=${handleCloseClick}
+			>Leave</button>
+		`;
 		break;
 	case BufferType.NICK:
-			actions = html`
-				<button
-					key="close"
-					class="danger"
-					onClick=${handleCloseClick}
-				>Close</button>
-			`;
+		if (props.buffer.who) {
+			var who = props.buffer.who;
+
+			var realname = stripANSI(who.realname || "");
+
+			var status = UserStatus.HERE;
+			if (who.away) {
+				status = UserStatus.GONE;
+			}
+			if (props.buffer.offline) {
+				status = UserStatus.OFFLINE;
+			}
+
+			description = html`<${NickStatus} status=${status}/> ${realname} (${who.username}@${who.hostname})`;
+		} else if (props.buffer.offline) {
+			// User is offline, but we don't have WHO information
+			description = html`<${NickStatus} status=${UserStatus.OFFLINE}/> ${props.buffer.name}`;
+		}
+
+		actions = html`
+			<button
+				key="close"
+				class="danger"
+				onClick=${handleCloseClick}
+			>Close</button>
+		`;
 		break;
 	}
 
