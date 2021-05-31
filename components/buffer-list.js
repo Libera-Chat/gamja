@@ -56,7 +56,15 @@ export default function BufferList(props) {
 		}
 
 		return html`
-			<${BufferItem} key=${buf.id} buffer=${buf} network=${network} isBouncer=${props.isBouncer} bouncerNetwork=${bouncerNetwork} onClick=${() => props.onBufferClick(buf)} active=${props.activeBuffer == buf.id}/>
+			<${BufferItem}
+				key=${buf.id}
+				buffer=${buf}
+				network=${network}
+				isBouncer=${props.isBouncer}
+				bouncerNetwork=${bouncerNetwork}
+				onClick=${() => props.onBufferClick(buf)}
+				active=${props.activeBuffer == buf.id}
+			/>
 		`;
 	});
 
