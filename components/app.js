@@ -703,7 +703,7 @@ export default class App extends Component {
 			this.createBuffer(netID, channel);
 			this.setBufferState({ network: netID, name: channel }, (buf) => {
 				var members = new irc.CaseMapMap(buf.members);
-				members.set(msg.prefix.name, null);
+				members.set(msg.prefix.name, "");
 				return { members };
 			});
 			if (!client.isMyNick(msg.prefix.name)) {
