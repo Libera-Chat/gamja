@@ -1338,6 +1338,14 @@ export default class App extends Component {
 			`;
 		}
 
+		var composerReadOnly = false;
+		if (activeBuffer && activeBuffer.type === BufferType.SERVER) {
+			composerReadOnly = true;
+		}
+		if (activeNetwork && activeNetwork.status !== NetworkStatus.REGISTERED) {
+			composerReadOnly = true;
+		}
+
 		return html`
 			<section
 					id="buffer-list"
@@ -1373,7 +1381,7 @@ export default class App extends Component {
 			${memberList}
 			<${Composer}
 				ref=${this.composer}
-				readOnly=${activeBuffer && activeBuffer.type == BufferType.SERVER}
+				readOnly=${composerReadOnly}
 				onSubmit=${this.handleComposerSubmit}
 				autocomplete=${this.autocomplete}
 			/>
