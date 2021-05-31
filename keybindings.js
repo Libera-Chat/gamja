@@ -27,16 +27,20 @@ export const keybindings = [
 		altKey: true,
 		description: "Jump to next buffer with activity",
 		execute: (app) => {
-			// TODO: order by priority, then by age
+			// TODO: order by age if same priority
 			var firstServerBuffer = null;
 			var target = null;
 			for (var buf of app.state.buffers.values()) {
 				if (!firstServerBuffer && buf.type === BufferType.SERVER) {
 					firstServerBuffer = buf;
 				}
-				if (buf.unread != Unread.NONE) {
+
+				if (buf.unread === Unread.NONE) {
+					continue;
+				}
+
+				if (!target || Unread.compare(buf.unread, target.unread) > 0) {
 					target = buf;
-					break;
 				}
 			}
 			if (!target) {

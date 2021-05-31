@@ -15,13 +15,16 @@ export const Unread = {
 	MESSAGE: "message",
 	HIGHLIGHT: "highlight",
 
-	union(a, b) {
+	compare(a, b) {
 		const priority = {
 			[Unread.NONE]: 0,
 			[Unread.MESSAGE]: 1,
 			[Unread.HIGHLIGHT]: 2,
 		};
-		return (priority[a] > priority[b]) ? a : b;
+		return priority[a] - priority[b];
+	},
+	union(a, b) {
+		return (Unread.compare(a, b) > 0) ? a : b;
 	},
 };
 
