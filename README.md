@@ -79,11 +79,16 @@ gamja default settings can be set using a `config.json` file at the root:
 
 ```js
 {
+	// IRC server settings.
 	"server": {
-		// WebSocket URL to connect to (string)
+		// WebSocket URL to connect to (string).
 		"url": "wss://irc.example.org",
-		// Channel(s) to auto-join (string or array of strings)
-		"autojoin": "#gamja"
+		// Channel(s) to auto-join (string or array of strings).
+		"autojoin": "#gamja",
+		// Interval in seconds to send PING commands (number). Set to 0 to
+		// disable. Enabling PINGs can have an impact on client power usage and
+		// should only be enabled if necessary.
+		"ping": 60
 	}
 }
 ```
