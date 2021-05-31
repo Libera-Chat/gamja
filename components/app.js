@@ -170,8 +170,8 @@ function getBuffer(state, id) {
 export default class App extends Component {
 	state = {
 		connectParams: {
-			serverURL: null,
-			serverPass: null,
+			url: null,
+			pass: null,
 			username: null,
 			realname: null,
 			nick: null,
@@ -252,11 +252,11 @@ export default class App extends Component {
 		}
 
 		var connectParams = {
-			serverURL: proto + "//" + host + path + "socket",
+			url: proto + "//" + host + path + "socket",
 		};
 
 		if (config.server) {
-			connectParams.serverURL = config.server.url;
+			connectParams.url = config.server.url;
 			if (Array.isArray(config.server.autojoin)) {
 				connectParams.autojoin = config.server.autojoin;
 			} else {
@@ -276,9 +276,9 @@ export default class App extends Component {
 		var queryParams = parseQueryString();
 		if (queryParams.server) {
 			if (queryParams.server.startsWith("/")) {
-				connectParams.serverURL = proto + "//" + host + queryParams.server;
+				connectParams.url = proto + "//" + host + queryParams.server;
 			} else {
-				connectParams.serverURL = queryParams.server;
+				connectParams.url = queryParams.server;
 			}
 		}
 		if (queryParams.nick) {

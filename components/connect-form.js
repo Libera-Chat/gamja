@@ -2,8 +2,8 @@ import { html, Component } from "../lib/index.js";
 
 export default class ConnectForm extends Component {
 	state = {
-		serverURL: "",
-		serverPass: "",
+		url: "",
+		pass: "",
 		nick: "",
 		password: "",
 		rememberMe: false,
@@ -21,7 +21,7 @@ export default class ConnectForm extends Component {
 		if (props.params) {
 			this.state = {
 				...this.state,
-				serverURL: props.params.serverURL || "",
+				url: props.params.url || "",
 				nick: props.params.nick || "",
 				rememberMe: props.params.autoconnect || false,
 				username: props.params.username || "",
@@ -45,8 +45,8 @@ export default class ConnectForm extends Component {
 		}
 
 		var params = {
-			url: this.state.serverURL,
-			pass: this.state.serverPass,
+			url: this.state.url,
+			pass: this.state.pass,
 			nick: this.state.nick,
 			autoconnect: this.state.rememberMe,
 			username: this.state.username,
@@ -57,7 +57,7 @@ export default class ConnectForm extends Component {
 
 		if (this.state.password) {
 			params.saslPlain = {
-				username: params.username,
+				username: params.username || params.nick,
 				password: this.state.password,
 			};
 		}
@@ -103,7 +103,7 @@ export default class ConnectForm extends Component {
 
 					<label>
 						Server URL:<br/>
-						<input type="url" name="serverURL" value=${this.state.serverURL} disabled=${this.props.disabled} required/>
+						<input type="url" name="url" value=${this.state.url} disabled=${this.props.disabled} required/>
 					</label>
 					<br/><br/>
 
@@ -121,7 +121,7 @@ export default class ConnectForm extends Component {
 
 					<label>
 						Server password:<br/>
-						<input type="text" name="serverPass" value=${this.state.serverPass} disabled=${this.props.disabled} placeholder="None"/>
+						<input type="text" name="pass" value=${this.state.pass} disabled=${this.props.disabled} placeholder="None"/>
 					</label>
 					<br/><br/>
 
