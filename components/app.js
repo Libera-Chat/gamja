@@ -179,6 +179,7 @@ export default class App extends Component {
 			memberList: false,
 		},
 	};
+	config = {};
 	clients = new Map();
 	endOfHistory = new Map();
 	receipts = new Map();
