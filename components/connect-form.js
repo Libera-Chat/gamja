@@ -74,6 +74,17 @@ export default class ConnectForm extends Component {
 	}
 
 	render() {
+		var serverURL = null;
+		if (!this.props.params || !this.props.params.url) {
+			serverURL = html`
+				<label>
+					Server URL:<br/>
+					<input type="text" name="url" value=${this.state.url} disabled=${this.props.disabled} inputmode="url"/>
+				</label>
+				<br/><br/>
+			`;
+		}
+
 		return html`
 			<form onChange=${this.handleChange} onSubmit=${this.handleSubmit}>
 				<h2>Connect to IRC</h2>
@@ -101,11 +112,7 @@ export default class ConnectForm extends Component {
 
 					<br/>
 
-					<label>
-						Server URL:<br/>
-						<input type="text" name="url" value=${this.state.url} disabled=${this.props.disabled} inputmode="url"/>
-					</label>
-					<br/><br/>
+					${serverURL}
 
 					<label>
 						Username:<br/>
