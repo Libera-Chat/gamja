@@ -1,7 +1,7 @@
 import { html, Component } from "../lib/index.js";
 import linkify from "../lib/linkify.js";
 import { strip as stripANSI } from "../lib/ansi.js";
-import { BufferType, NetworkStatus } from "../state.js";
+import { BufferType, NetworkStatus, getNetworkName } from "../state.js";
 
 const UserStatus = {
 	HERE: "here",
@@ -154,8 +154,13 @@ export default function BufferHeader(props) {
 		break;
 	}
 
+	var name = props.buffer.name;
+	if (props.buffer.type == BufferType.SERVER) {
+		name = getNetworkName(props.network, props.bouncerNetwork, props.isBouncer);
+	}
+
 	return html`
-		<span class="title">${props.buffer.name}</span>
+		<span class="title">${name}</span>
 		<span class="description">${description}</span>
 		<span class="actions">${actions}</span>
 	`;

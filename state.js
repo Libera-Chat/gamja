@@ -54,3 +54,19 @@ export function getMessageURL(buf, msg) {
 		return bufURL + "?timestamp=" + encodeURIComponent(msg.tags.time);
 	}
 }
+
+export function getNetworkName(network, bouncerNetwork, isBouncer) {
+	if (bouncerNetwork && bouncerNetwork.name) {
+		return bouncerNetwork.name;
+	}
+	if (isBouncer) {
+		return "bouncer";
+	}
+
+	var netName = network.isupport.get("NETWORK");
+	if (netName) {
+		return netName;
+	}
+
+	return "server";
+}

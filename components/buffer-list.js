@@ -1,22 +1,6 @@
 import * as irc from "../lib/irc.js";
 import { html, Component } from "../lib/index.js";
-import { BufferType, Unread, getBufferURL } from "../state.js";
-
-function getNetworkName(network, bouncerNetwork, bouncer) {
-	if (bouncerNetwork && bouncerNetwork.name) {
-		return bouncerNetwork.name;
-	}
-	if (bouncer) {
-		return "bouncer";
-	}
-
-	var netName = network.isupport.get("NETWORK");
-	if (netName) {
-		return netName;
-	}
-
-	return "server";
-}
+import { BufferType, Unread, getBufferURL, getNetworkName } from "../state.js";
 
 function BufferItem(props) {
 	function handleClick(event) {
