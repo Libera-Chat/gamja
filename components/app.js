@@ -51,7 +51,23 @@ function parseQueryString() {
 }
 
 function fillConnectParams(params) {
+	var host = window.location.host || "localhost:8080";
+	var proto = "wss:";
+	if (window.location.protocol != "https:") {
+		proto = "ws:";
+	}
+	var path = window.location.pathname || "/";
+	if (!window.location.host) {
+		path = "/";
+	}
+
 	params = { ...params };
+	if (!params.url) {
+		params.url = proto + "//" + host + path + "socket";
+	}
+	if (params.url.startsWith("/")) {
+		params.url = proto + "//" + host + params.url;
+	}
 	if (!params.username) {
 		params.username = params.nick;
 	}
@@ -241,19 +257,7 @@ export default class App extends Component {
 	handleConfig(config) {
 		this.config = config;
 
-		var host = window.location.host || "localhost:8080";
-		var proto = "wss:";
-		if (window.location.protocol != "https:") {
-			proto = "ws:";
-		}
-		var path = window.location.pathname || "/";
-		if (!window.location.host) {
-			path = "/";
-		}
-
-		var connectParams = {
-			url: proto + "//" + host + path + "socket",
-		};
+		var connectParams = {};
 
 		if (config.server) {
 			connectParams.url = config.server.url;
@@ -275,11 +279,7 @@ export default class App extends Component {
 
 		var queryParams = parseQueryString();
 		if (queryParams.server) {
-			if (queryParams.server.startsWith("/")) {
-				connectParams.url = proto + "//" + host + queryParams.server;
-			} else {
-				connectParams.url = queryParams.server;
-			}
+			connectParams.url = queryParams.server;
 		}
 		if (queryParams.nick) {
 			connectParams.nick = queryParams.nick;

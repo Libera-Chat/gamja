@@ -103,7 +103,7 @@ export default class ConnectForm extends Component {
 
 					<label>
 						Server URL:<br/>
-						<input type="url" name="url" value=${this.state.url} disabled=${this.props.disabled} required/>
+						<input type="text" name="url" value=${this.state.url} disabled=${this.props.disabled} inputmode="url"/>
 					</label>
 					<br/><br/>
 
