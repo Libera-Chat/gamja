@@ -331,6 +331,13 @@ export default {
 		description: "Gives a user voiced status on this channel",
 		execute: (app, args) => givemode(app, args, "+v"),
 	},
+	"who": {
+		usage: "[<mask> [o]]",
+		description: "Retrieve a list of users",
+		execute: (app, args) => {
+			getActiveClient(app).send({ command: "WHO", params: args });
+		},
+	},
 	"whois": {
 		usage: "<nick>",
 		description: "Retrieve information about a user",
@@ -339,7 +346,7 @@ export default {
 			if (!nick) {
 				throw new Error("Missing nick");
 			}
-			getActiveClient(app).whois(nick);
+			getActiveClient(app).send({ command: "WHOIS", params: [nick] });
 		},
 	},
 };

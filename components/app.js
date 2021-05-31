@@ -663,6 +663,8 @@ export default class App extends Component {
 			};
 
 			this.setBufferState({ network: netID, name: who.nick }, { who, offline: false });
+
+			this.addMessage(netID, SERVER_BUFFER, msg);
 			break;
 		case irc.RPL_ENDOFWHO:
 			var target = msg.params[1];
@@ -677,6 +679,8 @@ export default class App extends Component {
 					return { offline: true };
 				});
 			}
+
+			this.addMessage(netID, SERVER_BUFFER, msg);
 			break;
 		case "MODE":
 			var target = msg.params[0];
