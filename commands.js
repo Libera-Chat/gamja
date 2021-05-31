@@ -27,9 +27,6 @@ const ban = {
 		}
 		const client = getActiveClient(app);
 		client.whois(nick).then((whois) => {
-			if (whois === null) {
-				throw new Error("No such nick");
-			};
 			const info = whois[irc.RPL_WHOISUSER].params;
 			const user = info[2];
 			const host = info[3];
