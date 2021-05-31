@@ -50,6 +50,17 @@ function parseQueryString() {
 	return params;
 }
 
+function fillConnectParams(params) {
+	params = { ...params };
+	if (!params.username) {
+		params.username = params.nick;
+	}
+	if (!params.realname) {
+		params.realname = params.nick;
+	}
+	return params;
+}
+
 /* Insert a message in an immutable list of sorted messages. */
 function insertMessage(list, msg) {
 	if (list.length == 0) {
@@ -525,7 +536,7 @@ export default class App extends Component {
 		});
 		this.setState({ connectParams: params });
 
-		var client = new Client(params);
+		var client = new Client(fillConnectParams(params));
 		this.clients.set(netID, client);
 
 		client.addEventListener("status", () => {

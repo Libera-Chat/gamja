@@ -49,8 +49,8 @@ export default class ConnectForm extends Component {
 			pass: this.state.serverPass,
 			nick: this.state.nick,
 			autoconnect: this.state.rememberMe,
-			username: this.state.username || this.state.nick,
-			realname: this.state.realname || this.state.nick,
+			username: this.state.username,
+			realname: this.state.realname,
 			saslPlain: null,
 			autojoin: [],
 		};
