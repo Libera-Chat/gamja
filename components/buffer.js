@@ -242,7 +242,7 @@ class FoldGroup extends Component {
 
 		byCommand["NICK"].forEach((msg) => {
 			if (first) {
-				first = true;
+				first = false;
 			} else {
 				content.push(", ");
 			}
