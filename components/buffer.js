@@ -64,6 +64,7 @@ class LogLine extends Component {
 	render() {
 		var msg = this.props.message;
 
+		var onChannelClick = this.props.onChannelClick;
 		var onNickClick = this.props.onNickClick;
 		function createNick(nick) {
 			return html`
@@ -82,7 +83,7 @@ class LogLine extends Component {
 			if (ctcp) {
 				if (ctcp.command == "ACTION") {
 					lineClass = "me-tell";
-					content = html`* ${createNick(msg.prefix.name)} ${linkify(stripANSI(ctcp.param))}`;
+					content = html`* ${createNick(msg.prefix.name)} ${linkify(stripANSI(ctcp.param), onChannelClick)}`;
 				} else {
 					content = html`
 						${createNick(msg.prefix.name)} has sent a CTCP command: ${ctcp.command} ${ctcp.param}
@@ -94,7 +95,7 @@ class LogLine extends Component {
 				if (msg.command == "NOTICE") {
 					prefix = suffix = "-";
 				}
-				content = html`${prefix}${createNick(msg.prefix.name)}${suffix} ${linkify(stripANSI(text))}`;
+				content = html`${prefix}${createNick(msg.prefix.name)}${suffix} ${linkify(stripANSI(text), onChannelClick)}`;
 			}
 
 			if (msg.isHighlight) {
@@ -135,7 +136,7 @@ class LogLine extends Component {
 		case "TOPIC":
 			var topic = msg.params[1];
 			content = html`
-				${createNick(msg.prefix.name)} changed the topic to: ${linkify(stripANSI(topic))}
+				${createNick(msg.prefix.name)} changed the topic to: ${linkify(stripANSI(topic), onChannelClick)}
 			`;
 			break;
 		case irc.RPL_MOTD:
@@ -364,6 +365,7 @@ export default class Buffer extends Component {
 			children.push(html`<${NotificationNagger}/>`);
 		}
 
+		var onChannelClick = this.props.onChannelClick;
 		var onNickClick = this.props.onNickClick;
 		function createLogLine(msg) {
 			return html`
@@ -371,6 +373,7 @@ export default class Buffer extends Component {
 					key=${"msg-" + msg.key}
 					message=${msg}
 					buffer=${buf}
+					onChannelClick=${onChannelClick}
 					onNickClick=${onNickClick}
 				/>
 			`;

@@ -114,7 +114,7 @@ export default function BufferHeader(props) {
 		break;
 	case BufferType.CHANNEL:
 		if (props.buffer.topic) {
-			description = linkify(stripANSI(props.buffer.topic));
+			description = linkify(stripANSI(props.buffer.topic), props.onChannelClick);
 		}
 		actions = html`
 			<button

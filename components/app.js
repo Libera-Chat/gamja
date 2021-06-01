@@ -225,6 +225,7 @@ export default class App extends Component {
 		this.toggleBufferList = this.toggleBufferList.bind(this);
 		this.toggleMemberList = this.toggleMemberList.bind(this);
 		this.handleComposerSubmit = this.handleComposerSubmit.bind(this);
+		this.handleChannelClick = this.handleChannelClick.bind(this);
 		this.handleNickClick = this.handleNickClick.bind(this);
 		this.autocomplete = this.autocomplete.bind(this);
 		this.handleBufferScrollTop = this.handleBufferScrollTop.bind(this);
@@ -908,6 +909,16 @@ export default class App extends Component {
 		this.connect(connectParams);
 	}
 
+	handleChannelClick(channel) {
+		var netID = getActiveNetworkID(this.state);
+		var buf = getBuffer(this.state, { network: netID, name: channel });
+		if (buf) {
+			this.switchBuffer(buf.id);
+		} else {
+			this.open(channel);
+		}
+	}
+
 	handleNickClick(nick) {
 		this.open(nick);
 	}
@@ -1361,6 +1372,7 @@ export default class App extends Component {
 						network=${activeNetwork}
 						isBouncer=${isBouncer}
 						bouncerNetwork=${activeBouncerNetwork}
+						onChannelClick=${this.handleChannelClick}
 						onClose=${() => this.close(activeBuffer)}
 						onJoin=${() => this.handleJoinClick(activeBuffer.network)}
 						onAddNetwork=${this.handleAddNetworkClick}
@@ -1475,7 +1487,10 @@ export default class App extends Component {
 				onScrollTop=${this.handleBufferScrollTop}
 			>
 				<section id="buffer" ref=${this.buffer}>
-					<${Buffer} buffer=${activeBuffer} onNickClick=${this.handleNickClick}/>
+					<${Buffer}
+						buffer=${activeBuffer}
+						onChannelClick=${this.handleChannelClick}
+						onNickClick=${this.handleNickClick}/>
 				</section>
 			</>
 			${memberList}
