@@ -26,7 +26,14 @@ function KeyBindingsHelp() {
 		`;
 	});
 
-	return html`<dl>${l}</dl>`;
+	return html`
+		<dl>
+			<dt><kbd>/</kbd></dt>
+			<dd>Start writing a command</dd>
+
+			${l}
+		</dl>
+	`;
 }
 
 function CommandsHelp() {
