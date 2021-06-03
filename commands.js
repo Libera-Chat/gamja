@@ -4,7 +4,7 @@ import { SERVER_BUFFER, BufferType } from "./state.js";
 function getActiveClient(app) {
 	var buf = app.state.buffers.get(app.state.activeBuffer);
 	if (!buf) {
-		return null;
+		throw new Error("Not connected to server");
 	}
 	return app.clients.get(buf.network);
 }
