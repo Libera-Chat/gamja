@@ -486,14 +486,13 @@ export default class App extends Component {
 
 		var msgUnread = Unread.NONE;
 		if ((msg.command == "PRIVMSG" || msg.command == "NOTICE") && !isRead) {
-			var target = msg.params[0];
 			var text = msg.params[1];
 
 			var kind;
 			if (msg.isHighlight) {
 				msgUnread = Unread.HIGHLIGHT;
 				kind = "highlight";
-			} else if (target == client.nick) {
+			} else if (client.isMyNick(bufName)) {
 				msgUnread = Unread.HIGHLIGHT;
 				kind = "private message";
 			} else {
@@ -502,8 +501,8 @@ export default class App extends Component {
 
 			if (msgUnread == Unread.HIGHLIGHT && window.Notification && Notification.permission === "granted" && !isDelivered && !irc.parseCTCP(msg)) {
 				var title = "New " + kind + " from " + msg.prefix.name;
-				if (this.isChannel(target)) {
-					title += " in " + target;
+				if (this.isChannel(bufName)) {
+					title += " in " + bufName;
 				}
 				var notif = new Notification(title, {
 					body: stripANSI(text),
@@ -511,7 +510,7 @@ export default class App extends Component {
 				});
 				notif.addEventListener("click", () => {
 					// TODO: scroll to message
-					this.switchBuffer({ server: serverID, name: target });
+					this.switchBuffer({ server: serverID, name: bufName });
 				});
 			}
 		}
