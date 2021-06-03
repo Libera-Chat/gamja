@@ -764,6 +764,15 @@ export default class App extends Component {
 					target = msg.prefix.name;
 				}
 			}
+
+			var allowedPrefixes = client.isupport.get("STATUSMSG");
+			if (allowedPrefixes) {
+				var parts = irc.parseTargetPrefix(target, allowedPrefixes);
+				if (this.isChannel(parts.name)) {
+					target = parts.name;
+				}
+			}
+
 			this.addMessage(serverID, target, msg);
 			break;
 		case "JOIN":
