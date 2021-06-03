@@ -708,8 +708,8 @@ export default class App extends Component {
 			this.setBufferState({ server: serverID, name: channel }, (buf) => {
 				var members = new irc.CaseMapMap(buf.members);
 				membersList.forEach((s) => {
-					var member = irc.parseMembership(s);
-					members.set(member.nick, member.prefix);
+					var member = irc.parseTargetPrefix(s);
+					members.set(member.name, member.prefix);
 				});
 
 				return { members };
@@ -1321,7 +1321,7 @@ export default class App extends Component {
 		var chanmodes = client.isupport.get("CHANMODES") || irc.STD_CHANMODES;
 		var prefix = client.isupport.get("PREFIX") || "";
 
-		var prefixByMode = new Map(irc.parseMemberships(prefix).map((membership) => {
+		var prefixByMode = new Map(irc.parseMembershipModes(prefix).map((membership) => {
 			return [membership.mode, membership.prefix];
 		}));
 
@@ -1376,7 +1376,7 @@ export default class App extends Component {
 		var client = this.clients.get(serverID);
 		var prefix = client.isupport.get("PREFIX") || "";
 
-		var prefixPrivs = new Map(irc.parseMemberships(prefix).map((membership, i) => {
+		var prefixPrivs = new Map(irc.parseMembershipModes(prefix).map((membership, i) => {
 			return [membership.prefix, i];
 		}));
 
