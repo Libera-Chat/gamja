@@ -2,7 +2,7 @@ import { html, Component } from "../lib/index.js";
 import linkify from "../lib/linkify.js";
 import * as irc from "../lib/irc.js";
 import { strip as stripANSI } from "../lib/ansi.js";
-import { BufferType, getNickURL, getMessageURL } from "../state.js";
+import { BufferType, getNickURL, getChannelURL, getMessageURL } from "../state.js";
 
 function djb2(s) {
 	var hash = 5381;
@@ -64,11 +64,22 @@ class LogLine extends Component {
 	render() {
 		var msg = this.props.message;
 
-		var onChannelClick = this.props.onChannelClick;
 		var onNickClick = this.props.onNickClick;
+		var onChannelClick = this.props.onChannelClick;
 		function createNick(nick) {
 			return html`
 				<${Nick} nick=${nick} onClick=${() => onNickClick(nick)}/>
+			`;
+		}
+		function createChannel(channel) {
+			function onClick(event) {
+				event.preventDefault();
+				onChannelClick(channel);
+			}
+			return html`
+				<a href=${getChannelURL(channel)} onClick=${onClick}>
+					${channel}
+				</a>
 			`;
 		}
 
@@ -138,6 +149,21 @@ class LogLine extends Component {
 			content = html`
 				${createNick(msg.prefix.name)} changed the topic to: ${linkify(stripANSI(topic), onChannelClick)}
 			`;
+			break;
+		case "INVITE":
+			var invitee = msg.params[0];
+			var channel = msg.params[1];
+			// TODO: instead of checking buffer type, check if invitee is our nick
+			if (this.props.buffer.type === BufferType.SERVER) {
+				lineClass = "talk";
+				content = html`
+					You have been invited to ${createChannel(channel)} by ${createNick(msg.prefix.name)}
+				`;
+			} else {
+				content = html`
+					${createNick(msg.prefix.name)} has invited ${createNick(invitee)} to the channel
+				`;
+			}
 			break;
 		case irc.RPL_MOTD:
 			lineClass = "motd";

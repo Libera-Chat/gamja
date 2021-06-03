@@ -443,6 +443,7 @@ export default class App extends Component {
 		if (this.hasReceipt(target, type, msg)) {
 			return;
 		}
+		// TODO: this doesn't trigger a redraw
 		this.receipts.set(target, {
 			...this.receipts.get(target),
 			[type]: { time: msg.tags.time },
@@ -511,6 +512,30 @@ export default class App extends Component {
 				notif.addEventListener("click", () => {
 					// TODO: scroll to message
 					this.switchBuffer({ network: netID, name: target });
+				});
+			}
+		}
+		if (msg.command === "INVITE" && client.isMyNick(msg.params[0])) {
+			msgUnread = Unread.HIGHLIGHT;
+
+			var channel = msg.params[1];
+			if (window.Notification && Notification.permission === "granted") {
+				var notif = new Notification("Invitation to " + channel, {
+					body: msg.prefix.name + " has invited you to " + channel,
+					requireInteraction: true,
+					actions: [{
+						action: "accept",
+						title: "Accept",
+					}],
+				});
+				notif.addEventListener("click", (event) => {
+					if (event.action === "accept") {
+						this.setReceipt(bufName, ReceiptType.READ, msg);
+						this.open(channel, netID);
+					} else {
+						// TODO: scroll to message
+						this.switchBuffer({ network: netID, name: bufName });
+					}
 				});
 			}
 		}
@@ -847,6 +872,17 @@ export default class App extends Component {
 			this.setBufferState({ network: netID, name: channel }, { topic });
 			this.addMessage(netID, channel, msg);
 			break;
+		case "INVITE":
+			var channel = msg.params[1];
+
+			// TODO: find a more reliable way to do this
+			var bufName = channel;
+			if (!getBuffer(this.state, { network: netID, name: channel })) {
+				bufName = SERVER_BUFFER;
+			}
+
+			this.addMessage(netID, bufName, msg);
+			break;
 		case "AWAY":
 			var awayMessage = msg.params[0];
 
@@ -960,8 +996,11 @@ export default class App extends Component {
 		});
 	}
 
-	open(target) {
-		var netID = getActiveNetworkID(this.state);
+	open(target, netID) {
+		if (!netID) {
+			netID = getActiveNetworkID(this.state);
+		}
+
 		var client = this.clients.get(netID);
 
 		if (this.isChannel(target)) {

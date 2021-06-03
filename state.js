@@ -37,12 +37,16 @@ export function getNickURL(nick) {
 	return "irc:///" + encodeURIComponent(nick) + ",isuser";
 }
 
+export function getChannelURL(channel) {
+	return "irc:///" + encodeURIComponent(channel);
+}
+
 export function getBufferURL(buf) {
 	switch (buf.type) {
 	case BufferType.SERVER:
 		return "irc:///";
 	case BufferType.CHANNEL:
-		return "irc:///" + encodeURIComponent(buf.name);
+		return getChannelURL(buf.name);
 	case BufferType.NICK:
 		return getNickURL(buf.name);
 	}
