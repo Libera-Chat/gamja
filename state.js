@@ -8,7 +8,7 @@ export const BufferType = {
 	NICK: "nick",
 };
 
-export const NetworkStatus = Client.Status;
+export const ServerStatus = Client.Status;
 
 export const Unread = {
 	NONE: "",
@@ -62,7 +62,7 @@ export function getMessageURL(buf, msg) {
 	}
 }
 
-export function getNetworkName(network, bouncerNetwork, isBouncer) {
+export function getServerName(server, bouncerNetwork, isBouncer) {
 	if (bouncerNetwork && bouncerNetwork.name) {
 		return bouncerNetwork.name;
 	}
@@ -70,7 +70,7 @@ export function getNetworkName(network, bouncerNetwork, isBouncer) {
 		return "bouncer";
 	}
 
-	var netName = network.isupport.get("NETWORK");
+	var netName = server.isupport.get("NETWORK");
 	if (netName) {
 		return netName;
 	}

@@ -1,7 +1,7 @@
 import { html, Component } from "../lib/index.js";
 import linkify from "../lib/linkify.js";
 import { strip as stripANSI } from "../lib/ansi.js";
-import { BufferType, NetworkStatus, getNetworkName } from "../state.js";
+import { BufferType, ServerStatus, getServerName } from "../state.js";
 
 const UserStatus = {
 	HERE: "here",
@@ -40,17 +40,17 @@ export default function BufferHeader(props) {
 	var description = null, actions = null;
 	switch (props.buffer.type) {
 	case BufferType.SERVER:
-		switch (props.network.status) {
-		case NetworkStatus.DISCONNECTED:
+		switch (props.server.status) {
+		case ServerStatus.DISCONNECTED:
 			description = "Disconnected";
 			break;
-		case NetworkStatus.CONNECTING:
+		case ServerStatus.CONNECTING:
 			description = "Connecting...";
 			break;
-		case NetworkStatus.REGISTERING:
+		case ServerStatus.REGISTERING:
 			description = "Logging in...";
 			break;
-		case NetworkStatus.REGISTERED:
+		case ServerStatus.REGISTERED:
 			if (props.bouncerNetwork) {
 				switch (props.bouncerNetwork.state) {
 				case "disconnected":
@@ -74,7 +74,7 @@ export default function BufferHeader(props) {
 		}
 
 		if (props.isBouncer) {
-			if (props.network.isupport.get("BOUNCER_NETID")) {
+			if (props.server.isupport.get("BOUNCER_NETID")) {
 				actions = html`
 					<button
 						key="join"
@@ -156,7 +156,7 @@ export default function BufferHeader(props) {
 
 	var name = props.buffer.name;
 	if (props.buffer.type == BufferType.SERVER) {
-		name = getNetworkName(props.network, props.bouncerNetwork, props.isBouncer);
+		name = getServerName(server, props.bouncerNetwork, props.isBouncer);
 	}
 
 	return html`

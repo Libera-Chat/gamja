@@ -1,6 +1,6 @@
 import * as irc from "../lib/irc.js";
 import { html, Component } from "../lib/index.js";
-import { BufferType, Unread, getBufferURL, getNetworkName } from "../state.js";
+import { BufferType, Unread, getBufferURL, getServerName } from "../state.js";
 
 function BufferItem(props) {
 	function handleClick(event) {
@@ -10,7 +10,7 @@ function BufferItem(props) {
 
 	var name = props.buffer.name;
 	if (props.buffer.type == BufferType.SERVER) {
-		name = getNetworkName(props.network, props.bouncerNetwork, props.isBouncer);
+		name = getServerName(props.server, props.bouncerNetwork, props.isBouncer);
 	}
 
 	var classes = ["type-" + props.buffer.type];
@@ -31,10 +31,10 @@ function BufferItem(props) {
 
 export default function BufferList(props) {
 	var items = Array.from(props.buffers.values()).map((buf) => {
-		var network = props.networks.get(buf.network);
+		var server = props.servers.get(buf.server);
 
 		var bouncerNetwork = null;
-		var bouncerNetID = network.isupport.get("BOUNCER_NETID");
+		var bouncerNetID = server.isupport.get("BOUNCER_NETID");
 		if (bouncerNetID) {
 			bouncerNetwork = props.bouncerNetworks.get(bouncerNetID);
 		}
@@ -43,7 +43,7 @@ export default function BufferList(props) {
 			<${BufferItem}
 				key=${buf.id}
 				buffer=${buf}
-				network=${network}
+				server=${server}
 				isBouncer=${props.isBouncer}
 				bouncerNetwork=${bouncerNetwork}
 				onClick=${() => props.onBufferClick(buf)}

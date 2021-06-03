@@ -6,7 +6,7 @@ function getActiveClient(app) {
 	if (!buf) {
 		throw new Error("Not connected to server");
 	}
-	return app.clients.get(buf.network);
+	return app.clients.get(buf.server);
 }
 
 function getActiveChannel(app) {

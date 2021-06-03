@@ -13,7 +13,7 @@ import ScrollManager from "./scroll-manager.js";
 import Dialog from "./dialog.js";
 import { html, Component, createRef } from "../lib/index.js";
 import { strip as stripANSI } from "../lib/ansi.js";
-import { SERVER_BUFFER, BufferType, ReceiptType, NetworkStatus, Unread } from "../state.js";
+import { SERVER_BUFFER, BufferType, ReceiptType, ServerStatus, Unread } from "../state.js";
 import commands from "../commands.js";
 import { setup as setupKeybindings } from "../keybindings.js";
 import * as store from "../store.js";
@@ -118,8 +118,8 @@ function isServerBuffer(buf) {
 /* Returns 1 if a should appear after b, -1 if a should appear before b, or
  * 0 otherwise. */
 function compareBuffers(a, b) {
-	if (a.network != b.network) {
-		return a.network > b.network ? 1 : -1;
+	if (a.server != b.server) {
+		return a.server > b.server ? 1 : -1;
 	}
 	if (isServerBuffer(a) != isServerBuffer(b)) {
 		return isServerBuffer(b) ? 1 : -1;
@@ -143,12 +143,12 @@ function updateState(state, updater) {
 	return { ...state, ...updated };
 }
 
-function getActiveNetworkID(state) {
+function getActiveServerID(state) {
 	var buf = state.buffers.get(state.activeBuffer);
 	if (!buf) {
 		return null;
 	}
-	return buf.network;
+	return buf.server;
 }
 
 function getBuffer(state, id) {
@@ -160,20 +160,20 @@ function getBuffer(state, id) {
 			return state.buffers.get(id.id);
 		}
 
-		var netID = id.network, name = id.name;
-		if (!netID) {
-			netID = getActiveNetworkID(state);
+		var serverID = id.server, name = id.name;
+		if (!serverID) {
+			serverID = getActiveServerID(state);
 		}
 
 		var cm = irc.CaseMapping.RFC1459;
-		var network = state.networks.get(netID);
-		if (network) {
-			cm = irc.CaseMapping.byName(network.isupport.get("CASEMAPPING")) || cm;
+		var server = state.servers.get(serverID);
+		if (server) {
+			cm = irc.CaseMapping.byName(server.isupport.get("CASEMAPPING")) || cm;
 		}
 
 		var nameCM = cm(name);
 		for (var buf of state.buffers.values()) {
-			if (buf.network === netID && cm(buf.name) === nameCM) {
+			if (buf.server === serverID && cm(buf.name) === nameCM) {
 				return buf;
 			}
 		}
@@ -195,7 +195,7 @@ export default class App extends Component {
 			autoconnect: false,
 			autojoin: [],
 		},
-		networks: new Map(),
+		servers: new Map(),
 		buffers: new Map(),
 		bouncerNetworks: new Map(),
 		activeBuffer: null,
@@ -212,7 +212,7 @@ export default class App extends Component {
 	receipts = new Map();
 	buffer = createRef();
 	composer = createRef();
-	lastNetworkID = 0;
+	lastServerID = 0;
 	lastBufferID = 0;
 	switchToChannel = null;
 
@@ -307,21 +307,21 @@ export default class App extends Component {
 		this.setState({ error: null });
 	}
 
-	setNetworkState(id, updater, callback) {
+	setServerState(id, updater, callback) {
 		this.setState((state) => {
-			var net = state.networks.get(id);
-			if (!net) {
+			var server = state.servers.get(id);
+			if (!server) {
 				return;
 			}
 
-			var updated = updateState(net, updater);
+			var updated = updateState(server, updater);
 			if (!updated) {
 				return;
 			}
 
-			var networks = new Map(state.networks);
-			networks.set(id, updated);
-			return { networks };
+			var servers = new Map(state.servers);
+			servers.set(id, updated);
+			return { servers };
 		}, callback);
 	}
 
@@ -343,10 +343,10 @@ export default class App extends Component {
 		}, callback);
 	}
 
-	createBuffer(netID, name, callback) {
+	createBuffer(serverID, name, callback) {
 		var id = null;
 		this.setState((state) => {
-			if (getBuffer(state, { network: netID, name })) {
+			if (getBuffer(state, { server: serverID, name })) {
 				return;
 			}
 
@@ -362,7 +362,7 @@ export default class App extends Component {
 				type = BufferType.NICK;
 			}
 
-			var client = this.clients.get(netID);
+			var client = this.clients.get(serverID);
 			var cm = client ? client.cm : irc.CaseMapping.RFC1459;
 
 			var bufferList = Array.from(state.buffers.values());
@@ -370,7 +370,7 @@ export default class App extends Component {
 				id,
 				name,
 				type,
-				network: netID,
+				server: serverID,
 				serverInfo: null, // if server
 				topic: null, // if channel
 				members: new irc.CaseMapMap(null, cm), // if channel
@@ -465,8 +465,8 @@ export default class App extends Component {
 		return last;
 	}
 
-	addMessage(netID, bufName, msg) {
-		var client = this.clients.get(netID);
+	addMessage(serverID, bufName, msg) {
+		var client = this.clients.get(serverID);
 
 		msg.key = messagesCount;
 		messagesCount++;
@@ -511,7 +511,7 @@ export default class App extends Component {
 				});
 				notif.addEventListener("click", () => {
 					// TODO: scroll to message
-					this.switchBuffer({ network: netID, name: target });
+					this.switchBuffer({ server: serverID, name: target });
 				});
 			}
 		}
@@ -531,22 +531,22 @@ export default class App extends Component {
 				notif.addEventListener("click", (event) => {
 					if (event.action === "accept") {
 						this.setReceipt(bufName, ReceiptType.READ, msg);
-						this.open(channel, netID);
+						this.open(channel, serverID);
 					} else {
 						// TODO: scroll to message
-						this.switchBuffer({ network: netID, name: bufName });
+						this.switchBuffer({ server: serverID, name: bufName });
 					}
 				});
 			}
 		}
 
 		if (!client.isMyNick(msg.prefix.name) && (msg.command != "PART" && msg.comand != "QUIT")) {
-			this.createBuffer(netID, bufName);
+			this.createBuffer(serverID, bufName);
 		}
 
 		this.setReceipt(bufName, ReceiptType.DELIVERED, msg);
 
-		this.setBufferState({ network: netID, name: bufName }, (buf) => {
+		this.setBufferState({ server: serverID, name: bufName }, (buf) => {
 			// TODO: set unread if scrolled up
 			var unread = buf.unread;
 			var lastReadReceipt = buf.lastReadReceipt;
@@ -562,38 +562,38 @@ export default class App extends Component {
 	}
 
 	connect(params) {
-		this.lastNetworkID++;
-		var netID = this.lastNetworkID;
+		this.lastServerID++;
+		var serverID = this.lastServerID;
 
 		this.setState((state) => {
-			var networks = new Map(state.networks);
-			networks.set(netID, {
-				id: netID,
-				status: NetworkStatus.CONNECTING,
+			var servers = new Map(state.servers);
+			servers.set(serverID, {
+				id: serverID,
+				status: ServerStatus.CONNECTING,
 				isupport: new Map(),
 			});
-			return { networks };
+			return { servers };
 		});
 		this.setState({ connectParams: params });
 
 		var client = new Client(fillConnectParams(params));
-		this.clients.set(netID, client);
+		this.clients.set(serverID, client);
 
 		client.addEventListener("status", () => {
-			this.setNetworkState(netID, { status: client.status });
+			this.setServerState(serverID, { status: client.status });
 		});
 
 		client.addEventListener("message", (event) => {
-			this.handleMessage(netID, event.detail.message);
+			this.handleMessage(serverID, event.detail.message);
 		});
 
 		client.addEventListener("error", (event) => {
 			this.setState({ error: event.detail });
 		});
 
-		this.createBuffer(netID, SERVER_BUFFER);
+		this.createBuffer(serverID, SERVER_BUFFER);
 		if (!this.state.activeBuffer) {
-			this.switchBuffer({ network: netID, name: SERVER_BUFFER });
+			this.switchBuffer({ server: serverID, name: SERVER_BUFFER });
 		}
 
 		if (params.autojoin.length > 0) {
@@ -605,30 +605,30 @@ export default class App extends Component {
 		}
 	}
 
-	disconnect(netID) {
-		if (!netID) {
-			netID = getActiveNetworkID(this.state);
+	disconnect(serverID) {
+		if (!serverID) {
+			serverID = getActiveServerID(this.state);
 		}
 
-		var client = this.clients.get(netID);
+		var client = this.clients.get(serverID);
 		if (client) {
-			this.clients.delete(netID);
+			this.clients.delete(serverID);
 			client.disconnect();
 		}
 	}
 
-	reconnect(netID) {
-		if (!netID) {
-			netID = getActiveNetworkID(this.state);
+	reconnect(serverID) {
+		if (!serverID) {
+			serverID = getActiveServerID(this.state);
 		}
 
-		var client = this.clients.get(netID);
+		var client = this.clients.get(serverID);
 		if (client) {
 			client.reconnect();
 		}
 	}
 
-	networkFromBouncerNetwork(bouncerNetworkID) {
+	serverFromBouncerNetwork(bouncerNetworkID) {
 		for (var [id, client] of this.clients) {
 			if (client.params.bouncerNetwork === bouncerNetworkID) {
 				return id;
@@ -637,8 +637,8 @@ export default class App extends Component {
 		return null;
 	}
 
-	handleMessage(netID, msg) {
-		var client = this.clients.get(netID);
+	handleMessage(serverID, msg) {
+		var client = this.clients.get(serverID);
 		switch (msg.command) {
 		case irc.RPL_WELCOME:
 			if (this.state.connectParams.autojoin.length > 0) {
@@ -669,16 +669,16 @@ export default class App extends Component {
 				name: msg.params[1],
 				version: msg.params[2],
 			};
-			this.setBufferState({ network: netID, name: SERVER_BUFFER }, { serverInfo });
+			this.setBufferState({ server: serverID, name: SERVER_BUFFER }, { serverInfo });
 			break;
 		case irc.RPL_ISUPPORT:
-			this.setNetworkState(netID, (network) => {
+			this.setServerState(serverID, (server) => {
 				return { isupport: new Map(client.isupport) };
 			});
 			this.setState((state) => {
 				var buffers = new Map(state.buffers);
 				state.buffers.forEach((buf) => {
-					if (buf.network != netID) {
+					if (buf.server != serverID) {
 						return;
 					}
 					var members = new irc.CaseMapMap(buf.members, client.cm);
@@ -690,13 +690,13 @@ export default class App extends Component {
 		case irc.RPL_NOTOPIC:
 			var channel = msg.params[1];
 
-			this.setBufferState({ network: netID, name: channel }, { topic: null });
+			this.setBufferState({ server: serverID, name: channel }, { topic: null });
 			break;
 		case irc.RPL_TOPIC:
 			var channel = msg.params[1];
 			var topic = msg.params[2];
 
-			this.setBufferState({ network: netID, name: channel }, { topic });
+			this.setBufferState({ server: serverID, name: channel }, { topic });
 			break;
 		case irc.RPL_TOPICWHOTIME:
 			// Ignore
@@ -705,7 +705,7 @@ export default class App extends Component {
 			var channel = msg.params[2];
 			var membersList = msg.params[3].split(" ");
 
-			this.setBufferState({ network: netID, name: channel }, (buf) => {
+			this.setBufferState({ server: serverID, name: channel }, (buf) => {
 				var members = new irc.CaseMapMap(buf.members);
 				membersList.forEach((s) => {
 					var member = irc.parseMembership(s);
@@ -728,15 +728,15 @@ export default class App extends Component {
 				realname: last.slice(last.indexOf(" ") + 1),
 			};
 
-			this.setBufferState({ network: netID, name: who.nick }, { who, offline: false });
+			this.setBufferState({ server: serverID, name: who.nick }, { who, offline: false });
 
-			this.addMessage(netID, SERVER_BUFFER, msg);
+			this.addMessage(serverID, SERVER_BUFFER, msg);
 			break;
 		case irc.RPL_ENDOFWHO:
 			var target = msg.params[1];
 			if (!this.isChannel(target) && target.indexOf("*") < 0) {
 				// Not a channel nor a mask, likely a nick
-				this.setBufferState({ network: netID, name: target }, (buf) => {
+				this.setBufferState({ server: serverID, name: target }, (buf) => {
 					// TODO: mark user offline if we have old WHO info but this
 					// WHO reply is empty
 					if (buf.who) {
@@ -746,14 +746,14 @@ export default class App extends Component {
 				});
 			}
 
-			this.addMessage(netID, SERVER_BUFFER, msg);
+			this.addMessage(serverID, SERVER_BUFFER, msg);
 			break;
 		case "MODE":
 			var target = msg.params[0];
 			if (this.isChannel(target)) {
-				this.addMessage(netID, target, msg);
+				this.addMessage(serverID, target, msg);
 			}
-			this.handleMode(netID, msg);
+			this.handleMode(serverID, msg);
 			break;
 		case "NOTICE":
 		case "PRIVMSG":
@@ -765,34 +765,34 @@ export default class App extends Component {
 					target = msg.prefix.name;
 				}
 			}
-			this.addMessage(netID, target, msg);
+			this.addMessage(serverID, target, msg);
 			break;
 		case "JOIN":
 			var channel = msg.params[0];
 
-			this.createBuffer(netID, channel);
-			this.setBufferState({ network: netID, name: channel }, (buf) => {
+			this.createBuffer(serverID, channel);
+			this.setBufferState({ server: serverID, name: channel }, (buf) => {
 				var members = new irc.CaseMapMap(buf.members);
 				members.set(msg.prefix.name, "");
 				return { members };
 			});
 			if (!client.isMyNick(msg.prefix.name)) {
-				this.addMessage(netID, channel, msg);
+				this.addMessage(serverID, channel, msg);
 			}
 			if (channel == this.switchToChannel) {
-				this.switchBuffer({ network: netID, name: channel });
+				this.switchBuffer({ server: serverID, name: channel });
 				this.switchToChannel = null;
 			}
 			break;
 		case "PART":
 			var channel = msg.params[0];
 
-			this.setBufferState({ network: netID, name: channel }, (buf) => {
+			this.setBufferState({ server: serverID, name: channel }, (buf) => {
 				var members = new irc.CaseMapMap(buf.members);
 				members.delete(msg.prefix.name);
 				return { members };
 			});
-			this.addMessage(netID, channel, msg);
+			this.addMessage(serverID, channel, msg);
 
 			if (client.isMyNick(msg.prefix.name)) {
 				this.receipts.delete(channel);
@@ -803,12 +803,12 @@ export default class App extends Component {
 			var channel = msg.params[0];
 			var user = msg.params[1];
 
-			this.setBufferState({ network: netID, name: channel }, (buf) => {
+			this.setBufferState({ server: serverID, name: channel }, (buf) => {
 				var members = new irc.CaseMapMap(buf.members);
 				members.delete(user);
 				return { members };
 			});
-			this.addMessage(netID, channel, msg);
+			this.addMessage(serverID, channel, msg);
 
 			if (client.isMyNick(msg.prefix.name)) {
 				this.receipts.delete(channel);
@@ -820,7 +820,7 @@ export default class App extends Component {
 			this.setState((state) => {
 				var buffers = new Map(state.buffers);
 				state.buffers.forEach((buf) => {
-					if (buf.network != netID) {
+					if (buf.server != serverID) {
 						return;
 					}
 					if (!buf.members.has(msg.prefix.name) && client.cm(buf.name) !== client.cm(msg.prefix.name)) {
@@ -834,7 +834,7 @@ export default class App extends Component {
 				});
 				return { buffers };
 			});
-			affectedBuffers.forEach((name) => this.addMessage(netID, name, msg));
+			affectedBuffers.forEach((name) => this.addMessage(serverID, name, msg));
 			break;
 		case "NICK":
 			var newNick = msg.params[0];
@@ -843,7 +843,7 @@ export default class App extends Component {
 			this.setState((state) => {
 				var buffers = new Map(state.buffers);
 				state.buffers.forEach((buf) => {
-					if (buf.network != netID) {
+					if (buf.server != serverID) {
 						return;
 					}
 					if (!buf.members.has(msg.prefix.name)) {
@@ -857,10 +857,10 @@ export default class App extends Component {
 				});
 				return { buffers };
 			});
-			affectedBuffers.forEach((name) => this.addMessage(netID, name, msg));
+			affectedBuffers.forEach((name) => this.addMessage(serverID, name, msg));
 			break;
 		case "SETNAME":
-			this.setBufferState({ network: netID, name: msg.prefix.name }, (buf) => {
+			this.setBufferState({ server: serverID, name: msg.prefix.name }, (buf) => {
 				var who = { ...buf.who, realname: msg.params[0] };
 				return { who }
 			});
@@ -869,24 +869,24 @@ export default class App extends Component {
 			var channel = msg.params[0];
 			var topic = msg.params[1];
 
-			this.setBufferState({ network: netID, name: channel }, { topic });
-			this.addMessage(netID, channel, msg);
+			this.setBufferState({ server: serverID, name: channel }, { topic });
+			this.addMessage(serverID, channel, msg);
 			break;
 		case "INVITE":
 			var channel = msg.params[1];
 
 			// TODO: find a more reliable way to do this
 			var bufName = channel;
-			if (!getBuffer(this.state, { network: netID, name: channel })) {
+			if (!getBuffer(this.state, { server: serverID, name: channel })) {
 				bufName = SERVER_BUFFER;
 			}
 
-			this.addMessage(netID, bufName, msg);
+			this.addMessage(serverID, bufName, msg);
 			break;
 		case "AWAY":
 			var awayMessage = msg.params[0];
 
-			this.setBufferState({ network: netID, name: msg.prefix.name }, (buf) => {
+			this.setBufferState({ server: serverID, name: msg.prefix.name }, (buf) => {
 				var who = { ...buf.who, away: !!awayMessage };
 				return { who };
 			});
@@ -922,9 +922,9 @@ export default class App extends Component {
 				return { bouncerNetworks };
 			}, () => {
 				if (!attrs) {
-					var netID = this.networkFromBouncerNetwork(id);
-					if (netID) {
-						this.close({ network: netID, name: SERVER_BUFFER });
+					var serverID = this.serverFromBouncerNetwork(id);
+					if (serverID) {
+						this.close({ server: serverID, name: SERVER_BUFFER });
 					}
 				} else if (isNew) {
 					this.connect({
@@ -937,7 +937,7 @@ export default class App extends Component {
 		case irc.RPL_BANLIST:
 		case irc.RPL_ENDOFBANLIST:
 			var channel = msg.params[1];
-			this.addMessage(netID, channel, msg);
+			this.addMessage(serverID, channel, msg);
 			break;
 		case "CAP":
 		case "AUTHENTICATE":
@@ -953,7 +953,7 @@ export default class App extends Component {
 				var description = msg.params[msg.params.length - 1];
 				this.setState({ error: description });
 			}
-			this.addMessage(netID, SERVER_BUFFER, msg);
+			this.addMessage(serverID, SERVER_BUFFER, msg);
 		}
 	}
 
@@ -970,8 +970,8 @@ export default class App extends Component {
 	}
 
 	handleChannelClick(channel) {
-		var netID = getActiveNetworkID(this.state);
-		var buf = getBuffer(this.state, { network: netID, name: channel });
+		var serverID = getActiveServerID(this.state);
+		var buf = getBuffer(this.state, { server: serverID, name: channel });
 		if (buf) {
 			this.switchBuffer(buf.id);
 		} else {
@@ -996,20 +996,20 @@ export default class App extends Component {
 		});
 	}
 
-	open(target, netID) {
-		if (!netID) {
-			netID = getActiveNetworkID(this.state);
+	open(target, serverID) {
+		if (!serverID) {
+			serverID = getActiveServerID(this.state);
 		}
 
-		var client = this.clients.get(netID);
+		var client = this.clients.get(serverID);
 
 		if (this.isChannel(target)) {
 			this.switchToChannel = target;
 			client.send({ command: "JOIN", params: [target] });
 		} else {
 			client.who(target);
-			this.createBuffer(netID, target);
-			this.switchBuffer({ network: netID, name: target });
+			this.createBuffer(serverID, target);
+			this.switchBuffer({ server: serverID, name: target });
 		}
 	}
 
@@ -1024,13 +1024,13 @@ export default class App extends Component {
 			this.setState((state) => {
 				var buffers = new Map(state.buffers);
 				for (var [id, b] of state.buffers) {
-					if (b.network === buf.network) {
+					if (b.server === buf.server) {
 						buffers.delete(id);
 					}
 				}
 
 				var activeBuffer = state.activeBuffer;
-				if (activeBuffer && state.buffers.get(activeBuffer).network === buf.network) {
+				if (activeBuffer && state.buffers.get(activeBuffer).server === buf.server) {
 					if (buffers.size > 0) {
 						activeBuffer = buffers.keys().next().value;
 					} else {
@@ -1041,30 +1041,30 @@ export default class App extends Component {
 				return { buffers, activeBuffer };
 			});
 
-			var client = this.clients.get(buf.network);
+			var client = this.clients.get(buf.server);
 			var disconnectAll = client && !client.params.bouncerNetwork && client.enabledCaps["soju.im/bouncer-networks"];
 
-			this.disconnect(buf.network);
+			this.disconnect(buf.server);
 
 			this.setState((state) => {
-				var networks = new Map(state.networks);
-				networks.delete(buf.network);
-				return { networks };
+				var servers = new Map(state.servers);
+				servers.delete(buf.server);
+				return { servers };
 			});
 
 			if (disconnectAll) {
-				for (var netID of this.clients.keys()) {
-					this.close({ network: netID, name: SERVER_BUFFER });
+				for (var serverID of this.clients.keys()) {
+					this.close({ server: serverID, name: SERVER_BUFFER });
 				}
 			}
 
-			// TODO: only clear local storage if this network is stored there
-			if (buf.network == 1) {
+			// TODO: only clear local storage if this server is stored there
+			if (buf.server == 1) {
 				store.autoconnect.put(null);
 			}
 			break;
 		case BufferType.CHANNEL:
-			var client = this.clients.get(buf.network);
+			var client = this.clients.get(buf.server);
 			client.send({ command: "PART", params: [buf.name] });
 			// fallthrough
 		case BufferType.NICK:
@@ -1106,15 +1106,15 @@ export default class App extends Component {
 			return;
 		}
 
-		var netID = getActiveNetworkID(this.state);
-		var client = this.clients.get(netID);
+		var serverID = getActiveServerID(this.state);
+		var client = this.clients.get(serverID);
 
 		var msg = { command: "PRIVMSG", params: [target, text] };
 		client.send(msg);
 
 		if (!client.enabledCaps["echo-message"]) {
 			msg.prefix = { name: client.nick };
-			this.addMessage(netID, target, msg);
+			this.addMessage(serverID, target, msg);
 		}
 	}
 
@@ -1183,12 +1183,12 @@ export default class App extends Component {
 		});
 	}
 
-	handleJoinClick(netID) {
-		this.setState({ dialog: "join", joinDialog: { network: netID } });
+	handleJoinClick(serverID) {
+		this.setState({ dialog: "join", joinDialog: { server: serverID } });
 	}
 
 	handleJoinSubmit(data) {
-		var client = this.clients.get(this.state.joinDialog.network);
+		var client = this.clients.get(this.state.joinDialog.server);
 
 		this.switchToChannel = data.channel;
 		client.send({ command: "JOIN", params: [data.channel] });
@@ -1236,7 +1236,7 @@ export default class App extends Component {
 			return;
 		}
 
-		var client = this.clients.get(buf.network);
+		var client = this.clients.get(buf.server);
 
 		if (!client || !client.enabledCaps["draft/chathistory"] || !client.enabledCaps["server-time"]) {
 			return;
@@ -1268,9 +1268,9 @@ export default class App extends Component {
 		this.setState({ dialog: "network", networkDialog: null });
 	}
 
-	handleManageNetworkClick(netID) {
-		var network = this.state.networks.get(netID);
-		var bouncerNetID = network.isupport.get("BOUNCER_NETID");
+	handleManageNetworkClick(serverID) {
+		var server = this.state.servers.get(serverID);
+		var bouncerNetID = server.isupport.get("BOUNCER_NETID");
 		var bouncerNetwork = this.state.bouncerNetworks.get(bouncerNetID);
 		this.setState({
 			dialog: "network",
@@ -1316,8 +1316,8 @@ export default class App extends Component {
 		this.setState({ dialog: null, networkDialog: null });
 	}
 
-	handleMode(netID, msg) {
-		var client = this.clients.get(netID);
+	handleMode(serverID, msg) {
+		var client = this.clients.get(serverID);
 		var chanmodes = client.isupport.get("CHANMODES") || irc.STD_CHANMODES;
 		var prefix = client.isupport.get("PREFIX") || "";
 
@@ -1363,7 +1363,7 @@ export default class App extends Component {
 			}
 
 			if (prefixByMode.has(mode)) {
-				this.handlePrefixChange(netID, channel, arg, prefixByMode.get(mode), add);
+				this.handlePrefixChange(serverID, channel, arg, prefixByMode.get(mode), add);
 			}
 
 			// XXX: If we eventually want to handle any mode changes with
@@ -1372,15 +1372,15 @@ export default class App extends Component {
 		}
 	}
 
-	handlePrefixChange(netID, channel, nick, letter, add) {
-		var client = this.clients.get(netID);
+	handlePrefixChange(serverID, channel, nick, letter, add) {
+		var client = this.clients.get(serverID);
 		var prefix = client.isupport.get("PREFIX") || "";
 
 		var prefixPrivs = new Map(irc.parseMemberships(prefix).map((membership, i) => {
 			return [membership.prefix, i];
 		}));
 
-		this.setBufferState({ network: netID, name: channel }, (buf) => {
+		this.setBufferState({ server: serverID, name: channel }, (buf) => {
 			var members = new irc.CaseMapMap(buf.members);
 			var membership = members.get(nick);
 			if (add) {
@@ -1404,29 +1404,29 @@ export default class App extends Component {
 	}
 
 	render() {
-		var activeBuffer = null, activeNetwork = null, activeBouncerNetwork = null;
+		var activeBuffer = null, activeServer = null, activeBouncerNetwork = null;
 		var isBouncer = false;
 		if (this.state.buffers.get(this.state.activeBuffer)) {
 			activeBuffer = this.state.buffers.get(this.state.activeBuffer);
-			activeNetwork = this.state.networks.get(activeBuffer.network);
+			activeServer = this.state.servers.get(activeBuffer.server);
 
-			var activeClient = this.clients.get(activeBuffer.network);
+			var activeClient = this.clients.get(activeBuffer.server);
 			isBouncer = activeClient && activeClient.enabledCaps["soju.im/bouncer-networks"];
 
-			var bouncerNetID = activeNetwork.isupport.get("BOUNCER_NETID");
+			var bouncerNetID = activeServer.isupport.get("BOUNCER_NETID");
 			if (bouncerNetID) {
 				activeBouncerNetwork = this.state.bouncerNetworks.get(bouncerNetID);
 			}
 		}
 
-		if (!activeNetwork || (activeNetwork.status !== NetworkStatus.REGISTERED && !activeBuffer)) {
+		if (!activeServer || (activeServer.status !== ServerStatus.REGISTERED && !activeBuffer)) {
 			// TODO: using key=connectParams trashes the ConnectForm state on update
 			return html`
 				<section id="connect">
 					<${ConnectForm}
 						error=${this.state.error}
 						params=${this.state.connectParams}
-						disabled=${activeNetwork}
+						disabled=${activeServer}
 						onSubmit=${this.handleConnectSubmit}
 						key=${this.state.connectParams}
 					/>
@@ -1440,14 +1440,14 @@ export default class App extends Component {
 				<section id="buffer-header">
 					<${BufferHeader}
 						buffer=${activeBuffer}
-						network=${activeNetwork}
+						server=${activeServer}
 						isBouncer=${isBouncer}
 						bouncerNetwork=${activeBouncerNetwork}
 						onChannelClick=${this.handleChannelClick}
 						onClose=${() => this.close(activeBuffer)}
-						onJoin=${() => this.handleJoinClick(activeBuffer.network)}
+						onJoin=${() => this.handleJoinClick(activeBuffer.server)}
 						onAddNetwork=${this.handleAddNetworkClick}
-						onManageNetwork=${() => this.handleManageNetworkClick(activeBuffer.network)}
+						onManageNetwork=${() => this.handleManageNetworkClick(activeBuffer.server)}
 					/>
 				</section>
 			`;
@@ -1525,7 +1525,7 @@ export default class App extends Component {
 		if (activeBuffer && activeBuffer.type === BufferType.SERVER) {
 			composerReadOnly = true;
 		}
-		if (activeNetwork && activeNetwork.status !== NetworkStatus.REGISTERED) {
+		if (activeServer && activeServer.status !== ServerStatus.REGISTERED) {
 			composerReadOnly = true;
 		}
 
@@ -1536,7 +1536,7 @@ export default class App extends Component {
 			>
 				<${BufferList}
 					buffers=${this.state.buffers}
-					networks=${this.state.networks}
+					servers=${this.state.servers}
 					bouncerNetworks=${this.state.bouncerNetworks}
 					isBouncer=${isBouncer}
 					activeBuffer=${this.state.activeBuffer}
