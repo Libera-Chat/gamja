@@ -9,16 +9,21 @@ function getActiveClient(app) {
 	return app.clients.get(buf.network);
 }
 
+function getActiveChannel(app) {
+	var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
+	if (!activeBuffer || !app.isChannel(activeBuffer.name)) {
+		throw new Error("Not in a channel");
+	}
+	return activeBuffer.name;
+}
+
 function ban(app, args) {
 	var nick = args[0];
 	if (!nick) {
 		throw new Error("Missing nick");
 	}
-	var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
-	if (!activeBuffer || !app.isChannel(activeBuffer.name)) {
-		throw new Error("Not in a channel");
-	}
-	var params = [activeBuffer.name, nick];
+	var activeChannel = getActiveChannel(app);
+	var params = [activeChannel, nick];
 	if (args.length > 1) {
 		params.push(args.slice(1).join(" "));
 	}
@@ -28,7 +33,7 @@ function ban(app, args) {
 		const user = info[2];
 		const host = info[3];
 		client.send({ command: "MODE", params: [
-			activeBuffer.name,
+			activeChannel,
 			"+b",
 			`*!${user}@${host}`
 		]});
@@ -52,11 +57,8 @@ const kick = {
 	description: "Remove a user from the channel",
 	execute: (app, args) => {
 		var nick = args[0];
-		var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
-		if (!activeBuffer || !app.isChannel(activeBuffer.name)) {
-			throw new Error("Not in a channel");
-		}
-		var params = [activeBuffer.name, nick];
+		var activeChannel = getActiveChannel(app);
+		var params = [activeChannel, nick];
 		if (args.length > 1) {
 			params.push(args.slice(1).join(" "));
 		}
@@ -70,13 +72,11 @@ function givemode(app, args, mode) {
 	if (!nick) {
 		throw new Error("Missing nick");
 	}
-	var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
-	if (!activeBuffer || !app.isChannel(activeBuffer.name)) {
-		throw new Error("Not in a channel");
-	}
-	getActiveClient(app).send({ command: "MODE", params: [
-		activeBuffer.name, mode, nick,
-	]});
+	var activeChannel = getActiveChannel(app);
+	getActiveClient(app).send({
+		command: "MODE",
+		params: [activeChannel, mode, nick],
+	});
 }
 
 export default {
@@ -85,13 +85,10 @@ export default {
 		description: "Bans a user from the channel, or displays the current ban list",
 		execute: (app, args) => {
 			if (args.length == 0) {
-				var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
-				if (!activeBuffer || !app.isChannel(activeBuffer.name)) {
-					throw new Error("Not in a channel");
-				}
+				var activeChannel = getActiveChannel(app);
 				getActiveClient(app).send({
 					command: "MODE",
-					params: [activeBuffer.name, "+b"],
+					params: [activeChannel, "+b"],
 				});
 			} else {
 				return ban(app, args);
@@ -152,12 +149,9 @@ export default {
 			if (!nick) {
 				throw new Error("Missing nick");
 			}
-			var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
-			if (!activeBuffer || !app.isChannel(activeBuffer.name)) {
-				throw new Error("Not in a channel");
-			}
+			var activeChannel = getActiveChannel(app);
 			getActiveClient(app).send({ command: "INVITE", params: [
-				nick, activeBuffer.name,
+				nick, activeChannel,
 			]});
 		},
 	},
@@ -184,12 +178,9 @@ export default {
 		description: "Send an action message to the current buffer",
 		execute: (app, args) => {
 			var action = args.join(" ");
-			var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
-			if (!activeBuffer) {
-				throw new Error("Not in a buffer");
-			}
+			var activeChannel = getActiveChannel(app);
 			var text = `\x01ACTION ${action}\x01`;
-			app.privmsg(activeBuffer.name, text);
+			app.privmsg(activeChannel, text);
 		},
 	},
 	"mode": {
@@ -198,11 +189,8 @@ export default {
 		execute: (app, args) => {
 			var target = args[0];
 			if (target.startsWith("+") || target.startsWith("-")) {
-				var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
-				if (!activeBuffer || !app.isChannel(activeBuffer.name)) {
-					throw new Error("Not in a channel");
-				}
-				args = [activeBuffer.name, ...args];
+				var activeChannel = getActiveChannel(app);
+				args = [activeChannel, ...args];
 			}
 			getActiveClient(app).send({ command: "MODE", params: args });
 		},
@@ -250,11 +238,8 @@ export default {
 		description: "Leave a channel",
 		execute: (app, args) => {
 			var reason = args.join(" ");
-			var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
-			if (!activeBuffer || !app.isChannel(activeBuffer.name)) {
-				throw new Error("Not in a channel");
-			}
-			var params = [activeBuffer.name];
+			var activeChannel = getActiveChannel(app);
+			var params = [activeChannel];
 			if (reason) {
 				params.push(reason);
 			}
@@ -328,11 +313,8 @@ export default {
 		usage: "<topic>",
 		description: "Change the topic of the current channel",
 		execute: (app, args) => {
-			var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
-			if (!activeBuffer || !app.isChannel(activeBuffer.name)) {
-				throw new Error("Not in a channel");
-			}
-			var params = [activeBuffer.name];
+			var activeChannel = getActiveChannel(app);
+			var params = [activeChannel];
 			if (args.length > 0) {
 				params.push(args.join(" "));
 			}
