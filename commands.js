@@ -17,26 +17,21 @@ function getActiveChannel(app) {
 	return activeBuffer.name;
 }
 
-function ban(app, args) {
+function setUserHostMode(app, args, mode) {
 	var nick = args[0];
 	if (!nick) {
 		throw new Error("Missing nick");
 	}
 	var activeChannel = getActiveChannel(app);
-	var params = [activeChannel, nick];
-	if (args.length > 1) {
-		params.push(args.slice(1).join(" "));
-	}
-	const client = getActiveClient(app);
+	var client = getActiveClient(app);
 	client.whois(nick).then((whois) => {
 		const info = whois[irc.RPL_WHOISUSER].params;
 		const user = info[2];
 		const host = info[3];
-		client.send({ command: "MODE", params: [
-			activeChannel,
-			"+b",
-			`*!${user}@${host}`
-		]});
+		client.send({
+			command: "MODE",
+			params: [activeChannel, mode, `*!${user}@${host}`],
+		});
 	});
 }
 
@@ -91,7 +86,7 @@ export default {
 					params: [activeChannel, "+b"],
 				});
 			} else {
-				return ban(app, args);
+				return setUserHostMode(app, args, "+b");
 			}
 		},
 	},
@@ -319,6 +314,13 @@ export default {
 				params.push(args.join(" "));
 			}
 			getActiveClient(app).send({ command: "TOPIC", params });
+		},
+	},
+	"unban": {
+		usage: "<nick>",
+		description: "Remove a user from the ban list",
+		execute: (app, args) => {
+			return setUserHostMode(app, args, "-b");
 		},
 	},
 	"voice": {
