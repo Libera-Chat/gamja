@@ -898,6 +898,11 @@ export default class App extends Component {
 				}
 			});
 			break;
+		case irc.RPL_BANLIST:
+		case irc.RPL_ENDOFBANLIST:
+			var channel = msg.params[1];
+			this.addMessage(netID, channel, msg);
+			break;
 		case "CAP":
 		case "AUTHENTICATE":
 		case "PING":

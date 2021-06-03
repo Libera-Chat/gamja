@@ -9,35 +9,31 @@ function getActiveClient(app) {
 	return app.clients.get(buf.network);
 }
 
-const ban = {
-	usage: "<nick>",
-	description: "Bans a user from the channel",
-	execute: (app, args) => {
-		var nick = args[0];
-		if (!nick) {
-			throw new Error("Missing nick");
-		}
-		var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
-		if (!activeBuffer || !app.isChannel(activeBuffer.name)) {
-			throw new Error("Not in a channel");
-		}
-		var params = [activeBuffer.name, nick];
-		if (args.length > 1) {
-			params.push(args.slice(1).join(" "));
-		}
-		const client = getActiveClient(app);
-		client.whois(nick).then((whois) => {
-			const info = whois[irc.RPL_WHOISUSER].params;
-			const user = info[2];
-			const host = info[3];
-			client.send({ command: "MODE", params: [
-				activeBuffer.name,
-				"+b",
-				`*!${user}@${host}`
-			]});
-		});
-	},
-};
+function ban(app, args) {
+	var nick = args[0];
+	if (!nick) {
+		throw new Error("Missing nick");
+	}
+	var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
+	if (!activeBuffer || !app.isChannel(activeBuffer.name)) {
+		throw new Error("Not in a channel");
+	}
+	var params = [activeBuffer.name, nick];
+	if (args.length > 1) {
+		params.push(args.slice(1).join(" "));
+	}
+	const client = getActiveClient(app);
+	client.whois(nick).then((whois) => {
+		const info = whois[irc.RPL_WHOISUSER].params;
+		const user = info[2];
+		const host = info[3];
+		client.send({ command: "MODE", params: [
+			activeBuffer.name,
+			"+b",
+			`*!${user}@${host}`
+		]});
+	});
+}
 
 const join = {
 	usage: "<name>",
@@ -84,7 +80,24 @@ function givemode(app, args, mode) {
 }
 
 export default {
-	"ban": ban,
+	"ban": {
+		usage: "[nick]",
+		description: "Bans a user from the channel, or displays the current ban list",
+		execute: (app, args) => {
+			if (args.length == 0) {
+				var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
+				if (!activeBuffer || !app.isChannel(activeBuffer.name)) {
+					throw new Error("Not in a channel");
+				}
+				getActiveClient(app).send({
+					command: "MODE",
+					params: [activeBuffer.name, "+b"],
+				});
+			} else {
+				return ban(app, args);
+			}
+		},
+	},
 	"buffer": {
 		usage: "<name>",
 		description: "Switch to a buffer",
