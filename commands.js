@@ -77,7 +77,7 @@ function givemode(app, args, mode) {
 export default {
 	"ban": {
 		usage: "[nick]",
-		description: "Bans a user from the channel, or displays the current ban list",
+		description: "Ban a user from the channel, or display the current ban list",
 		execute: (app, args) => {
 			if (args.length == 0) {
 				var activeChannel = getActiveChannel(app);
@@ -116,12 +116,12 @@ export default {
 	},
 	"deop": {
 		usage: "<nick>",
-		description: "Removes operator status for a user on this channel",
+		description: "Remove operator status for a user on this channel",
 		execute: (app, args) => givemode(app, args, "-o"),
 	},
 	"devoice": {
 		usage: "<nick>",
-		description: "Removes voiced status for a user on this channel",
+		description: "Remove voiced status for a user on this channel",
 		execute: (app, args) => givemode(app, args, "-v"),
 	},
 	"disconnect": {
@@ -138,7 +138,7 @@ export default {
 	},
 	"invite": {
 		usage: "<nick>",
-		description: "Invites a user to the channel",
+		description: "Invite a user to the channel",
 		execute: (app, args) => {
 			var nick = args[0];
 			if (!nick) {
@@ -155,7 +155,7 @@ export default {
 	"kick": kick,
 	"kickban": {
 		usage: "<target>",
-		description: "Bans a user and removes them from the channel",
+		description: "Ban a user and removes them from the channel",
 		execute: (app, args) => {
 			kick.execute(app, args);
 			ban.execute(app, args);
@@ -163,7 +163,7 @@ export default {
 	},
 	"lusers": {
 		usage: "[<mask> [<target>]]",
-		description: "Requests user statistics about the network",
+		description: "Request user statistics about the network",
 		execute: (app, args) => {
 			getActiveClient(app).send({ command: "LUSERS", params: args });
 		},
@@ -225,7 +225,7 @@ export default {
 	},
 	"op": {
 		usage: "<nick>",
-		description: "Gives a user operator status on this channel",
+		description: "Give a user operator status on this channel",
 		execute: (app, args) => givemode(app, args, "+o"),
 	},
 	"part": {
@@ -291,7 +291,7 @@ export default {
 	},
 	"stats": {
 		usage: "<query> [server]",
-		description: "Requests server statistics",
+		description: "Request server statistics",
 		execute: (app, args) => {
 			var query = args[0];
 			if (!query) {
@@ -325,7 +325,7 @@ export default {
 	},
 	"voice": {
 		usage: "<nick>",
-		description: "Gives a user voiced status on this channel",
+		description: "Give a user voiced status on this channel",
 		execute: (app, args) => givemode(app, args, "+v"),
 	},
 	"who": {
