@@ -111,6 +111,29 @@ function compareBuffers(a, b) {
 	return 0;
 }
 
+/* Insert a message in an immutable list of sorted messages. */
+function insertMessage(list, msg) {
+	if (list.length == 0) {
+		return [msg];
+	} else if (list[list.length - 1].tags.time <= msg.tags.time) {
+		return list.concat(msg);
+	}
+
+	var insertBefore = -1;
+	for (var i = 0; i < list.length; i++) {
+		var other = list[i];
+		if (msg.tags.time < other.tags.time) {
+			insertBefore = i;
+			break;
+		}
+	}
+	console.assert(insertBefore >= 0, "");
+
+	list = [ ...list ];
+	list.splice(insertBefore, 0, msg);
+	return list;
+}
+
 var lastBufferID = 0;
 
 export const State = {
@@ -344,5 +367,11 @@ export const State = {
 			var topic = msg.params[1];
 			return updateBuffer(channel, { topic });
 		}
+	},
+	addMessage(state, msg, bufID) {
+		return State.updateBuffer(state, bufID, (buf) => {
+			var messages = insertMessage(buf.messages, msg);
+			return { messages };
+		});
 	},
 };

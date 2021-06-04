@@ -77,29 +77,6 @@ function fillConnectParams(params) {
 	return params;
 }
 
-/* Insert a message in an immutable list of sorted messages. */
-function insertMessage(list, msg) {
-	if (list.length == 0) {
-		return [msg];
-	} else if (list[list.length - 1].tags.time <= msg.tags.time) {
-		return list.concat(msg);
-	}
-
-	var insertBefore = -1;
-	for (var i = 0; i < list.length; i++) {
-		var other = list[i];
-		if (msg.tags.time < other.tags.time) {
-			insertBefore = i;
-			break;
-		}
-	}
-	console.assert(insertBefore >= 0, "");
-
-	list = [ ...list ];
-	list.splice(insertBefore, 0, msg);
-	return list;
-}
-
 function debounce(f, delay) {
 	var timeout = null;
 	return (...args) => {
@@ -417,7 +394,9 @@ export default class App extends Component {
 
 		this.setReceipt(bufName, ReceiptType.DELIVERED, msg);
 
-		this.setBufferState({ server: serverID, name: bufName }, (buf) => {
+		var bufID = { server: serverID, name: bufName };
+		this.setState((state) => State.addMessage(state, msg, bufID));
+		this.setBufferState(bufID, (buf) => {
 			// TODO: set unread if scrolled up
 			var unread = buf.unread;
 			var lastReadReceipt = buf.lastReadReceipt;
@@ -427,8 +406,7 @@ export default class App extends Component {
 				this.setReceipt(bufName, ReceiptType.READ, msg);
 				lastReadReceipt = this.getReceipt(bufName, ReceiptType.READ);
 			}
-			var messages = insertMessage(buf.messages, msg);
-			return { messages, unread, lastReadReceipt };
+			return { unread, lastReadReceipt };
 		});
 	}
 
