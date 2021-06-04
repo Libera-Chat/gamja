@@ -296,6 +296,28 @@ export const State = {
 				});
 			}
 			break;
+		case "JOIN":
+			var channel = msg.params[0];
+
+			if (client.isMyNick(msg.prefix.name)) {
+				var [id, update] = State.createBuffer(state, channel, serverID, client);
+				state = { ...state, ...update };
+			}
+
+			var update = updateBuffer(channel, (buf) => {
+				var members = new irc.CaseMapMap(buf.members);
+				members.set(msg.prefix.name, "");
+				return { members };
+			});
+			return { ...state, ...update };
+		case "PART":
+			var channel = msg.params[0];
+
+			return updateBuffer(channel, (buf) => {
+				var members = new irc.CaseMapMap(buf.members);
+				members.delete(msg.prefix.name);
+				return { members };
+			});
 		case "KICK":
 			var channel = msg.params[0];
 			var nick = msg.params[1];

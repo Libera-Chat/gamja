@@ -568,12 +568,6 @@ export default class App extends Component {
 		case "JOIN":
 			var channel = msg.params[0];
 
-			this.createBuffer(serverID, channel);
-			this.setBufferState({ server: serverID, name: channel }, (buf) => {
-				var members = new irc.CaseMapMap(buf.members);
-				members.set(msg.prefix.name, "");
-				return { members };
-			});
 			if (!client.isMyNick(msg.prefix.name)) {
 				this.addMessage(serverID, channel, msg);
 			}
@@ -585,11 +579,6 @@ export default class App extends Component {
 		case "PART":
 			var channel = msg.params[0];
 
-			this.setBufferState({ server: serverID, name: channel }, (buf) => {
-				var members = new irc.CaseMapMap(buf.members);
-				members.delete(msg.prefix.name);
-				return { members };
-			});
 			this.addMessage(serverID, channel, msg);
 
 			if (client.isMyNick(msg.prefix.name)) {
