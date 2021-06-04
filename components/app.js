@@ -488,6 +488,7 @@ export default class App extends Component {
 
 	handleMessage(serverID, msg) {
 		var client = this.clients.get(serverID);
+		var chatHistoryBatch = irc.findBatchByType(msg, "chathistory");
 
 		this.setState((state) => State.handleMessage(state, msg, serverID, client));
 
@@ -520,7 +521,9 @@ export default class App extends Component {
 			if (client.isChannel(target)) {
 				this.addMessage(serverID, target, msg);
 			}
-			this.handleMode(serverID, msg);
+			if (!chatHistoryBatch) {
+				this.handleMode(serverID, msg);
+			}
 			break;
 		case "NOTICE":
 		case "PRIVMSG":
@@ -559,7 +562,7 @@ export default class App extends Component {
 
 			this.addMessage(serverID, channel, msg);
 
-			if (client.isMyNick(msg.prefix.name)) {
+			if (!chatHistoryBatch && client.isMyNick(msg.prefix.name)) {
 				this.receipts.delete(channel);
 				this.saveReceipts();
 			}
@@ -570,46 +573,56 @@ export default class App extends Component {
 			break;
 		case "QUIT":
 			var affectedBuffers = [];
-			this.setState((state) => {
-				var buffers = new Map(state.buffers);
-				state.buffers.forEach((buf) => {
-					if (buf.server != serverID) {
-						return;
-					}
-					if (!buf.members.has(msg.prefix.name) && client.cm(buf.name) !== client.cm(msg.prefix.name)) {
-						return;
-					}
-					var members = new irc.CaseMapMap(buf.members);
-					members.delete(msg.prefix.name);
-					var offline = client.cm(buf.name) === client.cm(msg.prefix.name);
-					buffers.set(buf.id, { ...buf, members, offline });
-					affectedBuffers.push(buf.name);
+			if (chatHistoryBatch) {
+				affectedBuffers.push(chatHistoryBatch.params[0]);
+			} else {
+				this.setState((state) => {
+					var buffers = new Map(state.buffers);
+					state.buffers.forEach((buf) => {
+						if (buf.server != serverID) {
+							return;
+						}
+						if (!buf.members.has(msg.prefix.name) && client.cm(buf.name) !== client.cm(msg.prefix.name)) {
+							return;
+						}
+						var members = new irc.CaseMapMap(buf.members);
+						members.delete(msg.prefix.name);
+						var offline = client.cm(buf.name) === client.cm(msg.prefix.name);
+						buffers.set(buf.id, { ...buf, members, offline });
+						affectedBuffers.push(buf.name);
+					});
+					return { buffers };
 				});
-				return { buffers };
-			});
+			}
+
 			affectedBuffers.forEach((name) => this.addMessage(serverID, name, msg));
 			break;
 		case "NICK":
 			var newNick = msg.params[0];
 
 			var affectedBuffers = [];
-			this.setState((state) => {
-				var buffers = new Map(state.buffers);
-				state.buffers.forEach((buf) => {
-					if (buf.server != serverID) {
-						return;
-					}
-					if (!buf.members.has(msg.prefix.name)) {
-						return;
-					}
-					var members = new irc.CaseMapMap(buf.members);
-					members.set(newNick, members.get(msg.prefix.name));
-					members.delete(msg.prefix.name);
-					buffers.set(buf.id, { ...buf, members });
-					affectedBuffers.push(buf.name);
+			if (chatHistoryBatch) {
+				affectedBuffers.push(chatHistoryBatch.params[0]);
+			} else {
+				this.setState((state) => {
+					var buffers = new Map(state.buffers);
+					state.buffers.forEach((buf) => {
+						if (buf.server != serverID) {
+							return;
+						}
+						if (!buf.members.has(msg.prefix.name)) {
+							return;
+						}
+						var members = new irc.CaseMapMap(buf.members);
+						members.set(newNick, members.get(msg.prefix.name));
+						members.delete(msg.prefix.name);
+						buffers.set(buf.id, { ...buf, members });
+						affectedBuffers.push(buf.name);
+					});
+					return { buffers };
 				});
-				return { buffers };
-			});
+			}
+
 			affectedBuffers.forEach((name) => this.addMessage(serverID, name, msg));
 			break;
 		case "TOPIC":

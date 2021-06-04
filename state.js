@@ -249,6 +249,11 @@ export const State = {
 			return State.updateBuffer(state, { server: serverID, name }, updater);
 		}
 
+		// Don't update our internal state if it's a chat history message
+		if (irc.findBatchByType(msg, "chathistory")) {
+			return;
+		}
+
 		switch (msg.command) {
 		case irc.RPL_MYINFO:
 			// TODO: parse available modes
