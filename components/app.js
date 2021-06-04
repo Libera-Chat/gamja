@@ -111,25 +111,6 @@ function debounce(f, delay) {
 	};
 }
 
-function isServerBuffer(buf) {
-	return buf.type == BufferType.SERVER;
-}
-
-/* Returns 1 if a should appear after b, -1 if a should appear before b, or
- * 0 otherwise. */
-function compareBuffers(a, b) {
-	if (a.server != b.server) {
-		return a.server > b.server ? 1 : -1;
-	}
-	if (isServerBuffer(a) != isServerBuffer(b)) {
-		return isServerBuffer(b) ? 1 : -1;
-	}
-	if (a.name != b.name) {
-		return a.name > b.name ? 1 : -1;
-	}
-	return 0;
-}
-
 export default class App extends Component {
 	state = {
 		connectParams: {
@@ -269,42 +250,10 @@ export default class App extends Component {
 	createBuffer(serverID, name, callback) {
 		var id = null;
 		this.setState((state) => {
-			if (State.getBuffer(state, { server: serverID, name })) {
-				return;
-			}
-
-			this.lastBufferID++;
-			id = this.lastBufferID;
-
-			var type;
-			if (name == SERVER_BUFFER) {
-				type = BufferType.SERVER;
-			} else if (this.isChannel(name)) {
-				type = BufferType.CHANNEL;
-			} else {
-				type = BufferType.NICK;
-			}
-
 			var client = this.clients.get(serverID);
-			var cm = client ? client.cm : irc.CaseMapping.RFC1459;
-
-			var bufferList = Array.from(state.buffers.values());
-			bufferList.push({
-				id,
-				name,
-				type,
-				server: serverID,
-				serverInfo: null, // if server
-				topic: null, // if channel
-				members: new irc.CaseMapMap(null, cm), // if channel
-				who: null, // if nick
-				offline: false, // if nick
-				messages: [],
-				unread: Unread.NONE,
-			});
-			bufferList = bufferList.sort(compareBuffers);
-			var buffers = new Map(bufferList.map((buf) => [buf.id, buf]));
-			return { buffers };
+			var updated;
+			[id, updated] = State.createBuffer(state, name, serverID, client);
+			return updated;
 		}, () => {
 			if (callback) {
 				callback(id);
