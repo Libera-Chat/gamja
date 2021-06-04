@@ -13,7 +13,7 @@ import ScrollManager from "./scroll-manager.js";
 import Dialog from "./dialog.js";
 import { html, Component, createRef } from "../lib/index.js";
 import { strip as stripANSI } from "../lib/ansi.js";
-import { SERVER_BUFFER, BufferType, ReceiptType, ServerStatus, Unread } from "../state.js";
+import { SERVER_BUFFER, BufferType, ReceiptType, ServerStatus, Unread, State } from "../state.js";
 import commands from "../commands.js";
 import { setup as setupKeybindings } from "../keybindings.js";
 import * as store from "../store.js";
@@ -128,59 +128,6 @@ function compareBuffers(a, b) {
 		return a.name > b.name ? 1 : -1;
 	}
 	return 0;
-}
-
-function updateState(state, updater) {
-	var updated;
-	if (typeof updater === "function") {
-		updated = updater(state, state);
-	} else {
-		updated = updater;
-	}
-	if (state === updated || !updated) {
-		return;
-	}
-	return { ...state, ...updated };
-}
-
-function getActiveServerID(state) {
-	var buf = state.buffers.get(state.activeBuffer);
-	if (!buf) {
-		return null;
-	}
-	return buf.server;
-}
-
-function getBuffer(state, id) {
-	switch (typeof id) {
-	case "number":
-		return state.buffers.get(id);
-	case "object":
-		if (id.id) {
-			return state.buffers.get(id.id);
-		}
-
-		var serverID = id.server, name = id.name;
-		if (!serverID) {
-			serverID = getActiveServerID(state);
-		}
-
-		var cm = irc.CaseMapping.RFC1459;
-		var server = state.servers.get(serverID);
-		if (server) {
-			cm = irc.CaseMapping.byName(server.isupport.get("CASEMAPPING")) || cm;
-		}
-
-		var nameCM = cm(name);
-		for (var buf of state.buffers.values()) {
-			if (buf.server === serverID && cm(buf.name) === nameCM) {
-				return buf;
-			}
-		}
-		return null;
-	default:
-		throw new Error("Invalid buffer ID type: " + (typeof id));
-	}
 }
 
 export default class App extends Component {
@@ -309,44 +256,20 @@ export default class App extends Component {
 
 	setServerState(id, updater, callback) {
 		this.setState((state) => {
-			var server = state.servers.get(id);
-			if (!server) {
-				return;
-			}
-
-			var updated = updateState(server, updater);
-			if (!updated) {
-				return;
-			}
-
-			var servers = new Map(state.servers);
-			servers.set(id, updated);
-			return { servers };
+			return State.updateServer(state, id, updater);
 		}, callback);
 	}
 
 	setBufferState(id, updater, callback) {
 		this.setState((state) => {
-			var buf = getBuffer(state, id);
-			if (!buf) {
-				return;
-			}
-
-			var updated = updateState(buf, updater);
-			if (!updated) {
-				return;
-			}
-
-			var buffers = new Map(state.buffers);
-			buffers.set(buf.id, updated);
-			return { buffers };
+			return State.updateBuffer(state, id, updater);
 		}, callback);
 	}
 
 	createBuffer(serverID, name, callback) {
 		var id = null;
 		this.setState((state) => {
-			if (getBuffer(state, { server: serverID, name })) {
+			if (State.getBuffer(state, { server: serverID, name })) {
 				return;
 			}
 
@@ -392,7 +315,7 @@ export default class App extends Component {
 	switchBuffer(id) {
 		var buf;
 		this.setState((state) => {
-			buf = getBuffer(state, id);
+			buf = State.getBuffer(state, id);
 			if (!buf) {
 				return;
 			}
@@ -606,7 +529,7 @@ export default class App extends Component {
 
 	disconnect(serverID) {
 		if (!serverID) {
-			serverID = getActiveServerID(this.state);
+			serverID = State.getActiveServerID(this.state);
 		}
 
 		var client = this.clients.get(serverID);
@@ -618,7 +541,7 @@ export default class App extends Component {
 
 	reconnect(serverID) {
 		if (!serverID) {
-			serverID = getActiveServerID(this.state);
+			serverID = State.getActiveServerID(this.state);
 		}
 
 		var client = this.clients.get(serverID);
@@ -885,7 +808,7 @@ export default class App extends Component {
 
 			// TODO: find a more reliable way to do this
 			var bufName = channel;
-			if (!getBuffer(this.state, { server: serverID, name: channel })) {
+			if (!State.getBuffer(this.state, { server: serverID, name: channel })) {
 				bufName = SERVER_BUFFER;
 			}
 
@@ -978,8 +901,8 @@ export default class App extends Component {
 	}
 
 	handleChannelClick(channel) {
-		var serverID = getActiveServerID(this.state);
-		var buf = getBuffer(this.state, { server: serverID, name: channel });
+		var serverID = State.getActiveServerID(this.state);
+		var buf = State.getBuffer(this.state, { server: serverID, name: channel });
 		if (buf) {
 			this.switchBuffer(buf.id);
 		} else {
@@ -1006,7 +929,7 @@ export default class App extends Component {
 
 	open(target, serverID) {
 		if (!serverID) {
-			serverID = getActiveServerID(this.state);
+			serverID = State.getActiveServerID(this.state);
 		}
 
 		var client = this.clients.get(serverID);
@@ -1022,7 +945,7 @@ export default class App extends Component {
 	}
 
 	close(id) {
-		var buf = getBuffer(this.state, id);
+		var buf = State.getBuffer(this.state, id);
 		if (!buf) {
 			return;
 		}
@@ -1114,7 +1037,7 @@ export default class App extends Component {
 			return;
 		}
 
-		var serverID = getActiveServerID(this.state);
+		var serverID = State.getActiveServerID(this.state);
 		var client = this.clients.get(serverID);
 
 		var msg = { command: "PRIVMSG", params: [target, text] };

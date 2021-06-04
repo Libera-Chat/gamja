@@ -1,3 +1,4 @@
+import * as irc from "./lib/irc.js";
 import Client from "./lib/client.js";
 
 export const SERVER_BUFFER = "*";
@@ -77,3 +78,87 @@ export function getServerName(server, bouncerNetwork, isBouncer) {
 
 	return "server";
 }
+
+function updateState(state, updater) {
+	var updated;
+	if (typeof updater === "function") {
+		updated = updater(state, state);
+	} else {
+		updated = updater;
+	}
+	if (state === updated || !updated) {
+		return;
+	}
+	return { ...state, ...updated };
+}
+
+export const State = {
+	updateServer(state, id, updater) {
+		var server = state.servers.get(id);
+		if (!server) {
+			return;
+		}
+
+		var updated = updateState(server, updater);
+		if (!updated) {
+			return;
+		}
+
+		var servers = new Map(state.servers);
+		servers.set(id, updated);
+		return { servers };
+	},
+	updateBuffer(state, id, updater) {
+		var buf = State.getBuffer(state, id);
+		if (!buf) {
+			return;
+		}
+
+		var updated = updateState(buf, updater);
+		if (!updated) {
+			return;
+		}
+
+		var buffers = new Map(state.buffers);
+		buffers.set(buf.id, updated);
+		return { buffers };
+	},
+	getActiveServerID(state) {
+		var buf = state.buffers.get(state.activeBuffer);
+		if (!buf) {
+			return null;
+		}
+		return buf.server;
+	},
+	getBuffer(state, id) {
+		switch (typeof id) {
+		case "number":
+			return state.buffers.get(id);
+		case "object":
+			if (id.id) {
+				return state.buffers.get(id.id);
+			}
+
+			var serverID = id.server, name = id.name;
+			if (!serverID) {
+				serverID = State.getActiveServerID(state);
+			}
+
+			var cm = irc.CaseMapping.RFC1459;
+			var server = state.servers.get(serverID);
+			if (server) {
+				cm = irc.CaseMapping.byName(server.isupport.get("CASEMAPPING")) || cm;
+			}
+
+			var nameCM = cm(name);
+			for (var buf of state.buffers.values()) {
+				if (buf.server === serverID && cm(buf.name) === nameCM) {
+					return buf;
+				}
+			}
+			return null;
+		default:
+			throw new Error("Invalid buffer ID type: " + (typeof id));
+		}
+	},
+};
