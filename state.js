@@ -339,6 +339,10 @@ export const State = {
 				var who = { ...buf.who, away: !!awayMessage };
 				return { who };
 			});
+		case "TOPIC":
+			var channel = msg.params[0];
+			var topic = msg.params[1];
+			return updateBuffer(channel, { topic });
 		}
 	},
 };

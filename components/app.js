@@ -636,9 +636,6 @@ export default class App extends Component {
 			break;
 		case "TOPIC":
 			var channel = msg.params[0];
-			var topic = msg.params[1];
-
-			this.setBufferState({ server: serverID, name: channel }, { topic });
 			this.addMessage(serverID, channel, msg);
 			break;
 		case "INVITE":
