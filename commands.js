@@ -11,7 +11,7 @@ function getActiveClient(app) {
 
 function getActiveChannel(app) {
 	var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
-	if (!activeBuffer || !app.isChannel(activeBuffer.name)) {
+	if (!activeBuffer || activeBuffer.type !== BufferType.CHANNEL) {
 		throw new Error("Not in a channel");
 	}
 	return activeBuffer.name;

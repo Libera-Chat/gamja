@@ -350,7 +350,7 @@ export default class App extends Component {
 
 			if (msgUnread == Unread.HIGHLIGHT && window.Notification && Notification.permission === "granted" && !isDelivered && !irc.parseCTCP(msg)) {
 				var title = "New " + kind + " from " + msg.prefix.name;
-				if (this.isChannel(bufName)) {
+				if (client.isChannel(bufName)) {
 					title += " in " + bufName;
 				}
 				var notif = new Notification(title, {
@@ -517,7 +517,7 @@ export default class App extends Component {
 			break;
 		case "MODE":
 			var target = msg.params[0];
-			if (this.isChannel(target)) {
+			if (client.isChannel(target)) {
 				this.addMessage(serverID, target, msg);
 			}
 			this.handleMode(serverID, msg);
@@ -536,7 +536,7 @@ export default class App extends Component {
 			var allowedPrefixes = client.isupport.get("STATUSMSG");
 			if (allowedPrefixes) {
 				var parts = irc.parseTargetPrefix(target, allowedPrefixes);
-				if (this.isChannel(parts.name)) {
+				if (client.isChannel(parts.name)) {
 					target = parts.name;
 				}
 			}
@@ -728,11 +728,6 @@ export default class App extends Component {
 		this.open(nick);
 	}
 
-	isChannel(name) {
-		// TODO: use the ISUPPORT token if available
-		return irc.STD_CHANNEL_TYPES.indexOf(name[0]) >= 0;
-	}
-
 	fetchBacklog(client, target, after, before) {
 		client.fetchHistoryBetween(target, after, before, CHATHISTORY_MAX_SIZE).catch((err) => {
 			this.setState({ error: "Failed to fetch history for '" + taregt + "': " + err });
@@ -748,7 +743,7 @@ export default class App extends Component {
 
 		var client = this.clients.get(serverID);
 
-		if (this.isChannel(target)) {
+		if (client.isChannel(target)) {
 			this.switchToChannel = target;
 			client.send({ command: "JOIN", params: [target] });
 		} else {
