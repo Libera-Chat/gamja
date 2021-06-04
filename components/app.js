@@ -561,6 +561,9 @@ export default class App extends Component {
 
 	handleMessage(serverID, msg) {
 		var client = this.clients.get(serverID);
+
+		this.setState((state) => State.handleMessage(state, msg, serverID, client));
+
 		switch (msg.command) {
 		case irc.RPL_WELCOME:
 			if (this.state.connectParams.autojoin.length > 0) {
@@ -584,91 +587,6 @@ export default class App extends Component {
 					});
 				});
 			}
-			break;
-		case irc.RPL_MYINFO:
-			// TODO: parse available modes
-			var serverInfo = {
-				name: msg.params[1],
-				version: msg.params[2],
-			};
-			this.setBufferState({ server: serverID, name: SERVER_BUFFER }, { serverInfo });
-			break;
-		case irc.RPL_ISUPPORT:
-			this.setServerState(serverID, (server) => {
-				return { isupport: new Map(client.isupport) };
-			});
-			this.setState((state) => {
-				var buffers = new Map(state.buffers);
-				state.buffers.forEach((buf) => {
-					if (buf.server != serverID) {
-						return;
-					}
-					var members = new irc.CaseMapMap(buf.members, client.cm);
-					buffers.set(buf.id, { ...buf, members });
-				});
-				return { buffers };
-			});
-			break;
-		case irc.RPL_NOTOPIC:
-			var channel = msg.params[1];
-
-			this.setBufferState({ server: serverID, name: channel }, { topic: null });
-			break;
-		case irc.RPL_TOPIC:
-			var channel = msg.params[1];
-			var topic = msg.params[2];
-
-			this.setBufferState({ server: serverID, name: channel }, { topic });
-			break;
-		case irc.RPL_TOPICWHOTIME:
-			// Ignore
-			break;
-		case irc.RPL_NAMREPLY:
-			var channel = msg.params[2];
-			var membersList = msg.params[3].split(" ");
-
-			this.setBufferState({ server: serverID, name: channel }, (buf) => {
-				var members = new irc.CaseMapMap(buf.members);
-				membersList.forEach((s) => {
-					var member = irc.parseTargetPrefix(s);
-					members.set(member.name, member.prefix);
-				});
-
-				return { members };
-			});
-			break;
-		case irc.RPL_ENDOFNAMES:
-			break;
-		case irc.RPL_WHOREPLY:
-			var last = msg.params[msg.params.length - 1];
-			var who = {
-				username: msg.params[2],
-				hostname: msg.params[3],
-				server: msg.params[4],
-				nick: msg.params[5],
-				away: msg.params[6] == 'G', // H for here, G for gone
-				realname: last.slice(last.indexOf(" ") + 1),
-			};
-
-			this.setBufferState({ server: serverID, name: who.nick }, { who, offline: false });
-
-			this.addMessage(serverID, SERVER_BUFFER, msg);
-			break;
-		case irc.RPL_ENDOFWHO:
-			var target = msg.params[1];
-			if (!this.isChannel(target) && target.indexOf("*") < 0) {
-				// Not a channel nor a mask, likely a nick
-				this.setBufferState({ server: serverID, name: target }, (buf) => {
-					// TODO: mark user offline if we have old WHO info but this
-					// WHO reply is empty
-					if (buf.who) {
-						return;
-					}
-					return { offline: true };
-				});
-			}
-
-			this.addMessage(serverID, SERVER_BUFFER, msg);
 			break;
 		case "MODE":
 			var target = msg.params[0];
@@ -732,19 +650,7 @@ export default class App extends Component {
 			break;
 		case "KICK":
 			var channel = msg.params[0];
-			var user = msg.params[1];
-
-			this.setBufferState({ server: serverID, name: channel }, (buf) => {
-				var members = new irc.CaseMapMap(buf.members);
-				members.delete(user);
-				return { members };
-			});
 			this.addMessage(serverID, channel, msg);
-
-			if (client.isMyNick(msg.prefix.name)) {
-				this.receipts.delete(channel);
-				this.saveReceipts();
-			}
 			break;
 		case "QUIT":
 			var affectedBuffers = [];
@@ -790,12 +696,6 @@ export default class App extends Component {
 			});
 			affectedBuffers.forEach((name) => this.addMessage(serverID, name, msg));
 			break;
-		case "SETNAME":
-			this.setBufferState({ server: serverID, name: msg.prefix.name }, (buf) => {
-				var who = { ...buf.who, realname: msg.params[0] };
-				return { who }
-			});
-			break;
 		case "TOPIC":
 			var channel = msg.params[0];
 			var topic = msg.params[1];
@@ -813,14 +713,6 @@ export default class App extends Component {
 			}
 
 			this.addMessage(serverID, bufName, msg);
-			break;
-		case "AWAY":
-			var awayMessage = msg.params[0];
-
-			this.setBufferState({ server: serverID, name: msg.prefix.name }, (buf) => {
-				var who = { ...buf.who, away: !!awayMessage };
-				return { who };
-			});
 			break;
 		case "BOUNCER":
 			if (msg.params[0] !== "NETWORK") {
@@ -870,6 +762,15 @@ export default class App extends Component {
 			var channel = msg.params[1];
 			this.addMessage(serverID, channel, msg);
 			break;
+		case irc.RPL_MYINFO:
+		case irc.RPL_ISUPPORT:
+		case irc.RPL_NOTOPIC:
+		case irc.RPL_TOPIC:
+		case irc.RPL_TOPICWHOTIME:
+		case irc.RPL_NAMREPLY:
+		case irc.RPL_ENDOFNAMES:
+		case "AWAY":
+		case "SETNAME":
 		case "CAP":
 		case "AUTHENTICATE":
 		case "PING":

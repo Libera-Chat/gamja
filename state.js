@@ -161,4 +161,105 @@ export const State = {
 			throw new Error("Invalid buffer ID type: " + (typeof id));
 		}
 	},
+	handleMessage(state, msg, serverID, client) {
+		function updateServer(updater) {
+			return State.updateServer(state, serverID, updater);
+		}
+		function updateBuffer(name, updater) {
+			return State.updateBuffer(state, { server: serverID, name }, updater);
+		}
+
+		switch (msg.command) {
+		case irc.RPL_MYINFO:
+			// TODO: parse available modes
+			var serverInfo = {
+				name: msg.params[1],
+				version: msg.params[2],
+			};
+			return updateBuffer(SERVER_BUFFER, { serverInfo });
+		case irc.RPL_ISUPPORT:
+			var buffers = new Map(state.buffers);
+			state.buffers.forEach((buf) => {
+				if (buf.server != serverID) {
+					return;
+				}
+				var members = new irc.CaseMapMap(buf.members, client.cm);
+				buffers.set(buf.id, { ...buf, members });
+			});
+			return {
+				buffers,
+				...updateServer({ isupport: new Map(client.isupport) }),
+			};
+		case irc.RPL_NOTOPIC:
+			var channel = msg.params[1];
+			return updateBuffer(channel, { topic: null });
+		case irc.RPL_TOPIC:
+			var channel = msg.params[1];
+			var topic = msg.params[2];
+			return updateBuffer(channel, { topic });
+		case irc.RPL_TOPICWHOTIME:
+			// Ignore
+			break;
+		case irc.RPL_NAMREPLY:
+			var channel = msg.params[2];
+			var membersList = msg.params[3].split(" ");
+
+			return updateBuffer(channel, (buf) => {
+				var members = new irc.CaseMapMap(buf.members);
+				membersList.forEach((s) => {
+					var member = irc.parseTargetPrefix(s);
+					members.set(member.name, member.prefix);
+				});
+				return { members };
+			});
+		case irc.RPL_ENDOFNAMES:
+			break;
+		case irc.RPL_WHOREPLY:
+			var last = msg.params[msg.params.length - 1];
+			var who = {
+				username: msg.params[2],
+				hostname: msg.params[3],
+				server: msg.params[4],
+				nick: msg.params[5],
+				away: msg.params[6] == 'G', // H for here, G for gone
+				realname: last.slice(last.indexOf(" ") + 1),
+			};
+			return updateBuffer(who.nick, { who, offline: false });
+		case irc.RPL_ENDOFWHO:
+			var target = msg.params[1];
+			if (!client.isChannel(target) && target.indexOf("*") < 0) {
+				// Not a channel nor a mask, likely a nick
+				return updateBuffer(target, (buf) => {
+					// TODO: mark user offline if we have old WHO info but this
+					// WHO reply is empty
+					if (buf.who) {
+						return;
+					}
+					return { offline: true };
+				});
+			}
+			break;
+		case "KICK":
+			var channel = msg.params[0];
+			var nick = msg.params[1];
+
+			return updateBuffer(channel, (buf) => {
+				var members = new irc.CaseMapMap(buf.members);
+				members.delete(nick);
+				return { members };
+			});
+		case "SETNAME":
+			return updateBuffer(msg.prefix.name, (buf) => {
+				var who = { ...buf.who, realname: msg.params[0] };
+				return { who };
+			});
+		case "AWAY":
+			var awayMessage = msg.params[0];
+
+			return updateBuffer(msg.prefix.name, (buf) => {
+				var who = { ...buf.who, away: !!awayMessage };
+				return { who };
+			});
+		}
+	},
 };
