@@ -599,7 +599,7 @@ export default class App extends Component {
 			this.switchToChannel = params.autojoin[0];
 		}
 
-		if (this.config.server && typeof this.config.server.ping === "number") {
+		if (this.config.server && typeof this.config.server.ping !== "undefined") {
 			client.setPingInterval(this.config.server.ping);
 		}
 	}
