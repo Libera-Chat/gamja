@@ -704,6 +704,7 @@ export default class App extends Component {
 		case "BATCH":
 		case "TAGMSG":
 		case "CHATHISTORY":
+		case "ACK":
 			// Ignore these
 			break;
 		default:
