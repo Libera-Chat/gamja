@@ -322,7 +322,7 @@ export default class App extends Component {
 		msg.key = messagesCount;
 		messagesCount++;
 
-		msg.isHighlight = irc.isHighlight(msg, client.nick);
+		msg.isHighlight = irc.isHighlight(msg, client.nick, client.cm);
 
 		if (!msg.tags) {
 			msg.tags = {};
