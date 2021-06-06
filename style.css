@@ -657,3 +657,9 @@ kbd {
 		font-weight: bold;
 	}
 }
+
+@media (pointer: none), (pointer: coarse) {
+	#buffer-list li a, #member-list li a {
+		padding: 7px 10px;
+	}
+}
