@@ -62,7 +62,6 @@ button {
 	background: var(--button-background);
 	transition: background 0.25s linear;
 	color: var(--button-color);
-	cursor: pointer;
 	padding: 0.25rem 0.5rem;
 	border-style: solid;
 	border-color: var(--button-border);

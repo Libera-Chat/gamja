@@ -121,7 +121,7 @@ export default class ConnectForm extends Component {
 				<br/><br/>
 
 				<details>
-					<summary>Advanced options</summary>
+					<summary role="button">Advanced options</summary>
 
 					<br/>
 
