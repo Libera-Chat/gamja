@@ -340,8 +340,8 @@ a.nick:hover, a.nick:active {
 	text-decoration: underline;
 }
 
-details summary {
-	cursor: default;
+details summary[role="button"] {
+	user-select: none;
 }
 
 #buffer {
