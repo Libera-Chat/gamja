@@ -160,8 +160,8 @@ export default function BufferHeader(props) {
 	}
 
 	return html`
-		<span class="title">${name}</span>
-		<span class="description">${description}</span>
-		<span class="actions">${actions}</span>
+		<div class="title">${name}</div>
+		${description ? html`<div class="description">${description}</div>` : null}
+		<div class="actions">${actions}</div>
 	`;
 }
