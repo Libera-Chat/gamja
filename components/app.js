@@ -104,6 +104,7 @@ export default class App extends Component {
 		buffers: new Map(),
 		bouncerNetworks: new Map(),
 		activeBuffer: null,
+		connectForm: true,
 		dialog: null,
 		error: null,
 		openPanels: {
@@ -203,6 +204,7 @@ export default class App extends Component {
 		});
 
 		if (connectParams.autoconnect) {
+			this.setState({ connectForm: false });
 			this.connect(connectParams);
 		}
 	}
@@ -430,6 +432,9 @@ export default class App extends Component {
 
 		client.addEventListener("status", () => {
 			this.setServerState(serverID, { status: client.status });
+			if (client.status === Client.Status.REGISTERED) {
+				this.setState({ connectForm: false });
+			}
 		});
 
 		client.addEventListener("message", (event) => {
@@ -1173,14 +1178,16 @@ export default class App extends Component {
 			}
 		}
 
-		if (!activeServer || (activeServer.status !== ServerStatus.REGISTERED && !activeBuffer)) {
+		if (this.state.connectForm) {
+			var status = activeServer ? activeServer.status : ServerStatus.DISCONNECTED;
+			var connecting = status === ServerStatus.CONNECTING || status === ServerStatus.REGISTERING;
 			// TODO: using key=connectParams trashes the ConnectForm state on update
 			return html`
 				<section id="connect">
 					<${ConnectForm}
 						error=${this.state.error}
 						params=${this.state.connectParams}
-						disabled=${activeServer}
+						connecting=${connecting}
 						onSubmit=${this.handleConnectSubmit}
 						key=${this.state.connectParams}
 					/>
