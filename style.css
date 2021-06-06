@@ -236,7 +236,7 @@ button.danger:hover {
 	border-left: 1px solid var(--sidebar-background);
 }
 
-@media(max-width: 640px) {
+@media (max-width: 640px) {
 	#buffer-list ul {
 		width: 0px;
 	}
@@ -625,7 +625,7 @@ kbd {
 	}
 }
 
-@media(max-width: 640px) {
+@media (max-width: 640px) {
 	.expander {
 		display: block;
 	}
