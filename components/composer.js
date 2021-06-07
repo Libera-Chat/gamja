@@ -17,6 +17,10 @@ export default class Composer extends Component {
 
 	handleInput(event) {
 		this.setState({ [event.target.name]: event.target.value });
+
+		if (this.props.readOnly && event.target.name === "text" && !event.target.value) {
+			event.target.blur();
+		}
 	}
 
 	handleSubmit(event) {
