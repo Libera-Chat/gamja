@@ -688,6 +688,12 @@ export default class App extends Component {
 				}
 			});
 			break;
+		case irc.RPL_CHANNELMODEIS:
+		case irc.RPL_CREATIONTIME:
+		case irc.RPL_INVITELIST:
+		case irc.RPL_ENDOFINVITELIST:
+		case irc.RPL_EXCEPTLIST:
+		case irc.RPL_ENDOFEXCEPTLIST:
 		case irc.RPL_BANLIST:
 		case irc.RPL_ENDOFBANLIST:
 			var channel = msg.params[1];
