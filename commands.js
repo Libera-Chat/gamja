@@ -179,11 +179,11 @@ export default {
 		},
 	},
 	"mode": {
-		usage: "[target] <modes> [mode args...]",
-		description: "Change channel or user mode",
+		usage: "[target] [modes] [mode args...]",
+		description: "Query or change a channel or user mode",
 		execute: (app, args) => {
 			var target = args[0];
-			if (target.startsWith("+") || target.startsWith("-")) {
+			if (!target || target.startsWith("+") || target.startsWith("-")) {
 				var activeChannel = getActiveChannel(app);
 				args = [activeChannel, ...args];
 			}
