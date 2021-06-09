@@ -9,6 +9,14 @@ function getActiveClient(app) {
 	return app.clients.get(buf.server);
 }
 
+function getActiveTarget(app) {
+	var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
+	if (!activeBuffer) {
+		throw new Error("Not in a buffer");
+	}
+	return activeBuffer.name;
+}
+
 function getActiveChannel(app) {
 	var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
 	if (!activeBuffer || activeBuffer.type !== BufferType.CHANNEL) {
@@ -173,9 +181,9 @@ export default {
 		description: "Send an action message to the current buffer",
 		execute: (app, args) => {
 			var action = args.join(" ");
-			var activeChannel = getActiveChannel(app);
+			var target = getActiveTarget(app);
 			var text = `\x01ACTION ${action}\x01`;
-			app.privmsg(activeChannel, text);
+			app.privmsg(target, text);
 		},
 	},
 	"mode": {
