@@ -61,7 +61,7 @@ export default class NetworkForm extends Component {
 		let removeNetwork = null;
 		if (!this.state.isNew) {
 			removeNetwork = html`
-				<button type="button" onClick=${() => this.props.onRemove()}>
+				<button type="button" class="danger" onClick=${() => this.props.onRemove()}>
 					Remove network
 				</button>
 			`;
