@@ -829,7 +829,13 @@ export default class App extends Component {
 			this.setState((state) => {
 				var servers = new Map(state.servers);
 				servers.delete(buf.server);
-				return { servers };
+
+				var connectForm = state.connectForm;
+				if (servers.size == 0) {
+					connectForm = true;
+				}
+
+				return { servers, connectForm };
 			});
 
 			if (disconnectAll) {
