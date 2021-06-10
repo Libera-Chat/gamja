@@ -1,5 +1,5 @@
 import * as irc from "./lib/irc.js";
-import { SERVER_BUFFER, BufferType } from "./state.js";
+import { SERVER_BUFFER, BufferType, Unread } from "./state.js";
 
 function getActiveClient(app) {
 	let buf = app.state.buffers.get(app.state.activeBuffer);
@@ -40,6 +40,16 @@ function setUserHostMode(app, args, mode) {
 			command: "MODE",
 			params: [activeChannel, mode, `*!${user}@${host}`],
 		});
+	});
+}
+
+function markServerBufferUnread(app) {
+	var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
+	if (!activeBuffer || activeBuffer.type === BufferType.SERVER) {
+		return;
+	}
+	app.setBufferState({ server: activeBuffer.server }, (buf) => {
+		return { unread: Unread.union(buf.unread, Unread.MESSAGE) };
 	});
 }
 
@@ -174,6 +184,7 @@ export default {
 		description: "Request user statistics about the network",
 		execute: (app, args) => {
 			getActiveClient(app).send({ command: "LUSERS", params: args });
+			markServerBufferUnread(app);
 		},
 	},
 	"me": {
@@ -203,6 +214,7 @@ export default {
 		description: "Get the Message Of The Day",
 		execute: (app, args) => {
 			getActiveClient(app).send({ command: "MOTD", params: args });
+			markServerBufferUnread(app);
 		},
 	},
 	"msg": {
@@ -310,6 +322,7 @@ export default {
 				params.push(args.slice(1).join(" "));
 			}
 			getActiveClient(app).send({ command: "STATS", params });
+			markServerBufferUnread(app);
 		},
 	},
 	"topic": {
@@ -341,6 +354,7 @@ export default {
 		description: "Retrieve a list of users",
 		execute: (app, args) => {
 			getActiveClient(app).send({ command: "WHO", params: args });
+			markServerBufferUnread(app);
 		},
 	},
 	"whois": {
@@ -352,6 +366,7 @@ export default {
 				throw new Error("Missing nick");
 			}
 			getActiveClient(app).send({ command: "WHOIS", params: [nick] });
+			markServerBufferUnread(app);
 		},
 	},
 };
