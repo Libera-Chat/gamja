@@ -116,6 +116,17 @@ export default class ConnectForm extends Component {
 			`;
 		}
 
+		let autojoin = html`
+			<label>
+				Auto-join channels:<br/>
+				<input type="text" name="autojoin" value=${this.state.autojoin} disabled=${disabled} placeholder="Comma-separated list of channels"/>
+			</label>
+			<br/>
+		`;
+
+		// Show autojoin field in advanced options, except if it's pre-filled
+		let isAutojoinAdvanced = (this.props.params.autojoin || []).length === 0;
+
 		return html`
 			<form onChange=${this.handleChange} onSubmit=${this.handleSubmit}>
 				<h2>Connect to IRC</h2>
@@ -127,6 +138,8 @@ export default class ConnectForm extends Component {
 				<br/><br/>
 
 				${auth}
+
+				${!isAutojoinAdvanced ? [autojoin, html`<br/>`] : null}
 
 				<label>
 					<input type="checkbox" name="rememberMe" checked=${this.state.rememberMe} disabled=${disabled}/>
@@ -159,11 +172,7 @@ export default class ConnectForm extends Component {
 					</label>
 					<br/><br/>
 
-					<label>
-						Auto-join channels:<br/>
-						<input type="text" name="autojoin" value=${this.state.autojoin} disabled=${disabled} placeholder="Comma-separated list of channels"/>
-					</label>
-					<br/>
+					${isAutojoinAdvanced ? autojoin : null}
 				</details>
 
 				<br/>
