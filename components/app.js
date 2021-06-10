@@ -224,18 +224,15 @@ export default class App extends Component {
 		}, callback);
 	}
 
-	createBuffer(serverID, name, callback) {
+	createBuffer(serverID, name) {
 		var id = null;
 		this.setState((state) => {
 			var client = this.clients.get(serverID);
 			var updated;
 			[id, updated] = State.createBuffer(state, name, serverID, client);
 			return updated;
-		}, () => {
-			if (callback) {
-				callback(id);
-			}
 		});
+		return id;
 	}
 
 	switchBuffer(id) {
