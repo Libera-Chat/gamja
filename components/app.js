@@ -175,8 +175,6 @@ export default class App extends Component {
 	 * - Default server URL constructed from the current URL location
 	 */
 	handleConfig(config) {
-		this.config = config;
-
 		let connectParams = {};
 
 		if (config.server) {
@@ -200,6 +198,12 @@ export default class App extends Component {
 		let queryParams = parseQueryString();
 		if (queryParams.server) {
 			connectParams.url = queryParams.server;
+
+			// When using a custom server, some configuration options don't
+			// make sense anymore.
+			if (config.server) {
+				config.server.auth = null;
+			}
 		}
 		if (queryParams.nick) {
 			connectParams.nick = queryParams.nick;
@@ -211,6 +215,8 @@ export default class App extends Component {
 		if (window.location.hash) {
 			connectParams.autojoin = window.location.hash.split(",");
 		}
+
+		this.config = config;
 
 		this.setState((state) => {
 			return {
