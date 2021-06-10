@@ -530,6 +530,10 @@ export default class App extends Component {
 					target = msg.prefix.name;
 				}
 			}
+			if (msg.command === "NOTICE" && !State.getBuffer(this.state, { server: serverID, name: target })) {
+				// Don't open a new buffer if this is just a NOTICE
+				target = SERVER_BUFFER;
+			}
 
 			var allowedPrefixes = client.isupport.get("STATUSMSG");
 			if (allowedPrefixes) {
