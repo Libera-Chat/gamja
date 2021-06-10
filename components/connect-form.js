@@ -98,6 +98,24 @@ export default class ConnectForm extends Component {
 			`;
 		}
 
+		var auth = null;
+		if (this.props.auth !== "disabled") {
+			auth = html`
+				<label>
+					Password:<br/>
+					<input
+						type="password"
+						name="password"
+						value=${this.state.password}
+						disabled=${disabled}
+						required=${this.props.auth === "mandatory"}
+						placeholder=${this.props.auth !== "mandatory" ? "(optional)" : ""}
+					/>
+				</label>
+				<br/><br/>
+			`;
+		}
+
 		return html`
 			<form onChange=${this.handleChange} onSubmit=${this.handleSubmit}>
 				<h2>Connect to IRC</h2>
@@ -108,11 +126,7 @@ export default class ConnectForm extends Component {
 				</label>
 				<br/><br/>
 
-				<label>
-					Password:<br/>
-					<input type="password" name="password" value=${this.state.password} disabled=${disabled}/>
-				</label>
-				<br/><br/>
+				${auth}
 
 				<label>
 					<input type="checkbox" name="rememberMe" checked=${this.state.rememberMe} disabled=${disabled}/>

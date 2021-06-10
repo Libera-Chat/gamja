@@ -85,6 +85,11 @@ gamja default settings can be set using a `config.json` file at the root:
 		"url": "wss://irc.example.org",
 		// Channel(s) to auto-join (string or array of strings).
 		"autojoin": "#gamja",
+		// Controls how the password UI is presented to the user. Set to
+		// "mandatory" to require a password, "optional" to accept one but not
+		// require it, and "disabled" to never ask for a password. Defaults to
+		// "optional".
+		"auth": "optional",
 		// Interval in seconds to send PING commands (number). Set to 0 to
 		// disable. Enabling PINGs can have an impact on client power usage and
 		// should only be enabled if necessary.

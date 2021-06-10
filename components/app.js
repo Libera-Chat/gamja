@@ -213,7 +213,12 @@ export default class App extends Component {
 		}
 
 		this.setState((state) => {
-			return { connectParams: { ...state.connectParams, ...connectParams } };
+			return {
+				connectParams: {
+					...state.connectParams,
+					...connectParams,
+				},
+			};
 		});
 
 		if (connectParams.autoconnect) {
@@ -1203,6 +1208,7 @@ export default class App extends Component {
 					<${ConnectForm}
 						error=${this.state.error}
 						params=${this.state.connectParams}
+						auth=${this.config.server ? this.config.server.auth : null}
 						connecting=${connecting}
 						onSubmit=${this.handleConnectSubmit}
 						key=${this.state.connectParams}
