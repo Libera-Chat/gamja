@@ -88,6 +88,21 @@ function debounce(f, delay) {
 	};
 }
 
+function showNotification(title, options) {
+	if (!window.Notification || Notification.permission !== "granted") {
+		return new EventTarget();
+	}
+
+	// This can still fail due to:
+	// https://bugs.chromium.org/p/chromium/issues/detail?id=481856
+	try {
+		return new Notification(title, options);
+	} catch (err) {
+		console.error("Failed to show notification: ", err);
+		return new EventTarget();
+	}
+}
+
 export default class App extends Component {
 	state = {
 		connectParams: {
@@ -345,12 +360,12 @@ export default class App extends Component {
 				msgUnread = Unread.MESSAGE;
 			}
 
-			if (msgUnread == Unread.HIGHLIGHT && window.Notification && Notification.permission === "granted" && !isDelivered && !irc.parseCTCP(msg)) {
+			if (msgUnread == Unread.HIGHLIGHT && !isDelivered && !irc.parseCTCP(msg)) {
 				var title = "New " + kind + " from " + msg.prefix.name;
 				if (client.isChannel(bufName)) {
 					title += " in " + bufName;
 				}
-				var notif = new Notification(title, {
+				var notif = showNotification(title, {
 					body: stripANSI(text),
 					requireInteraction: true,
 				});
@@ -364,25 +379,23 @@ export default class App extends Component {
 			msgUnread = Unread.HIGHLIGHT;
 
 			var channel = msg.params[1];
-			if (window.Notification && Notification.permission === "granted") {
-				var notif = new Notification("Invitation to " + channel, {
-					body: msg.prefix.name + " has invited you to " + channel,
-					requireInteraction: true,
-					actions: [{
-						action: "accept",
-						title: "Accept",
-					}],
-				});
-				notif.addEventListener("click", (event) => {
-					if (event.action === "accept") {
-						this.setReceipt(bufName, ReceiptType.READ, msg);
-						this.open(channel, serverID);
-					} else {
-						// TODO: scroll to message
-						this.switchBuffer({ server: serverID, name: bufName });
-					}
-				});
-			}
+			var notif = new Notification("Invitation to " + channel, {
+				body: msg.prefix.name + " has invited you to " + channel,
+				requireInteraction: true,
+				actions: [{
+					action: "accept",
+					title: "Accept",
+				}],
+			});
+			notif.addEventListener("click", (event) => {
+				if (event.action === "accept") {
+					this.setReceipt(bufName, ReceiptType.READ, msg);
+					this.open(channel, serverID);
+				} else {
+					// TODO: scroll to message
+					this.switchBuffer({ server: serverID, name: bufName });
+				}
+			});
 		}
 
 		if (!client.isMyNick(msg.prefix.name) && (msg.command != "PART" && msg.comand != "QUIT")) {

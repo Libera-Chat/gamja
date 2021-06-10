@@ -306,6 +306,21 @@ class FoldGroup extends Component {
 	}
 }
 
+// Workaround for https://bugs.chromium.org/p/chromium/issues/detail?id=481856
+var notificationsSupported = false;
+if (window.Notification) {
+	notificationsSupported = true;
+	if (Notification.permission === "default") {
+		try {
+			new Notification("");
+		} catch (err) {
+			if (err.name === "TypeError") {
+				notificationsSupported = false;
+			}
+		}
+	}
+}
+
 class NotificationNagger extends Component {
 	state = { nag: false };
 
@@ -318,7 +333,7 @@ class NotificationNagger extends Component {
 	}
 
 	shouldNag() {
-		return window.Notification && Notification.permission !== "granted" && Notification.permission !== "denied";
+		return notificationsSupported && Notification.permission === "default";
 	}
 
 	handleClick(event) {
