@@ -368,6 +368,7 @@ export default class App extends Component {
 				var notif = showNotification(title, {
 					body: stripANSI(text),
 					requireInteraction: true,
+					tag: "msg," + msg.prefix.name + "," + bufName,
 				});
 				notif.addEventListener("click", () => {
 					// TODO: scroll to message
@@ -382,6 +383,7 @@ export default class App extends Component {
 			var notif = new Notification("Invitation to " + channel, {
 				body: msg.prefix.name + " has invited you to " + channel,
 				requireInteraction: true,
+				tag: "invite," + msg.prefix.name + "," + channel,
 				actions: [{
 					action: "accept",
 					title: "Accept",
