@@ -167,7 +167,7 @@ class LogLine extends Component {
 			break;
 		case irc.RPL_MOTD:
 			lineClass = "motd";
-			content = msg.params[1];
+			content = linkify(stripANSI(msg.params[1]), onChannelClick);
 			break;
 		default:
 			if (irc.isError(msg.command) && msg.command != irc.ERR_NOMOTD) {
