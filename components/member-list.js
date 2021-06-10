@@ -50,10 +50,10 @@ class MemberItem extends Component {
 }
 
 function sortMembers(a, b) {
-	var [nickA, membA] = a, [nickB, membB] = b;
+	let [nickA, membA] = a, [nickB, membB] = b;
 
 	const prefixPrivs = ["~", "&", "@", "%", "+"]; // TODO: grab it from ISUPPORT PREFIX
-	var i = prefixPrivs.indexOf(membA[0]), j = prefixPrivs.indexOf(membB[0]);
+	let i = prefixPrivs.indexOf(membA[0]), j = prefixPrivs.indexOf(membB[0]);
 	if (i < 0) {
 		i = prefixPrivs.length;
 	}

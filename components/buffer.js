@@ -5,8 +5,8 @@ import { strip as stripANSI } from "../lib/ansi.js";
 import { BufferType, getNickURL, getChannelURL, getMessageURL } from "../state.js";
 
 function djb2(s) {
-	var hash = 5381;
-	for (var i = 0; i < s.length; i++) {
+	let hash = 5381;
+	for (let i = 0; i < s.length; i++) {
 		hash = (hash << 5) + hash + s.charCodeAt(i);
 		hash = hash >>> 0; // convert to uint32
 	}
@@ -19,7 +19,7 @@ function Nick(props) {
 		props.onClick();
 	}
 
-	var colorIndex = djb2(props.nick) % 16 + 1;
+	let colorIndex = djb2(props.nick) % 16 + 1;
 	return html`
 		<a href=${getNickURL(props.nick)} class="nick nick-${colorIndex}" onClick=${handleClick}>${props.nick}</a>
 	`;
@@ -30,10 +30,10 @@ function Timestamp({ date, url }) {
 		return html`<spam class="timestamp">--:--:--</span>`;
 	}
 
-	var hh = date.getHours().toString().padStart(2, "0");
-	var mm = date.getMinutes().toString().padStart(2, "0");
-	var ss = date.getSeconds().toString().padStart(2, "0");
-	var timestamp = `${hh}:${mm}:${ss}`;
+	let hh = date.getHours().toString().padStart(2, "0");
+	let mm = date.getMinutes().toString().padStart(2, "0");
+	let ss = date.getSeconds().toString().padStart(2, "0");
+	let timestamp = `${hh}:${mm}:${ss}`;
 	return html`
 		<a href=${url} class="timestamp" onClick=${(event) => event.preventDefault()}>${timestamp}</a>
 	`;
@@ -62,10 +62,10 @@ class LogLine extends Component {
 	}
 
 	render() {
-		var msg = this.props.message;
+		let msg = this.props.message;
 
-		var onNickClick = this.props.onNickClick;
-		var onChannelClick = this.props.onChannelClick;
+		let onNickClick = this.props.onNickClick;
+		let onChannelClick = this.props.onChannelClick;
 		function createNick(nick) {
 			return html`
 				<${Nick} nick=${nick} onClick=${() => onNickClick(nick)}/>
@@ -83,14 +83,14 @@ class LogLine extends Component {
 			`;
 		}
 
-		var lineClass = "";
-		var content;
+		let lineClass = "";
+		let content;
 		switch (msg.command) {
 		case "NOTICE":
 		case "PRIVMSG":
-			var text = msg.params[1];
+			let text = msg.params[1];
 
-			var ctcp = irc.parseCTCP(msg);
+			let ctcp = irc.parseCTCP(msg);
 			if (ctcp) {
 				if (ctcp.command == "ACTION") {
 					lineClass = "me-tell";
@@ -102,7 +102,7 @@ class LogLine extends Component {
 				}
 			} else {
 				lineClass = "talk";
-				var prefix = "<", suffix = ">";
+				let prefix = "<", suffix = ">";
 				if (msg.command == "NOTICE") {
 					prefix = suffix = "-";
 				}
@@ -129,7 +129,7 @@ class LogLine extends Component {
 			`;
 			break;
 		case "NICK":
-			var newNick = msg.params[0];
+			let newNick = msg.params[0];
 			content = html`
 				${createNick(msg.prefix.name)} is now known as ${createNick(newNick)}
 			`;
@@ -145,14 +145,14 @@ class LogLine extends Component {
 			`;
 			break;
 		case "TOPIC":
-			var topic = msg.params[1];
+			let topic = msg.params[1];
 			content = html`
 				${createNick(msg.prefix.name)} changed the topic to: ${linkify(stripANSI(topic), onChannelClick)}
 			`;
 			break;
 		case "INVITE":
-			var invitee = msg.params[0];
-			var channel = msg.params[1];
+			let invitee = msg.params[0];
+			let channel = msg.params[1];
 			// TODO: instead of checking buffer type, check if invitee is our nick
 			if (this.props.buffer.type === BufferType.SERVER) {
 				lineClass = "talk";
@@ -193,7 +193,7 @@ function createNickList(nicks, createNick) {
 		return createNick(nicks[0]);
 	}
 
-	var l = nicks.slice(0, nicks.length - 1).map((nick, i) => {
+	let l = nicks.slice(0, nicks.length - 1).map((nick, i) => {
 		if (i === 0) {
 			return createNick(nick);
 		} else {
@@ -214,17 +214,17 @@ class FoldGroup extends Component {
 	}
 
 	render() {
-		var msgs = this.props.messages;
-		var buf = this.props.buffer;
+		let msgs = this.props.messages;
+		let buf = this.props.buffer;
 
-		var onNickClick = this.props.onNickClick;
+		let onNickClick = this.props.onNickClick;
 		function createNick(nick) {
 			return html`
 				<${Nick} nick=${nick} onClick=${() => onNickClick(nick)}/>
 			`;
 		}
 
-		var byCommand = {
+		let byCommand = {
 			"JOIN": [],
 			"PART": [],
 			"QUIT": [],
@@ -234,15 +234,15 @@ class FoldGroup extends Component {
 			byCommand[msg.command].push(msg);
 		});
 
-		var first = true;
-		var content = [];
+		let first = true;
+		let content = [];
 		["JOIN", "PART", "QUIT"].forEach((cmd) => {
 			if (byCommand[cmd].length === 0) {
 				return;
 			}
 
-			var plural = byCommand[cmd].length > 1;
-			var action;
+			let plural = byCommand[cmd].length > 1;
+			let action;
 			switch (cmd) {
 			case "JOIN":
 				action = plural ? "have joined" : "has joined";
@@ -261,7 +261,7 @@ class FoldGroup extends Component {
 				content.push(", ");
 			}
 
-			var nicks = byCommand[cmd].map((msg) => msg.prefix.name);
+			let nicks = byCommand[cmd].map((msg) => msg.prefix.name);
 
 			content.push(createNickList(nicks, createNick));
 			content.push(" " + action);
@@ -274,16 +274,16 @@ class FoldGroup extends Component {
 				content.push(", ");
 			}
 
-			var newNick = msg.params[0];
+			let newNick = msg.params[0];
 			content.push(html`
 				${createNick(msg.prefix.name)} is now known as ${createNick(newNick)}
 			`);
 		});
 
-		var lastMsg = msgs[msgs.length - 1];
-		var firstDate = new Date(msgs[0].tags.time);
-		var lastDate = new Date(lastMsg.tags.time);
-		var timestamp = html`
+		let lastMsg = msgs[msgs.length - 1];
+		let firstDate = new Date(msgs[0].tags.time);
+		let lastDate = new Date(lastMsg.tags.time);
+		let timestamp = html`
 			<${Timestamp} date=${firstDate} url=${getMessageURL(buf, msgs[0])}/>
 		`;
 		if (lastDate - firstDate > 60 * 100) {
@@ -307,7 +307,7 @@ class FoldGroup extends Component {
 }
 
 // Workaround for https://bugs.chromium.org/p/chromium/issues/detail?id=481856
-var notificationsSupported = false;
+let notificationsSupported = false;
 if (window.Notification) {
 	notificationsSupported = true;
 	if (Notification.permission === "default") {
@@ -369,11 +369,11 @@ class DateSeparator extends Component {
 	}
 
 	render() {
-		var date = this.props.date;
-		var YYYY = date.getFullYear().toString().padStart(4, "0");
-		var MM = (date.getMonth() + 1).toString().padStart(2, "0");
-		var DD = date.getDate().toString().padStart(2, "0");
-		var text = `${YYYY}-${MM}-${DD}`;
+		let date = this.props.date;
+		let YYYY = date.getFullYear().toString().padStart(4, "0");
+		let MM = (date.getMonth() + 1).toString().padStart(2, "0");
+		let DD = date.getDate().toString().padStart(2, "0");
+		let text = `${YYYY}-${MM}-${DD}`;
 		return html`
 			<div class="separator date-separator">
 				${text}
@@ -396,18 +396,18 @@ export default class Buffer extends Component {
 	}
 
 	render() {
-		var buf = this.props.buffer;
+		let buf = this.props.buffer;
 		if (!buf) {
 			return null;
 		}
 
-		var children = [];
+		let children = [];
 		if (buf.type == BufferType.SERVER) {
 			children.push(html`<${NotificationNagger}/>`);
 		}
 
-		var onChannelClick = this.props.onChannelClick;
-		var onNickClick = this.props.onNickClick;
+		let onChannelClick = this.props.onChannelClick;
+		let onNickClick = this.props.onNickClick;
 		function createLogLine(msg) {
 			return html`
 				<${LogLine}
@@ -421,8 +421,8 @@ export default class Buffer extends Component {
 		}
 		function createFoldGroup(msgs) {
 			// Filter out PART → JOIN pairs
-			var partIndexes = new Map();
-			var keep = [];
+			let partIndexes = new Map();
+			let keep = [];
 			msgs.forEach((msg, i) => {
 				if (msg.command === "PART" || msg.command === "QUIT") {
 					partIndexes.set(msg.prefix.name, i);
@@ -452,18 +452,18 @@ export default class Buffer extends Component {
 			`;
 		}
 
-		var hasUnreadSeparator = false;
-		var prevDate = new Date();
-		var foldMessages = [];
+		let hasUnreadSeparator = false;
+		let prevDate = new Date();
+		let foldMessages = [];
 		buf.messages.forEach((msg) => {
-			var sep = [];
+			let sep = [];
 
 			if (!hasUnreadSeparator && buf.type != BufferType.SERVER && buf.lastReadReceipt && msg.tags.time > buf.lastReadReceipt.time) {
 				sep.push(html`<${UnreadSeparator} key="unread"/>`);
 				hasUnreadSeparator = true;
 			}
 
-			var date = new Date(msg.tags.time);
+			let date = new Date(msg.tags.time);
 			if (!sameDate(prevDate, date)) {
 				sep.push(html`<${DateSeparator} key=${"date-" + date} date=${date}/>`);
 			}

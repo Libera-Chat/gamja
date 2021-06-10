@@ -38,15 +38,15 @@ export default class NetworkForm extends Component {
 	}
 
 	handleChange(event) {
-		var target = event.target;
-		var value = target.type == "checkbox" ? target.checked : target.value;
+		let target = event.target;
+		let value = target.type == "checkbox" ? target.checked : target.value;
 		this.setState({ [target.name]: value });
 	}
 
 	handleSubmit(event) {
 		event.preventDefault();
 
-		var params = {};
+		let params = {};
 		Object.keys(defaultParams).forEach((k) => {
 			if (this.prevParams[k] == this.state[k]) {
 				return;
@@ -58,7 +58,7 @@ export default class NetworkForm extends Component {
 	}
 
 	render() {
-		var removeNetwork = null;
+		let removeNetwork = null;
 		if (!this.state.isNew) {
 			removeNetwork = html`
 				<button type="button" onClick=${() => this.props.onRemove()}>

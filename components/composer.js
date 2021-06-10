@@ -34,21 +34,21 @@ export default class Composer extends Component {
 			return;
 		}
 
-		var text = this.state.text;
-		var i;
+		let text = this.state.text;
+		let i;
 		for (i = text.length - 1; i >= 0; i--) {
 			if (text[i] === " ") {
 				break;
 			}
 		}
-		var prefix = text.slice(i + 1);
+		let prefix = text.slice(i + 1);
 		if (!prefix) {
 			return;
 		}
 
 		event.preventDefault();
 
-		var repl = this.props.autocomplete(prefix);
+		let repl = this.props.autocomplete(prefix);
 		if (!repl) {
 			return;
 		}

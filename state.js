@@ -55,7 +55,7 @@ export function getBufferURL(buf) {
 }
 
 export function getMessageURL(buf, msg) {
-	var bufURL = getBufferURL(buf);
+	let bufURL = getBufferURL(buf);
 	if (msg.tags.msgid) {
 		return bufURL + "?msgid=" + encodeURIComponent(msg.tags.msgid);
 	} else {
@@ -71,7 +71,7 @@ export function getServerName(server, bouncerNetwork, isBouncer) {
 		return "bouncer";
 	}
 
-	var netName = server.isupport.get("NETWORK");
+	let netName = server.isupport.get("NETWORK");
 	if (netName) {
 		return netName;
 	}
@@ -80,7 +80,7 @@ export function getServerName(server, bouncerNetwork, isBouncer) {
 }
 
 function updateState(state, updater) {
-	var updated;
+	let updated;
 	if (typeof updater === "function") {
 		updated = updater(state, state);
 	} else {
@@ -119,9 +119,9 @@ function insertMessage(list, msg) {
 		return list.concat(msg);
 	}
 
-	var insertBefore = -1;
-	for (var i = 0; i < list.length; i++) {
-		var other = list[i];
+	let insertBefore = -1;
+	for (let i = 0; i < list.length; i++) {
+		let other = list[i];
 		if (msg.tags.time < other.tags.time) {
 			insertBefore = i;
 			break;
@@ -134,42 +134,42 @@ function insertMessage(list, msg) {
 	return list;
 }
 
-var lastServerID = 0;
-var lastBufferID = 0;
+let lastServerID = 0;
+let lastBufferID = 0;
 
 export const State = {
 	updateServer(state, id, updater) {
-		var server = state.servers.get(id);
+		let server = state.servers.get(id);
 		if (!server) {
 			return;
 		}
 
-		var updated = updateState(server, updater);
+		let updated = updateState(server, updater);
 		if (!updated) {
 			return;
 		}
 
-		var servers = new Map(state.servers);
+		let servers = new Map(state.servers);
 		servers.set(id, updated);
 		return { servers };
 	},
 	updateBuffer(state, id, updater) {
-		var buf = State.getBuffer(state, id);
+		let buf = State.getBuffer(state, id);
 		if (!buf) {
 			return;
 		}
 
-		var updated = updateState(buf, updater);
+		let updated = updateState(buf, updater);
 		if (!updated) {
 			return;
 		}
 
-		var buffers = new Map(state.buffers);
+		let buffers = new Map(state.buffers);
 		buffers.set(buf.id, updated);
 		return { buffers };
 	},
 	getActiveServerID(state) {
-		var buf = state.buffers.get(state.activeBuffer);
+		let buf = state.buffers.get(state.activeBuffer);
 		if (!buf) {
 			return null;
 		}
@@ -184,7 +184,7 @@ export const State = {
 				return state.buffers.get(id.id);
 			}
 
-			var serverID = id.server, name = id.name;
+			let serverID = id.server, name = id.name;
 			if (!serverID) {
 				serverID = State.getActiveServerID(state);
 			}
@@ -192,14 +192,14 @@ export const State = {
 				name = SERVER_BUFFER;
 			}
 
-			var cm = irc.CaseMapping.RFC1459;
-			var server = state.servers.get(serverID);
+			let cm = irc.CaseMapping.RFC1459;
+			let server = state.servers.get(serverID);
 			if (server) {
 				cm = irc.CaseMapping.byName(server.isupport.get("CASEMAPPING")) || cm;
 			}
 
-			var nameCM = cm(name);
-			for (var buf of state.buffers.values()) {
+			let nameCM = cm(name);
+			for (let buf of state.buffers.values()) {
 				if (buf.server === serverID && cm(buf.name) === nameCM) {
 					return buf;
 				}
@@ -211,9 +211,9 @@ export const State = {
 	},
 	createServer(state) {
 		lastServerID++;
-		var id = lastServerID;
+		let id = lastServerID;
 
-		var servers = new Map(state.servers);
+		let servers = new Map(state.servers);
 		servers.set(id, {
 			id,
 			status: ServerStatus.DISCONNECTED,
@@ -222,15 +222,15 @@ export const State = {
 		return [id, { servers }];
 	},
 	createBuffer(state, name, serverID, client) {
-		var buf = State.getBuffer(state, { server: serverID, name });
+		let buf = State.getBuffer(state, { server: serverID, name });
 		if (buf) {
 			return [buf.id, null];
 		}
 
 		lastBufferID++;
-		var id = lastBufferID;
+		let id = lastBufferID;
 
-		var type;
+		let type;
 		if (name == SERVER_BUFFER) {
 			type = BufferType.SERVER;
 		} else if (client.isChannel(name)) {
@@ -239,7 +239,7 @@ export const State = {
 			type = BufferType.NICK;
 		}
 
-		var bufferList = Array.from(state.buffers.values());
+		let bufferList = Array.from(state.buffers.values());
 		bufferList.push({
 			id,
 			name,
@@ -254,7 +254,7 @@ export const State = {
 			unread: Unread.NONE,
 		});
 		bufferList = bufferList.sort(compareBuffers);
-		var buffers = new Map(bufferList.map((buf) => [buf.id, buf]));
+		let buffers = new Map(bufferList.map((buf) => [buf.id, buf]));
 		return [id, { buffers }];
 	},
 	handleMessage(state, msg, serverID, client) {
@@ -270,21 +270,22 @@ export const State = {
 			return;
 		}
 
+		let channel, topic;
 		switch (msg.command) {
 		case irc.RPL_MYINFO:
 			// TODO: parse available modes
-			var serverInfo = {
+			let serverInfo = {
 				name: msg.params[1],
 				version: msg.params[2],
 			};
 			return updateBuffer(SERVER_BUFFER, { serverInfo });
 		case irc.RPL_ISUPPORT:
-			var buffers = new Map(state.buffers);
+			let buffers = new Map(state.buffers);
 			state.buffers.forEach((buf) => {
 				if (buf.server != serverID) {
 					return;
 				}
-				var members = new irc.CaseMapMap(buf.members, client.cm);
+				let members = new irc.CaseMapMap(buf.members, client.cm);
 				buffers.set(buf.id, { ...buf, members });
 			});
 			return {
@@ -292,23 +293,23 @@ export const State = {
 				...updateServer({ isupport: new Map(client.isupport) }),
 			};
 		case irc.RPL_NOTOPIC:
-			var channel = msg.params[1];
+			channel = msg.params[1];
 			return updateBuffer(channel, { topic: null });
 		case irc.RPL_TOPIC:
-			var channel = msg.params[1];
-			var topic = msg.params[2];
+			channel = msg.params[1];
+			topic = msg.params[2];
 			return updateBuffer(channel, { topic });
 		case irc.RPL_TOPICWHOTIME:
 			// Ignore
 			break;
 		case irc.RPL_NAMREPLY:
-			var channel = msg.params[2];
-			var membersList = msg.params[3].split(" ");
+			channel = msg.params[2];
+			let membersList = msg.params[3].split(" ");
 
 			return updateBuffer(channel, (buf) => {
-				var members = new irc.CaseMapMap(buf.members);
+				let members = new irc.CaseMapMap(buf.members);
 				membersList.forEach((s) => {
-					var member = irc.parseTargetPrefix(s);
+					let member = irc.parseTargetPrefix(s);
 					members.set(member.name, member.prefix);
 				});
 				return { members };
@@ -316,8 +317,8 @@ export const State = {
 		case irc.RPL_ENDOFNAMES:
 			break;
 		case irc.RPL_WHOREPLY:
-			var last = msg.params[msg.params.length - 1];
-			var who = {
+			let last = msg.params[msg.params.length - 1];
+			let who = {
 				username: msg.params[2],
 				hostname: msg.params[3],
 				server: msg.params[4],
@@ -327,7 +328,7 @@ export const State = {
 			};
 			return updateBuffer(who.nick, { who, offline: false });
 		case irc.RPL_ENDOFWHO:
-			var target = msg.params[1];
+			let target = msg.params[1];
 			if (!client.isChannel(target) && target.indexOf("*") < 0) {
 				// Not a channel nor a mask, likely a nick
 				return updateBuffer(target, (buf) => {
@@ -341,57 +342,57 @@ export const State = {
 			}
 			break;
 		case "JOIN":
-			var channel = msg.params[0];
+			channel = msg.params[0];
 
 			if (client.isMyNick(msg.prefix.name)) {
-				var [id, update] = State.createBuffer(state, channel, serverID, client);
+				let [id, update] = State.createBuffer(state, channel, serverID, client);
 				state = { ...state, ...update };
 			}
 
-			var update = updateBuffer(channel, (buf) => {
-				var members = new irc.CaseMapMap(buf.members);
+			let update = updateBuffer(channel, (buf) => {
+				let members = new irc.CaseMapMap(buf.members);
 				members.set(msg.prefix.name, "");
 				return { members };
 			});
 			return { ...state, ...update };
 		case "PART":
-			var channel = msg.params[0];
+			channel = msg.params[0];
 
 			return updateBuffer(channel, (buf) => {
-				var members = new irc.CaseMapMap(buf.members);
+				let members = new irc.CaseMapMap(buf.members);
 				members.delete(msg.prefix.name);
 				return { members };
 			});
 		case "KICK":
-			var channel = msg.params[0];
-			var nick = msg.params[1];
+			channel = msg.params[0];
+			let nick = msg.params[1];
 
 			return updateBuffer(channel, (buf) => {
-				var members = new irc.CaseMapMap(buf.members);
+				let members = new irc.CaseMapMap(buf.members);
 				members.delete(nick);
 				return { members };
 			});
 		case "SETNAME":
 			return updateBuffer(msg.prefix.name, (buf) => {
-				var who = { ...buf.who, realname: msg.params[0] };
+				let who = { ...buf.who, realname: msg.params[0] };
 				return { who };
 			});
 		case "AWAY":
-			var awayMessage = msg.params[0];
+			let awayMessage = msg.params[0];
 
 			return updateBuffer(msg.prefix.name, (buf) => {
-				var who = { ...buf.who, away: !!awayMessage };
+				let who = { ...buf.who, away: !!awayMessage };
 				return { who };
 			});
 		case "TOPIC":
-			var channel = msg.params[0];
-			var topic = msg.params[1];
+			channel = msg.params[0];
+			topic = msg.params[1];
 			return updateBuffer(channel, { topic });
 		}
 	},
 	addMessage(state, msg, bufID) {
 		return State.updateBuffer(state, bufID, (buf) => {
-			var messages = insertMessage(buf.messages, msg);
+			let messages = insertMessage(buf.messages, msg);
 			return { messages };
 		});
 	},

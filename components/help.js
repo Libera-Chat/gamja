@@ -3,8 +3,8 @@ import { keybindings } from "../keybindings.js";
 import commands from "../commands.js";
 
 function KeyBindingsHelp() {
-	var l = keybindings.map((binding) => {
-		var keys = [];
+	let l = keybindings.map((binding) => {
+		let keys = [];
 		if (binding.ctrlKey) {
 			keys.psuh("Ctrl");
 		}
@@ -37,10 +37,10 @@ function KeyBindingsHelp() {
 }
 
 function CommandsHelp() {
-	var l = Object.keys(commands).map((name) => {
-		var cmd = commands[name];
+	let l = Object.keys(commands).map((name) => {
+		let cmd = commands[name];
 
-		var usage = "/" + name;
+		let usage = "/" + name;
 		if (cmd.usage) {
 			usage += " " + cmd.usage;
 		}

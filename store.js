@@ -15,7 +15,7 @@ class Item {
 	}
 
 	load() {
-		var v = localStorage.getItem(this.k);
+		let v = localStorage.getItem(this.k);
 		if (!v) {
 			return null;
 		}
@@ -37,7 +37,7 @@ const rawReceipts = new Item("receipts");
 
 export const receipts = {
 	load() {
-		var v = rawReceipts.load();
+		let v = rawReceipts.load();
 		return new Map(Object.entries(v || {}));
 	},
 	put(m) {

@@ -1,8 +1,8 @@
 import { ReceiptType, Unread, BufferType, SERVER_BUFFER } from "./state.js";
 
 function getSiblingBuffer(buffers, bufID, delta) {
-	var bufList = Array.from(buffers.values());
-	var i = bufList.findIndex((buf) => buf.id === bufID);
+	let bufList = Array.from(buffers.values());
+	let i = bufList.findIndex((buf) => buf.id === bufID);
 	if (i < 0) {
 		return null;
 	}
@@ -17,10 +17,10 @@ export const keybindings = [
 		description: "Mark all messages as read",
 		execute: (app) => {
 			app.setState((state) => {
-				var buffers = new Map();
+				let buffers = new Map();
 				state.buffers.forEach((buf) => {
 					if (buf.messages.length > 0) {
-						var lastMsg = buf.messages[buf.messages.length - 1];
+						let lastMsg = buf.messages[buf.messages.length - 1];
 						app.setReceipt(buf.name, ReceiptType.READ, lastMsg);
 					}
 					buffers.set(buf.id, {
@@ -38,9 +38,9 @@ export const keybindings = [
 		description: "Jump to next buffer with activity",
 		execute: (app) => {
 			// TODO: order by age if same priority
-			var firstServerBuffer = null;
-			var target = null;
-			for (var buf of app.state.buffers.values()) {
+			let firstServerBuffer = null;
+			let target = null;
+			for (let buf of app.state.buffers.values()) {
 				if (!firstServerBuffer && buf.type === BufferType.SERVER) {
 					firstServerBuffer = buf;
 				}
@@ -66,7 +66,7 @@ export const keybindings = [
 		altKey: true,
 		description: "Jump to the previous buffer",
 		execute: (app) => {
-			var prev = getSiblingBuffer(app.state.buffers, app.state.activeBuffer, -1);
+			let prev = getSiblingBuffer(app.state.buffers, app.state.activeBuffer, -1);
 			if (prev) {
 				app.switchBuffer(prev);
 			}
@@ -77,7 +77,7 @@ export const keybindings = [
 		altKey: true,
 		description: "Jump to the next buffer",
 		execute: (app) => {
-			var next = getSiblingBuffer(app.state.buffers, app.state.activeBuffer, 1);
+			let next = getSiblingBuffer(app.state.buffers, app.state.activeBuffer, 1);
 			if (next) {
 				app.switchBuffer(next);
 			}
@@ -86,7 +86,7 @@ export const keybindings = [
 ];
 
 export function setup(app) {
-	var byKey = {};
+	let byKey = {};
 	keybindings.forEach((binding) => {
 		if (!byKey[binding.key]) {
 			byKey[binding.key] = [];
@@ -95,7 +95,7 @@ export function setup(app) {
 	});
 
 	window.addEventListener("keydown", (event) => {
-		var candidates = byKey[event.key];
+		let candidates = byKey[event.key];
 		if (!candidates) {
 			return;
 		}

@@ -35,28 +35,28 @@ const configPromise = fetch("./config.json")
 
 const CHATHISTORY_MAX_SIZE = 4000;
 
-var messagesCount = 0;
+let messagesCount = 0;
 
 function parseQueryString() {
-	var query = window.location.search.substring(1);
-	var params = {};
+	let query = window.location.search.substring(1);
+	let params = {};
 	query.split('&').forEach((s) => {
 		if (!s) {
 			return;
 		}
-		var pair = s.split('=');
+		let pair = s.split('=');
 		params[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || "");
 	});
 	return params;
 }
 
 function fillConnectParams(params) {
-	var host = window.location.host || "localhost:8080";
-	var proto = "wss:";
+	let host = window.location.host || "localhost:8080";
+	let proto = "wss:";
 	if (window.location.protocol != "https:") {
 		proto = "ws:";
 	}
-	var path = window.location.pathname || "/";
+	let path = window.location.pathname || "/";
 	if (!window.location.host) {
 		path = "/";
 	}
@@ -78,7 +78,7 @@ function fillConnectParams(params) {
 }
 
 function debounce(f, delay) {
-	var timeout = null;
+	let timeout = null;
 	return (...args) => {
 		clearTimeout(timeout);
 		timeout = setTimeout(() => {
@@ -177,7 +177,7 @@ export default class App extends Component {
 	handleConfig(config) {
 		this.config = config;
 
-		var connectParams = {};
+		let connectParams = {};
 
 		if (config.server) {
 			connectParams.url = config.server.url;
@@ -188,7 +188,7 @@ export default class App extends Component {
 			}
 		}
 
-		var autoconnect = store.autoconnect.load();
+		let autoconnect = store.autoconnect.load();
 		if (autoconnect) {
 			connectParams = {
 				...connectParams,
@@ -197,7 +197,7 @@ export default class App extends Component {
 			};
 		}
 
-		var queryParams = parseQueryString();
+		let queryParams = parseQueryString();
 		if (queryParams.server) {
 			connectParams.url = queryParams.server;
 		}
@@ -245,10 +245,10 @@ export default class App extends Component {
 	}
 
 	createBuffer(serverID, name) {
-		var id = null;
+		let id = null;
 		this.setState((state) => {
-			var client = this.clients.get(serverID);
-			var updated;
+			let client = this.clients.get(serverID);
+			let updated;
 			[id, updated] = State.createBuffer(state, name, serverID, client);
 			return updated;
 		});
@@ -256,7 +256,7 @@ export default class App extends Component {
 	}
 
 	switchBuffer(id) {
-		var buf;
+		let buf;
 		this.setState((state) => {
 			buf = State.getBuffer(state, id);
 			if (!buf) {
@@ -268,7 +268,7 @@ export default class App extends Component {
 				return;
 			}
 
-			var lastReadReceipt = this.getReceipt(buf.name, ReceiptType.READ);
+			let lastReadReceipt = this.getReceipt(buf.name, ReceiptType.READ);
 			// TODO: only mark as read if user scrolled at the bottom
 			this.setBufferState(buf.id, {
 				unread: Unread.NONE,
@@ -282,7 +282,7 @@ export default class App extends Component {
 			if (buf.messages.length == 0) {
 				return;
 			}
-			var lastMsg = buf.messages[buf.messages.length - 1];
+			let lastMsg = buf.messages[buf.messages.length - 1];
 			this.setReceipt(buf.name, ReceiptType.READ, lastMsg);
 		});
 	}
@@ -292,7 +292,7 @@ export default class App extends Component {
 	}
 
 	getReceipt(target, type) {
-		var receipts = this.receipts.get(target);
+		let receipts = this.receipts.get(target);
 		if (!receipts) {
 			return undefined;
 		}
@@ -300,12 +300,12 @@ export default class App extends Component {
 	}
 
 	hasReceipt(target, type, msg) {
-		var receipt = this.getReceipt(target, type);
+		let receipt = this.getReceipt(target, type);
 		return receipt && msg.tags.time <= receipt.time;
 	}
 
 	setReceipt(target, type, msg) {
-		var receipt = this.getReceipt(target, type);
+		let receipt = this.getReceipt(target, type);
 		if (this.hasReceipt(target, type, msg)) {
 			return;
 		}
@@ -318,9 +318,9 @@ export default class App extends Component {
 	}
 
 	latestReceipt(type) {
-		var last = null;
+		let last = null;
 		this.receipts.forEach((receipts, target) => {
-			var delivery = receipts[type];
+			let delivery = receipts[type];
 			if (target == "*" || !delivery || !delivery.time) {
 				return;
 			}
@@ -332,7 +332,7 @@ export default class App extends Component {
 	}
 
 	addMessage(serverID, bufName, msg) {
-		var client = this.clients.get(serverID);
+		let client = this.clients.get(serverID);
 
 		msg.key = messagesCount;
 		messagesCount++;
@@ -346,15 +346,15 @@ export default class App extends Component {
 			msg.tags.time = irc.formatDate(new Date());
 		}
 
-		var isDelivered = this.hasReceipt(bufName, ReceiptType.DELIVERED, msg);
-		var isRead = this.hasReceipt(bufName, ReceiptType.READ, msg);
+		let isDelivered = this.hasReceipt(bufName, ReceiptType.DELIVERED, msg);
+		let isRead = this.hasReceipt(bufName, ReceiptType.READ, msg);
 		// TODO: messages coming from infinite scroll shouldn't trigger notifications
 
-		var msgUnread = Unread.NONE;
+		let msgUnread = Unread.NONE;
 		if ((msg.command == "PRIVMSG" || msg.command == "NOTICE") && !isRead) {
-			var text = msg.params[1];
+			let text = msg.params[1];
 
-			var kind;
+			let kind;
 			if (msg.isHighlight) {
 				msgUnread = Unread.HIGHLIGHT;
 				kind = "highlight";
@@ -366,11 +366,11 @@ export default class App extends Component {
 			}
 
 			if (msgUnread == Unread.HIGHLIGHT && !isDelivered && !irc.parseCTCP(msg)) {
-				var title = "New " + kind + " from " + msg.prefix.name;
+				let title = "New " + kind + " from " + msg.prefix.name;
 				if (client.isChannel(bufName)) {
 					title += " in " + bufName;
 				}
-				var notif = showNotification(title, {
+				let notif = showNotification(title, {
 					body: stripANSI(text),
 					requireInteraction: true,
 					tag: "msg," + msg.prefix.name + "," + bufName,
@@ -384,8 +384,8 @@ export default class App extends Component {
 		if (msg.command === "INVITE" && client.isMyNick(msg.params[0])) {
 			msgUnread = Unread.HIGHLIGHT;
 
-			var channel = msg.params[1];
-			var notif = new Notification("Invitation to " + channel, {
+			let channel = msg.params[1];
+			let notif = new Notification("Invitation to " + channel, {
 				body: msg.prefix.name + " has invited you to " + channel,
 				requireInteraction: true,
 				tag: "invite," + msg.prefix.name + "," + channel,
@@ -411,12 +411,12 @@ export default class App extends Component {
 
 		this.setReceipt(bufName, ReceiptType.DELIVERED, msg);
 
-		var bufID = { server: serverID, name: bufName };
+		let bufID = { server: serverID, name: bufName };
 		this.setState((state) => State.addMessage(state, msg, bufID));
 		this.setBufferState(bufID, (buf) => {
 			// TODO: set unread if scrolled up
-			var unread = buf.unread;
-			var lastReadReceipt = buf.lastReadReceipt;
+			let unread = buf.unread;
+			let lastReadReceipt = buf.lastReadReceipt;
 			if (this.state.activeBuffer != buf.id) {
 				unread = Unread.union(unread, msgUnread);
 			} else {
@@ -428,15 +428,15 @@ export default class App extends Component {
 	}
 
 	connect(params) {
-		var serverID = null;
+		let serverID = null;
 		this.setState((state) => {
-			var update;
+			let update;
 			[serverID, update] = State.createServer(state);
 			return update;
 		});
 		this.setState({ connectParams: params });
 
-		var client = new Client(fillConnectParams(params));
+		let client = new Client(fillConnectParams(params));
 		this.clients.set(serverID, client);
 		this.setServerState(serverID, { status: client.status });
 
@@ -474,7 +474,7 @@ export default class App extends Component {
 			serverID = State.getActiveServerID(this.state);
 		}
 
-		var client = this.clients.get(serverID);
+		let client = this.clients.get(serverID);
 		if (client) {
 			this.clients.delete(serverID);
 			client.disconnect();
@@ -486,14 +486,14 @@ export default class App extends Component {
 			serverID = State.getActiveServerID(this.state);
 		}
 
-		var client = this.clients.get(serverID);
+		let client = this.clients.get(serverID);
 		if (client) {
 			client.reconnect();
 		}
 	}
 
 	serverFromBouncerNetwork(bouncerNetworkID) {
-		for (var [id, client] of this.clients) {
+		for (let [id, client] of this.clients) {
 			if (client.params.bouncerNetwork === bouncerNetworkID) {
 				return id;
 			}
@@ -502,11 +502,12 @@ export default class App extends Component {
 	}
 
 	handleMessage(serverID, msg) {
-		var client = this.clients.get(serverID);
-		var chatHistoryBatch = irc.findBatchByType(msg, "chathistory");
+		let client = this.clients.get(serverID);
+		let chatHistoryBatch = irc.findBatchByType(msg, "chathistory");
 
 		this.setState((state) => State.handleMessage(state, msg, serverID, client));
 
+		let target, channel, affectedBuffers;
 		switch (msg.command) {
 		case irc.RPL_WELCOME:
 			if (this.state.connectParams.autojoin.length > 0) {
@@ -516,23 +517,23 @@ export default class App extends Component {
 				});
 			}
 
-			var lastReceipt = this.latestReceipt(ReceiptType.READ);
+			let lastReceipt = this.latestReceipt(ReceiptType.READ);
 			if (lastReceipt && lastReceipt.time && client.enabledCaps["draft/chathistory"] && (!client.enabledCaps["soju.im/bouncer-networks"] || client.params.bouncerNetwork)) {
-				var now = irc.formatDate(new Date());
+				let now = irc.formatDate(new Date());
 				client.fetchHistoryTargets(now, lastReceipt.time).then((targets) => {
 					targets.forEach((target) => {
-						var from = this.getReceipt(target, ReceiptType.READ);
+						let from = this.getReceipt(target, ReceiptType.READ);
 						if (!from) {
 							from = lastReceipt;
 						}
-						var to = { time: msg.tags.time || irc.formatDate(new Date()) };
+						let to = { time: msg.tags.time || irc.formatDate(new Date()) };
 						this.fetchBacklog(client, target.name, from, to);
 					});
 				});
 			}
 			break;
 		case "MODE":
-			var target = msg.params[0];
+			target = msg.params[0];
 			if (client.isChannel(target)) {
 				this.addMessage(serverID, target, msg);
 			}
@@ -542,7 +543,7 @@ export default class App extends Component {
 			break;
 		case "NOTICE":
 		case "PRIVMSG":
-			var target = msg.params[0];
+			target = msg.params[0];
 			if (client.isMyNick(target)) {
 				if (client.cm(msg.prefix.name) === client.cm(client.serverPrefix.name)) {
 					target = SERVER_BUFFER;
@@ -555,9 +556,9 @@ export default class App extends Component {
 				target = SERVER_BUFFER;
 			}
 
-			var allowedPrefixes = client.isupport.get("STATUSMSG");
+			let allowedPrefixes = client.isupport.get("STATUSMSG");
 			if (allowedPrefixes) {
-				var parts = irc.parseTargetPrefix(target, allowedPrefixes);
+				let parts = irc.parseTargetPrefix(target, allowedPrefixes);
 				if (client.isChannel(parts.name)) {
 					target = parts.name;
 				}
@@ -566,7 +567,7 @@ export default class App extends Component {
 			this.addMessage(serverID, target, msg);
 			break;
 		case "JOIN":
-			var channel = msg.params[0];
+			channel = msg.params[0];
 
 			if (!client.isMyNick(msg.prefix.name)) {
 				this.addMessage(serverID, channel, msg);
@@ -577,7 +578,7 @@ export default class App extends Component {
 			}
 			break;
 		case "PART":
-			var channel = msg.params[0];
+			channel = msg.params[0];
 
 			this.addMessage(serverID, channel, msg);
 
@@ -587,16 +588,16 @@ export default class App extends Component {
 			}
 			break;
 		case "KICK":
-			var channel = msg.params[0];
+			channel = msg.params[0];
 			this.addMessage(serverID, channel, msg);
 			break;
 		case "QUIT":
-			var affectedBuffers = [];
+			affectedBuffers = [];
 			if (chatHistoryBatch) {
 				affectedBuffers.push(chatHistoryBatch.params[0]);
 			} else {
 				this.setState((state) => {
-					var buffers = new Map(state.buffers);
+					let buffers = new Map(state.buffers);
 					state.buffers.forEach((buf) => {
 						if (buf.server != serverID) {
 							return;
@@ -604,9 +605,9 @@ export default class App extends Component {
 						if (!buf.members.has(msg.prefix.name) && client.cm(buf.name) !== client.cm(msg.prefix.name)) {
 							return;
 						}
-						var members = new irc.CaseMapMap(buf.members);
+						let members = new irc.CaseMapMap(buf.members);
 						members.delete(msg.prefix.name);
-						var offline = client.cm(buf.name) === client.cm(msg.prefix.name);
+						let offline = client.cm(buf.name) === client.cm(msg.prefix.name);
 						buffers.set(buf.id, { ...buf, members, offline });
 						affectedBuffers.push(buf.name);
 					});
@@ -617,14 +618,14 @@ export default class App extends Component {
 			affectedBuffers.forEach((name) => this.addMessage(serverID, name, msg));
 			break;
 		case "NICK":
-			var newNick = msg.params[0];
+			let newNick = msg.params[0];
 
-			var affectedBuffers = [];
+			affectedBuffers = [];
 			if (chatHistoryBatch) {
 				affectedBuffers.push(chatHistoryBatch.params[0]);
 			} else {
 				this.setState((state) => {
-					var buffers = new Map(state.buffers);
+					let buffers = new Map(state.buffers);
 					state.buffers.forEach((buf) => {
 						if (buf.server != serverID) {
 							return;
@@ -632,7 +633,7 @@ export default class App extends Component {
 						if (!buf.members.has(msg.prefix.name)) {
 							return;
 						}
-						var members = new irc.CaseMapMap(buf.members);
+						let members = new irc.CaseMapMap(buf.members);
 						members.set(newNick, members.get(msg.prefix.name));
 						members.delete(msg.prefix.name);
 						buffers.set(buf.id, { ...buf, members });
@@ -645,14 +646,14 @@ export default class App extends Component {
 			affectedBuffers.forEach((name) => this.addMessage(serverID, name, msg));
 			break;
 		case "TOPIC":
-			var channel = msg.params[0];
+			channel = msg.params[0];
 			this.addMessage(serverID, channel, msg);
 			break;
 		case "INVITE":
-			var channel = msg.params[1];
+			channel = msg.params[1];
 
 			// TODO: find a more reliable way to do this
-			var bufName = channel;
+			let bufName = channel;
 			if (!State.getBuffer(this.state, { server: serverID, name: channel })) {
 				bufName = SERVER_BUFFER;
 			}
@@ -670,19 +671,19 @@ export default class App extends Component {
 				break;
 			}
 
-			var id = msg.params[1];
-			var attrs = null;
+			let id = msg.params[1];
+			let attrs = null;
 			if (msg.params[2] !== "*") {
 				attrs = irc.parseTags(msg.params[2]);
 			}
 
-			var isNew = false;
+			let isNew = false;
 			this.setState((state) => {
-				var bouncerNetworks = new Map(state.bouncerNetworks);
+				let bouncerNetworks = new Map(state.bouncerNetworks);
 				if (!attrs) {
 					bouncerNetworks.delete(id);
 				} else {
-					var prev = bouncerNetworks.get(id);
+					let prev = bouncerNetworks.get(id);
 					isNew = prev === undefined;
 					attrs = { ...prev, ...attrs };
 					bouncerNetworks.set(id, attrs);
@@ -690,7 +691,7 @@ export default class App extends Component {
 				return { bouncerNetworks };
 			}, () => {
 				if (!attrs) {
-					var serverID = this.serverFromBouncerNetwork(id);
+					let serverID = this.serverFromBouncerNetwork(id);
 					if (serverID) {
 						this.close({ server: serverID, name: SERVER_BUFFER });
 					}
@@ -710,7 +711,7 @@ export default class App extends Component {
 		case irc.RPL_ENDOFEXCEPTLIST:
 		case irc.RPL_BANLIST:
 		case irc.RPL_ENDOFBANLIST:
-			var channel = msg.params[1];
+			channel = msg.params[1];
 			this.addMessage(serverID, channel, msg);
 			break;
 		case irc.RPL_MYINFO:
@@ -734,7 +735,7 @@ export default class App extends Component {
 			break;
 		default:
 			if (irc.isError(msg.command) && msg.command != irc.ERR_NOMOTD) {
-				var description = msg.params[msg.params.length - 1];
+				let description = msg.params[msg.params.length - 1];
 				this.setState({ error: description });
 			}
 			this.addMessage(serverID, SERVER_BUFFER, msg);
@@ -754,8 +755,8 @@ export default class App extends Component {
 	}
 
 	handleChannelClick(channel) {
-		var serverID = State.getActiveServerID(this.state);
-		var buf = State.getBuffer(this.state, { server: serverID, name: channel });
+		let serverID = State.getActiveServerID(this.state);
+		let buf = State.getBuffer(this.state, { server: serverID, name: channel });
 		if (buf) {
 			this.switchBuffer(buf.id);
 		} else {
@@ -780,7 +781,7 @@ export default class App extends Component {
 			serverID = State.getActiveServerID(this.state);
 		}
 
-		var client = this.clients.get(serverID);
+		let client = this.clients.get(serverID);
 		if (client.isServer(target)) {
 			this.switchBuffer({ server: serverID });
 		} else if (client.isChannel(target)) {
@@ -794,22 +795,23 @@ export default class App extends Component {
 	}
 
 	close(id) {
-		var buf = State.getBuffer(this.state, id);
+		let buf = State.getBuffer(this.state, id);
 		if (!buf) {
 			return;
 		}
 
+		let client = this.clients.get(buf.server);
 		switch (buf.type) {
 		case BufferType.SERVER:
 			this.setState((state) => {
-				var buffers = new Map(state.buffers);
-				for (var [id, b] of state.buffers) {
+				let buffers = new Map(state.buffers);
+				for (let [id, b] of state.buffers) {
 					if (b.server === buf.server) {
 						buffers.delete(id);
 					}
 				}
 
-				var activeBuffer = state.activeBuffer;
+				let activeBuffer = state.activeBuffer;
 				if (activeBuffer && state.buffers.get(activeBuffer).server === buf.server) {
 					if (buffers.size > 0) {
 						activeBuffer = buffers.keys().next().value;
@@ -821,16 +823,15 @@ export default class App extends Component {
 				return { buffers, activeBuffer };
 			});
 
-			var client = this.clients.get(buf.server);
-			var disconnectAll = client && !client.params.bouncerNetwork && client.enabledCaps["soju.im/bouncer-networks"];
+			let disconnectAll = client && !client.params.bouncerNetwork && client.enabledCaps["soju.im/bouncer-networks"];
 
 			this.disconnect(buf.server);
 
 			this.setState((state) => {
-				var servers = new Map(state.servers);
+				let servers = new Map(state.servers);
 				servers.delete(buf.server);
 
-				var connectForm = state.connectForm;
+				let connectForm = state.connectForm;
 				if (servers.size == 0) {
 					connectForm = true;
 				}
@@ -839,7 +840,7 @@ export default class App extends Component {
 			});
 
 			if (disconnectAll) {
-				for (var serverID of this.clients.keys()) {
+				for (let serverID of this.clients.keys()) {
 					this.close({ server: serverID, name: SERVER_BUFFER });
 				}
 			}
@@ -850,13 +851,12 @@ export default class App extends Component {
 			}
 			break;
 		case BufferType.CHANNEL:
-			var client = this.clients.get(buf.server);
 			client.send({ command: "PART", params: [buf.name] });
 			// fallthrough
 		case BufferType.NICK:
 			this.switchBuffer({ name: SERVER_BUFFER });
 			this.setState((state) => {
-				var buffers = new Map(state.buffers);
+				let buffers = new Map(state.buffers);
 				buffers.delete(buf.id);
 				return { buffers };
 			});
@@ -868,11 +868,11 @@ export default class App extends Component {
 	}
 
 	executeCommand(s) {
-		var parts = s.split(" ");
-		var name = parts[0].toLowerCase().slice(1);
-		var args = parts.slice(1);
+		let parts = s.split(" ");
+		let name = parts[0].toLowerCase().slice(1);
+		let args = parts.slice(1);
 
-		var cmd = commands[name];
+		let cmd = commands[name];
 		if (!cmd) {
 			this.setState({ error: `Unknown command "${name}" (run "/help" to get a command list)` });
 			return;
@@ -892,10 +892,10 @@ export default class App extends Component {
 			return;
 		}
 
-		var serverID = State.getActiveServerID(this.state);
-		var client = this.clients.get(serverID);
+		let serverID = State.getActiveServerID(this.state);
+		let client = this.clients.get(serverID);
 
-		var msg = { command: "PRIVMSG", params: [target, text] };
+		let msg = { command: "PRIVMSG", params: [target, text] };
 		client.send(msg);
 
 		if (!client.enabledCaps["echo-message"]) {
@@ -916,7 +916,7 @@ export default class App extends Component {
 			return;
 		}
 
-		var buf = this.state.buffers.get(this.state.activeBuffer);
+		let buf = this.state.buffers.get(this.state.activeBuffer);
 		if (!buf) {
 			return;
 		}
@@ -931,7 +931,7 @@ export default class App extends Component {
 
 	toggleBufferList() {
 		this.setState((state) => {
-			var openPanels = {
+			let openPanels = {
 				...state.openPanels,
 				bufferList: !state.openPanels.bufferList,
 			};
@@ -941,7 +941,7 @@ export default class App extends Component {
 
 	toggleMemberList() {
 		this.setState((state) => {
-			var openPanels = {
+			let openPanels = {
 				...state.openPanels,
 				memberList: !state.openPanels.memberList,
 			};
@@ -951,7 +951,7 @@ export default class App extends Component {
 
 	closeBufferList() {
 		this.setState((state) => {
-			var openPanels = {
+			let openPanels = {
 				...state.openPanels,
 				bufferList: false,
 			};
@@ -961,7 +961,7 @@ export default class App extends Component {
 
 	closeMemberList() {
 		this.setState((state) => {
-			var openPanels = {
+			let openPanels = {
 				...state.openPanels,
 				memberList: false,
 			};
@@ -974,7 +974,7 @@ export default class App extends Component {
 	}
 
 	handleJoinSubmit(data) {
-		var client = this.clients.get(this.state.joinDialog.server);
+		let client = this.clients.get(this.state.joinDialog.server);
 
 		this.switchToChannel = data.channel;
 		client.send({ command: "JOIN", params: [data.channel] });
@@ -985,8 +985,8 @@ export default class App extends Component {
 	autocomplete(prefix) {
 		function fromList(l, prefix) {
 			prefix = prefix.toLowerCase();
-			var repl = null;
-			for (var item of l) {
+			let repl = null;
+			for (let item of l) {
 				if (item.toLowerCase().startsWith(prefix)) {
 					if (repl) {
 						return null;
@@ -998,14 +998,14 @@ export default class App extends Component {
 		}
 
 		if (prefix.startsWith("/")) {
-			var repl = fromList(Object.keys(commands), prefix.slice(1));
+			let repl = fromList(Object.keys(commands), prefix.slice(1));
 			if (repl) {
 				repl = "/" + repl;
 			}
 			return repl;
 		}
 
-		var buf = this.state.buffers.get(this.state.activeBuffer);
+		let buf = this.state.buffers.get(this.state.activeBuffer);
 		if (!buf || !buf.members) {
 			return null;
 		}
@@ -1017,12 +1017,12 @@ export default class App extends Component {
 	}
 
 	handleBufferScrollTop() {
-		var buf = this.state.buffers.get(this.state.activeBuffer);
+		let buf = this.state.buffers.get(this.state.activeBuffer);
 		if (!buf || buf.type == BufferType.SERVER) {
 			return;
 		}
 
-		var client = this.clients.get(buf.server);
+		let client = this.clients.get(buf.server);
 
 		if (!client || !client.enabledCaps["draft/chathistory"] || !client.enabledCaps["server-time"]) {
 			return;
@@ -1031,7 +1031,7 @@ export default class App extends Component {
 			return;
 		}
 
-		var before;
+		let before;
 		if (buf.messages.length > 0) {
 			before = buf.messages[0].tags["time"];
 		} else {
@@ -1055,9 +1055,9 @@ export default class App extends Component {
 	}
 
 	handleManageNetworkClick(serverID) {
-		var server = this.state.servers.get(serverID);
-		var bouncerNetID = server.isupport.get("BOUNCER_NETID");
-		var bouncerNetwork = this.state.bouncerNetworks.get(bouncerNetID);
+		let server = this.state.servers.get(serverID);
+		let bouncerNetID = server.isupport.get("BOUNCER_NETID");
+		let bouncerNetwork = this.state.bouncerNetworks.get(bouncerNetID);
 		this.setState({
 			dialog: "network",
 			networkDialog: {
@@ -1068,7 +1068,7 @@ export default class App extends Component {
 	}
 
 	handleNetworkSubmit(attrs) {
-		var client = this.clients.values().next().value;
+		let client = this.clients.values().next().value;
 
 		if (this.state.networkDialog && this.state.networkDialog.id) {
 			if (Object.keys(attrs).length == 0) {
@@ -1092,7 +1092,7 @@ export default class App extends Component {
 	}
 
 	handleNetworkRemove() {
-		var client = this.clients.values().next().value;
+		let client = this.clients.values().next().value;
 
 		client.send({
 			command: "BOUNCER",
@@ -1103,29 +1103,29 @@ export default class App extends Component {
 	}
 
 	handleMode(serverID, msg) {
-		var client = this.clients.get(serverID);
-		var chanmodes = client.isupport.get("CHANMODES") || irc.STD_CHANMODES;
-		var prefix = client.isupport.get("PREFIX") || "";
+		let client = this.clients.get(serverID);
+		let chanmodes = client.isupport.get("CHANMODES") || irc.STD_CHANMODES;
+		let prefix = client.isupport.get("PREFIX") || "";
 
-		var prefixByMode = new Map(irc.parseMembershipModes(prefix).map((membership) => {
+		let prefixByMode = new Map(irc.parseMembershipModes(prefix).map((membership) => {
 			return [membership.mode, membership.prefix];
 		}));
 
-		var typeByMode = new Map();
-		var [a, b, c, d] = chanmodes.split(",");
+		let typeByMode = new Map();
+		let [a, b, c, d] = chanmodes.split(",");
 		Array.from(a).forEach((mode) => typeByMode.set(mode, "A"));
 		Array.from(b).forEach((mode) => typeByMode.set(mode, "B"));
 		Array.from(c).forEach((mode) => typeByMode.set(mode, "C"));
 		Array.from(d).forEach((mode) => typeByMode.set(mode, "D"));
 		prefixByMode.forEach((prefix, mode) => typeByMode.set(mode, "B"));
 
-		var channel = msg.params[0];
-		var change = msg.params[1];
-		var args = msg.params.slice(2);
+		let channel = msg.params[0];
+		let change = msg.params[1];
+		let args = msg.params.slice(2);
 
-		var plusMinus = null;
-		var j = 0;
-		for (var i = 0; i < change.length; i++) {
+		let plusMinus = null;
+		let j = 0;
+		for (let i = 0; i < change.length; i++) {
 			if (change[i] === "+" || change[i] === "-") {
 				plusMinus = change[i];
 				continue;
@@ -1134,15 +1134,15 @@ export default class App extends Component {
 				throw new Error("malformed mode string: missing plus/minus");
 			}
 
-			var mode = change[i];
-			var add = plusMinus === "+";
+			let mode = change[i];
+			let add = plusMinus === "+";
 
-			var modeType = typeByMode.get(mode);
+			let modeType = typeByMode.get(mode);
 			if (!modeType) {
 				continue;
 			}
 
-			var arg = null;
+			let arg = null;
 			if (modeType === "A" || modeType === "B" || (modeType === "C" && add)) {
 				arg = args[j];
 				j++;
@@ -1159,18 +1159,18 @@ export default class App extends Component {
 	}
 
 	handlePrefixChange(serverID, channel, nick, letter, add) {
-		var client = this.clients.get(serverID);
-		var prefix = client.isupport.get("PREFIX") || "";
+		let client = this.clients.get(serverID);
+		let prefix = client.isupport.get("PREFIX") || "";
 
-		var prefixPrivs = new Map(irc.parseMembershipModes(prefix).map((membership, i) => {
+		let prefixPrivs = new Map(irc.parseMembershipModes(prefix).map((membership, i) => {
 			return [membership.prefix, i];
 		}));
 
 		this.setBufferState({ server: serverID, name: channel }, (buf) => {
-			var members = new irc.CaseMapMap(buf.members);
-			var membership = members.get(nick);
+			let members = new irc.CaseMapMap(buf.members);
+			let membership = members.get(nick);
 			if (add) {
-				var i = membership.indexOf(letter);
+				let i = membership.indexOf(letter);
 				if (i < 0) {
 					membership += letter;
 				}
@@ -1190,24 +1190,24 @@ export default class App extends Component {
 	}
 
 	render() {
-		var activeBuffer = null, activeServer = null, activeBouncerNetwork = null;
-		var isBouncer = false;
+		let activeBuffer = null, activeServer = null, activeBouncerNetwork = null;
+		let isBouncer = false;
 		if (this.state.buffers.get(this.state.activeBuffer)) {
 			activeBuffer = this.state.buffers.get(this.state.activeBuffer);
 			activeServer = this.state.servers.get(activeBuffer.server);
 
-			var activeClient = this.clients.get(activeBuffer.server);
+			let activeClient = this.clients.get(activeBuffer.server);
 			isBouncer = activeClient && activeClient.enabledCaps["soju.im/bouncer-networks"];
 
-			var bouncerNetID = activeServer.isupport.get("BOUNCER_NETID");
+			let bouncerNetID = activeServer.isupport.get("BOUNCER_NETID");
 			if (bouncerNetID) {
 				activeBouncerNetwork = this.state.bouncerNetworks.get(bouncerNetID);
 			}
 		}
 
 		if (this.state.connectForm) {
-			var status = activeServer ? activeServer.status : ServerStatus.DISCONNECTED;
-			var connecting = status === ServerStatus.CONNECTING || status === ServerStatus.REGISTERING;
+			let status = activeServer ? activeServer.status : ServerStatus.DISCONNECTED;
+			let connecting = status === ServerStatus.CONNECTING || status === ServerStatus.REGISTERING;
 			// TODO: using key=connectParams trashes the ConnectForm state on update
 			return html`
 				<section id="connect">
@@ -1223,7 +1223,7 @@ export default class App extends Component {
 			`;
 		}
 
-		var bufferHeader = null;
+		let bufferHeader = null;
 		if (activeBuffer) {
 			bufferHeader = html`
 				<section id="buffer-header">
@@ -1242,7 +1242,7 @@ export default class App extends Component {
 			`;
 		}
 
-		var memberList = null;
+		let memberList = null;
 		if (activeBuffer && activeBuffer.type == BufferType.CHANNEL) {
 			memberList = html`
 				<section
@@ -1269,10 +1269,10 @@ export default class App extends Component {
 			`;
 		}
 
-		var dialog = null;
+		let dialog = null;
 		switch (this.state.dialog) {
 		case "network":
-			var title = this.state.networkDialog ? "Edit network" : "Add network";
+			let title = this.state.networkDialog ? "Edit network" : "Add network";
 			dialog = html`
 				<${Dialog} title=${title} onDismiss=${this.handleDialogDismiss}>
 					<${NetworkForm}
@@ -1299,7 +1299,7 @@ export default class App extends Component {
 			break;
 		}
 
-		var error = null;
+		let error = null;
 		if (this.state.error) {
 			error = html`
 				<p id="error-msg">
@@ -1310,7 +1310,7 @@ export default class App extends Component {
 			`;
 		}
 
-		var composerReadOnly = false;
+		let composerReadOnly = false;
 		if (activeBuffer && activeBuffer.type === BufferType.SERVER) {
 			composerReadOnly = true;
 		}

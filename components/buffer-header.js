@@ -10,12 +10,12 @@ const UserStatus = {
 };
 
 function NickStatus(props) {
-	var textMap = {
+	let textMap = {
 		[UserStatus.HERE]: "User is online",
 		[UserStatus.GONE]: "User is away",
 		[UserStatus.OFFLINE]: "User is offline",
 	};
-	var text = textMap[props.status];
+	let text = textMap[props.status];
 	return html`<span class="status status-${props.status}" title=${text}>●</span>`;
 }
 
@@ -37,7 +37,7 @@ export default function BufferHeader(props) {
 		props.onManageNetwork();
 	}
 
-	var description = null, actions = null;
+	let description = null, actions = null;
 	switch (props.buffer.type) {
 	case BufferType.SERVER:
 		switch (props.server.status) {
@@ -65,7 +65,7 @@ export default function BufferHeader(props) {
 					break;
 				}
 			} else if (props.buffer.serverInfo) {
-				var serverInfo = props.buffer.serverInfo;
+				let serverInfo = props.buffer.serverInfo;
 				description = `Connected to ${serverInfo.name}`;
 			} else {
 				description = "Connected";
@@ -126,11 +126,11 @@ export default function BufferHeader(props) {
 		break;
 	case BufferType.NICK:
 		if (props.buffer.who) {
-			var who = props.buffer.who;
+			let who = props.buffer.who;
 
-			var realname = stripANSI(who.realname || "");
+			let realname = stripANSI(who.realname || "");
 
-			var status = UserStatus.HERE;
+			let status = UserStatus.HERE;
 			if (who.away) {
 				status = UserStatus.GONE;
 			}
@@ -154,7 +154,7 @@ export default function BufferHeader(props) {
 		break;
 	}
 
-	var name = props.buffer.name;
+	let name = props.buffer.name;
 	if (props.buffer.type == BufferType.SERVER) {
 		name = getServerName(props.server, props.bouncerNetwork, props.isBouncer);
 	}

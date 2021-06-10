@@ -32,8 +32,8 @@ export default class ConnectForm extends Component {
 	}
 
 	handleChange(event) {
-		var target = event.target;
-		var value = target.type == "checkbox" ? target.checked : target.value;
+		let target = event.target;
+		let value = target.type == "checkbox" ? target.checked : target.value;
 		this.setState({ [target.name]: value });
 	}
 
@@ -44,7 +44,7 @@ export default class ConnectForm extends Component {
 			return;
 		}
 
-		var params = {
+		let params = {
 			url: this.state.url,
 			pass: this.state.pass,
 			nick: this.state.nick,
@@ -74,9 +74,9 @@ export default class ConnectForm extends Component {
 	}
 
 	render() {
-		var disabled = this.props.connecting;
+		let disabled = this.props.connecting;
 
-		var serverURL = null;
+		let serverURL = null;
 		if (!this.props.params || !this.props.params.url) {
 			serverURL = html`
 				<label>
@@ -87,7 +87,7 @@ export default class ConnectForm extends Component {
 			`;
 		}
 
-		var status = null;
+		let status = null;
 		if (this.props.connecting) {
 			status = html`
 				<p>Connecting...</p>
@@ -98,7 +98,7 @@ export default class ConnectForm extends Component {
 			`;
 		}
 
-		var auth = null;
+		let auth = null;
 		if (this.props.auth !== "disabled") {
 			auth = html`
 				<label>

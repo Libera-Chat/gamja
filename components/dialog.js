@@ -35,7 +35,7 @@ export default class Dialog extends Component {
 	componentDidMount() {
 		window.addEventListener("keydown", this.handleKeyDown);
 
-		var autofocus = this.body.current.querySelector("input[autofocus]");
+		let autofocus = this.body.current.querySelector("input[autofocus]");
 		if (autofocus) {
 			autofocus.focus();
 		}

@@ -2,7 +2,7 @@ import * as irc from "./lib/irc.js";
 import { SERVER_BUFFER, BufferType } from "./state.js";
 
 function getActiveClient(app) {
-	var buf = app.state.buffers.get(app.state.activeBuffer);
+	let buf = app.state.buffers.get(app.state.activeBuffer);
 	if (!buf) {
 		throw new Error("Not connected to server");
 	}
@@ -10,7 +10,7 @@ function getActiveClient(app) {
 }
 
 function getActiveTarget(app) {
-	var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
+	let activeBuffer = app.state.buffers.get(app.state.activeBuffer);
 	if (!activeBuffer) {
 		throw new Error("Not in a buffer");
 	}
@@ -18,7 +18,7 @@ function getActiveTarget(app) {
 }
 
 function getActiveChannel(app) {
-	var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
+	let activeBuffer = app.state.buffers.get(app.state.activeBuffer);
 	if (!activeBuffer || activeBuffer.type !== BufferType.CHANNEL) {
 		throw new Error("Not in a channel");
 	}
@@ -26,12 +26,12 @@ function getActiveChannel(app) {
 }
 
 function setUserHostMode(app, args, mode) {
-	var nick = args[0];
+	let nick = args[0];
 	if (!nick) {
 		throw new Error("Missing nick");
 	}
-	var activeChannel = getActiveChannel(app);
-	var client = getActiveClient(app);
+	let activeChannel = getActiveChannel(app);
+	let client = getActiveClient(app);
 	client.whois(nick).then((whois) => {
 		const info = whois[irc.RPL_WHOISUSER].params;
 		const user = info[2];
@@ -47,7 +47,7 @@ const join = {
 	usage: "<name>",
 	description: "Join a channel",
 	execute: (app, args) => {
-		var channel = args[0];
+		let channel = args[0];
 		if (!channel) {
 			throw new Error("Missing channel name");
 		}
@@ -59,9 +59,9 @@ const kick = {
 	usage: "<nick>",
 	description: "Remove a user from the channel",
 	execute: (app, args) => {
-		var nick = args[0];
-		var activeChannel = getActiveChannel(app);
-		var params = [activeChannel, nick];
+		let nick = args[0];
+		let activeChannel = getActiveChannel(app);
+		let params = [activeChannel, nick];
 		if (args.length > 1) {
 			params.push(args.slice(1).join(" "));
 		}
@@ -71,11 +71,11 @@ const kick = {
 
 function givemode(app, args, mode) {
 	// TODO: Handle several users at once
-	var nick = args[0];
+	let nick = args[0];
 	if (!nick) {
 		throw new Error("Missing nick");
 	}
-	var activeChannel = getActiveChannel(app);
+	let activeChannel = getActiveChannel(app);
 	getActiveClient(app).send({
 		command: "MODE",
 		params: [activeChannel, mode, nick],
@@ -88,7 +88,7 @@ export default {
 		description: "Ban a user from the channel, or display the current ban list",
 		execute: (app, args) => {
 			if (args.length == 0) {
-				var activeChannel = getActiveChannel(app);
+				let activeChannel = getActiveChannel(app);
 				getActiveClient(app).send({
 					command: "MODE",
 					params: [activeChannel, "+b"],
@@ -102,8 +102,8 @@ export default {
 		usage: "<name>",
 		description: "Switch to a buffer",
 		execute: (app, args) => {
-			var name = args[0];
-			for (var buf of app.state.buffers.values()) {
+			let name = args[0];
+			for (let buf of app.state.buffers.values()) {
 				if (buf.name === name) {
 					app.switchBuffer(buf);
 					return;
@@ -115,7 +115,7 @@ export default {
 	"close": {
 		description: "Close the current buffer",
 		execute: (app, args) => {
-			var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
+			let activeBuffer = app.state.buffers.get(app.state.activeBuffer);
 			if (!activeBuffer || activeBuffer.type == BufferType.SERVER) {
 				throw new Error("Not in a user or channel buffer");
 			}
@@ -148,11 +148,11 @@ export default {
 		usage: "<nick>",
 		description: "Invite a user to the channel",
 		execute: (app, args) => {
-			var nick = args[0];
+			let nick = args[0];
 			if (!nick) {
 				throw new Error("Missing nick");
 			}
-			var activeChannel = getActiveChannel(app);
+			let activeChannel = getActiveChannel(app);
 			getActiveClient(app).send({ command: "INVITE", params: [
 				nick, activeChannel,
 			]});
@@ -180,9 +180,9 @@ export default {
 		usage: "<action>",
 		description: "Send an action message to the current buffer",
 		execute: (app, args) => {
-			var action = args.join(" ");
-			var target = getActiveTarget(app);
-			var text = `\x01ACTION ${action}\x01`;
+			let action = args.join(" ");
+			let target = getActiveTarget(app);
+			let text = `\x01ACTION ${action}\x01`;
 			app.privmsg(target, text);
 		},
 	},
@@ -190,9 +190,9 @@ export default {
 		usage: "[target] [modes] [mode args...]",
 		description: "Query or change a channel or user mode",
 		execute: (app, args) => {
-			var target = args[0];
+			let target = args[0];
 			if (!target || target.startsWith("+") || target.startsWith("-")) {
-				var activeChannel = getActiveChannel(app);
+				let activeChannel = getActiveChannel(app);
 				args = [activeChannel, ...args];
 			}
 			getActiveClient(app).send({ command: "MODE", params: args });
@@ -209,8 +209,8 @@ export default {
 		usage: "<target> <message>",
 		description: "Send a message to a nickname or a channel",
 		execute: (app, args) => {
-			var target = args[0];
-			var text = args.slice(1).join(" ");
+			let target = args[0];
+			let text = args.slice(1).join(" ");
 			getActiveClient(app).send({ command: "PRIVMSG", params: [target, text] });
 		},
 	},
@@ -218,7 +218,7 @@ export default {
 		usage: "<nick>",
 		description: "Change current nickname",
 		execute: (app, args) => {
-			var newNick = args[0];
+			let newNick = args[0];
 			getActiveClient(app).send({ command: "NICK", params: [newNick] });
 		},
 	},
@@ -226,8 +226,8 @@ export default {
 		usage: "<target> <message>",
 		description: "Send a notice to a nickname or a channel",
 		execute: (app, args) => {
-			var target = args[0];
-			var text = args.slice(1).join(" ");
+			let target = args[0];
+			let text = args.slice(1).join(" ");
 			getActiveClient(app).send({ command: "NOTICE", params: [target, text] });
 		},
 	},
@@ -240,9 +240,9 @@ export default {
 		usage: "[reason]",
 		description: "Leave a channel",
 		execute: (app, args) => {
-			var reason = args.join(" ");
-			var activeChannel = getActiveChannel(app);
-			var params = [activeChannel];
+			let reason = args.join(" ");
+			let activeChannel = getActiveChannel(app);
+			let params = [activeChannel];
 			if (reason) {
 				params.push(reason);
 			}
@@ -253,7 +253,7 @@ export default {
 		usage: "<nick>",
 		description: "Open a buffer to send messages to a nickname",
 		execute: (app, args) => {
-			var nick = args[0];
+			let nick = args[0];
 			if (!nick) {
 				throw new Error("Missing nickname");
 			}
@@ -270,7 +270,7 @@ export default {
 		usage: "<command>",
 		description: "Send a raw IRC command to the server",
 		execute: (app, args) => {
-			var msg;
+			let msg;
 			try {
 				msg = irc.parseMessage(args.join(" "));
 			} catch (err) {
@@ -289,8 +289,8 @@ export default {
 		usage: "<realname>",
 		description: "Change current realname",
 		execute: (app, args) => {
-			var newRealname = args.join(" ");
-			var client = getActiveClient(app);
+			let newRealname = args.join(" ");
+			let client = getActiveClient(app);
 			if (!client.enabledCaps["setname"]) {
 				throw new Error("Server doesn't support changing the realname");
 			}
@@ -301,11 +301,11 @@ export default {
 		usage: "<query> [server]",
 		description: "Request server statistics",
 		execute: (app, args) => {
-			var query = args[0];
+			let query = args[0];
 			if (!query) {
 				throw new Error("Missing query");
 			}
-			var params = [query];
+			let params = [query];
 			if (args.length > 1) {
 				params.push(args.slice(1).join(" "));
 			}
@@ -316,8 +316,8 @@ export default {
 		usage: "<topic>",
 		description: "Change the topic of the current channel",
 		execute: (app, args) => {
-			var activeChannel = getActiveChannel(app);
-			var params = [activeChannel];
+			let activeChannel = getActiveChannel(app);
+			let params = [activeChannel];
 			if (args.length > 0) {
 				params.push(args.join(" "));
 			}
@@ -347,7 +347,7 @@ export default {
 		usage: "<nick>",
 		description: "Retrieve information about a user",
 		execute: (app, args) => {
-			var nick = args[0];
+			let nick = args[0];
 			if (!nick) {
 				throw new Error("Missing nick");
 			}

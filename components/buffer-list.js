@@ -8,12 +8,12 @@ function BufferItem(props) {
 		props.onClick();
 	}
 
-	var name = props.buffer.name;
+	let name = props.buffer.name;
 	if (props.buffer.type == BufferType.SERVER) {
 		name = getServerName(props.server, props.bouncerNetwork, props.isBouncer);
 	}
 
-	var classes = ["type-" + props.buffer.type];
+	let classes = ["type-" + props.buffer.type];
 	if (props.active) {
 		classes.push("active");
 	}
@@ -30,11 +30,11 @@ function BufferItem(props) {
 
 
 export default function BufferList(props) {
-	var items = Array.from(props.buffers.values()).map((buf) => {
-		var server = props.servers.get(buf.server);
+	let items = Array.from(props.buffers.values()).map((buf) => {
+		let server = props.servers.get(buf.server);
 
-		var bouncerNetwork = null;
-		var bouncerNetID = server.isupport.get("BOUNCER_NETID");
+		let bouncerNetwork = null;
+		let bouncerNetID = server.isupport.get("BOUNCER_NETID");
 		if (bouncerNetID) {
 			bouncerNetwork = props.bouncerNetworks.get(bouncerNetID);
 		}

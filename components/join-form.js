@@ -13,15 +13,15 @@ export default class JoinForm extends Component {
 	}
 
 	handleChange(event) {
-		var target = event.target;
-		var value = target.type == "checkbox" ? target.checked : target.value;
+		let target = event.target;
+		let value = target.type == "checkbox" ? target.checked : target.value;
 		this.setState({ [target.name]: value });
 	}
 
 	handleSubmit(event) {
 		event.preventDefault();
 
-		var params = {
+		let params = {
 			channel: this.state.channel,
 		};
 
