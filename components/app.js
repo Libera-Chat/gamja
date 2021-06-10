@@ -18,6 +18,10 @@ import commands from "../commands.js";
 import { setup as setupKeybindings } from "../keybindings.js";
 import * as store from "../store.js";
 
+const baseConfig = {
+	server: {},
+};
+
 const configPromise = fetch("./config.json")
 	.then((resp) => {
 		if (resp.ok) {
@@ -31,6 +35,12 @@ const configPromise = fetch("./config.json")
 	.catch((err) => {
 		console.error("Failed to fetch config:", err);
 		return {};
+	})
+	.then((config) => {
+		return {
+			...baseConfig,
+			...config,
+		};
 	});
 
 const CHATHISTORY_MAX_SIZE = 4000;
@@ -127,7 +137,7 @@ export default class App extends Component {
 			memberList: false,
 		},
 	};
-	config = {};
+	config = { ...baseConfig };
 	clients = new Map();
 	endOfHistory = new Map();
 	receipts = new Map();
@@ -201,9 +211,7 @@ export default class App extends Component {
 
 			// When using a custom server, some configuration options don't
 			// make sense anymore.
-			if (config.server) {
-				config.server.auth = null;
-			}
+			config.server.auth = null;
 		}
 		if (queryParams.nick) {
 			connectParams.nick = queryParams.nick;
@@ -1220,7 +1228,7 @@ export default class App extends Component {
 					<${ConnectForm}
 						error=${this.state.error}
 						params=${this.state.connectParams}
-						auth=${this.config.server ? this.config.server.auth : null}
+						auth=${this.config.server.auth}
 						connecting=${connecting}
 						onSubmit=${this.handleConnectSubmit}
 						key=${this.state.connectParams}
