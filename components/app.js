@@ -726,6 +726,8 @@ export default class App extends Component {
 		case irc.RPL_ENDOFEXCEPTLIST:
 		case irc.RPL_BANLIST:
 		case irc.RPL_ENDOFBANLIST:
+		case irc.RPL_QUIETLIST:
+		case irc.RPL_ENDOFQUIETLIST:
 			channel = msg.params[1];
 			this.addMessage(serverID, channel, msg);
 			break;

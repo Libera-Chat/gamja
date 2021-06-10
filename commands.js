@@ -272,6 +272,20 @@ export default {
 			app.open(nick);
 		},
 	},
+	"quiet": {
+		usage: "[nick]",
+		description: "Quiet a user in the channel, or display the current quiet list",
+		execute: (app, args) => {
+			if (args.length == 0) {
+				getActiveClient(app).send({
+					command: "MODE",
+					params: [getActiveChannel(app), "+q"],
+				});
+			} else {
+				return setUserHostMode(app, args, "+q");
+			}
+		},
+	},
 	"quit": {
 		description: "Quit",
 		execute: (app, args) => {
@@ -342,6 +356,13 @@ export default {
 		description: "Remove a user from the ban list",
 		execute: (app, args) => {
 			return setUserHostMode(app, args, "-b");
+		},
+	},
+	"unquiet": {
+		usage: "<nick>",
+		description: "Remove a user from the quiet list",
+		execute: (app, args) => {
+			return setUserHostMode(app, args, "-q");
 		},
 	},
 	"voice": {
