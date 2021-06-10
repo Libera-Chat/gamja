@@ -187,6 +187,9 @@ export const State = {
 			if (!serverID) {
 				serverID = State.getActiveServerID(state);
 			}
+			if (!name) {
+				name = SERVER_BUFFER;
+			}
 
 			var cm = irc.CaseMapping.RFC1459;
 			var server = state.servers.get(serverID);
