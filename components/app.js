@@ -757,8 +757,9 @@ export default class App extends Component {
 		}
 
 		var client = this.clients.get(serverID);
-
-		if (client.isChannel(target)) {
+		if (client.isServer(target)) {
+			this.switchBuffer({ server: serverID });
+		} else if (client.isChannel(target)) {
 			this.switchToChannel = target;
 			client.send({ command: "JOIN", params: [target] });
 		} else {
