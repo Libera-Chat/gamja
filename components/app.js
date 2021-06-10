@@ -118,8 +118,6 @@ export default class App extends Component {
 	receipts = new Map();
 	buffer = createRef();
 	composer = createRef();
-	lastServerID = 0;
-	lastBufferID = 0;
 	switchToChannel = null;
 
 	constructor(props) {
@@ -413,22 +411,17 @@ export default class App extends Component {
 	}
 
 	connect(params) {
-		this.lastServerID++;
-		var serverID = this.lastServerID;
-
+		var serverID = null;
 		this.setState((state) => {
-			var servers = new Map(state.servers);
-			servers.set(serverID, {
-				id: serverID,
-				status: ServerStatus.CONNECTING,
-				isupport: new Map(),
-			});
-			return { servers };
+			var update;
+			[serverID, update] = State.createServer(state);
+			return update;
 		});
 		this.setState({ connectParams: params });
 
 		var client = new Client(fillConnectParams(params));
 		this.clients.set(serverID, client);
+		this.setServerState(serverID, { status: client.status });
 
 		client.addEventListener("status", () => {
 			this.setServerState(serverID, { status: client.status });

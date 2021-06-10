@@ -134,6 +134,7 @@ function insertMessage(list, msg) {
 	return list;
 }
 
+var lastServerID = 0;
 var lastBufferID = 0;
 
 export const State = {
@@ -207,6 +208,18 @@ export const State = {
 		default:
 			throw new Error("Invalid buffer ID type: " + (typeof id));
 		}
+	},
+	createServer(state) {
+		lastServerID++;
+		var id = lastServerID;
+
+		var servers = new Map(state.servers);
+		servers.set(id, {
+			id,
+			status: ServerStatus.DISCONNECTED,
+			isupport: new Map(),
+		});
+		return [id, { servers }];
 	},
 	createBuffer(state, name, serverID, client) {
 		var buf = State.getBuffer(state, { server: serverID, name });
