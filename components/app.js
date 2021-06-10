@@ -366,13 +366,14 @@ export default class App extends Component {
 
 		let msgUnread = Unread.NONE;
 		if ((msg.command == "PRIVMSG" || msg.command == "NOTICE") && !isRead) {
+			let target = msg.params[0];
 			let text = msg.params[1];
 
 			let kind;
 			if (msg.isHighlight) {
 				msgUnread = Unread.HIGHLIGHT;
 				kind = "highlight";
-			} else if (client.isMyNick(bufName)) {
+			} else if (client.isMyNick(target)) {
 				msgUnread = Unread.HIGHLIGHT;
 				kind = "private message";
 			} else {
