@@ -547,9 +547,6 @@ export default class App extends Component {
 			if (client.isChannel(target)) {
 				this.addMessage(serverID, target, msg);
 			}
-			if (!chatHistoryBatch) {
-				this.handleMode(serverID, msg);
-			}
 			break;
 		case "NOTICE":
 		case "PRIVMSG":
@@ -1112,89 +1109,6 @@ export default class App extends Component {
 		});
 
 		this.setState({ dialog: null, networkDialog: null });
-	}
-
-	handleMode(serverID, msg) {
-		let client = this.clients.get(serverID);
-		let chanmodes = client.isupport.get("CHANMODES") || irc.STD_CHANMODES;
-		let prefix = client.isupport.get("PREFIX") || "";
-
-		let prefixByMode = new Map(irc.parseMembershipModes(prefix).map((membership) => {
-			return [membership.mode, membership.prefix];
-		}));
-
-		let typeByMode = new Map();
-		let [a, b, c, d] = chanmodes.split(",");
-		Array.from(a).forEach((mode) => typeByMode.set(mode, "A"));
-		Array.from(b).forEach((mode) => typeByMode.set(mode, "B"));
-		Array.from(c).forEach((mode) => typeByMode.set(mode, "C"));
-		Array.from(d).forEach((mode) => typeByMode.set(mode, "D"));
-		prefixByMode.forEach((prefix, mode) => typeByMode.set(mode, "B"));
-
-		let channel = msg.params[0];
-		let change = msg.params[1];
-		let args = msg.params.slice(2);
-
-		let plusMinus = null;
-		let j = 0;
-		for (let i = 0; i < change.length; i++) {
-			if (change[i] === "+" || change[i] === "-") {
-				plusMinus = change[i];
-				continue;
-			}
-			if (!plusMinus) {
-				throw new Error("malformed mode string: missing plus/minus");
-			}
-
-			let mode = change[i];
-			let add = plusMinus === "+";
-
-			let modeType = typeByMode.get(mode);
-			if (!modeType) {
-				continue;
-			}
-
-			let arg = null;
-			if (modeType === "A" || modeType === "B" || (modeType === "C" && add)) {
-				arg = args[j];
-				j++;
-			}
-
-			if (prefixByMode.has(mode)) {
-				this.handlePrefixChange(serverID, channel, arg, prefixByMode.get(mode), add);
-			}
-
-			// XXX: If we eventually want to handle any mode changes with
-			// some special logic, this would be the place to. Not sure
-			// what we'd want to do in that regard, though.
-		}
-	}
-
-	handlePrefixChange(serverID, channel, nick, letter, add) {
-		let client = this.clients.get(serverID);
-		let prefix = client.isupport.get("PREFIX") || "";
-
-		let prefixPrivs = new Map(irc.parseMembershipModes(prefix).map((membership, i) => {
-			return [membership.prefix, i];
-		}));
-
-		this.setBufferState({ server: serverID, name: channel }, (buf) => {
-			let members = new irc.CaseMapMap(buf.members);
-			let membership = members.get(nick);
-			if (add) {
-				let i = membership.indexOf(letter);
-				if (i < 0) {
-					membership += letter;
-				}
-			} else {
-				membership = membership.replace(letter, "");
-			}
-			membership = Array.from(membership).sort((a, b) => {
-				return prefixPrivs.get(a) - prefixPrivs.get(b);
-			}).join("");
-			members.set(nick, membership);
-			return { members };
-		});
 	}
 
 	componentDidMount() {

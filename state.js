@@ -111,6 +111,28 @@ function compareBuffers(a, b) {
 	return 0;
 }
 
+function updateMembership(membership, letter, add, client) {
+	let prefix = client.isupport.get("PREFIX") || "";
+
+	let prefixPrivs = new Map(irc.parseMembershipModes(prefix).map((membership, i) => {
+		return [membership.prefix, i];
+	}));
+
+	if (add) {
+		let i = membership.indexOf(letter);
+		if (i < 0) {
+			membership += letter;
+			membership = Array.from(membership).sort((a, b) => {
+				return prefixPrivs.get(a) - prefixPrivs.get(b);
+			}).join("");
+		}
+	} else {
+		membership = membership.replace(letter, "");
+	}
+
+	return membership;
+}
+
 /* Insert a message in an immutable list of sorted messages. */
 function insertMessage(list, msg) {
 	if (list.length == 0) {
@@ -271,7 +293,7 @@ export const State = {
 			return;
 		}
 
-		let channel, topic;
+		let target, channel, topic;
 		switch (msg.command) {
 		case irc.RPL_MYINFO:
 			// TODO: parse available modes
@@ -329,7 +351,7 @@ export const State = {
 			};
 			return updateBuffer(who.nick, { who, offline: false });
 		case irc.RPL_ENDOFWHO:
-			let target = msg.params[1];
+			target = msg.params[1];
 			if (!client.isChannel(target) && target.indexOf("*") < 0) {
 				// Not a channel nor a mask, likely a nick
 				return updateBuffer(target, (buf) => {
@@ -389,6 +411,68 @@ export const State = {
 			channel = msg.params[0];
 			topic = msg.params[1];
 			return updateBuffer(channel, { topic });
+		case "MODE":
+			target = msg.params[0];
+			let change = msg.params[1];
+			let args = msg.params.slice(2);
+
+			if (!client.isChannel(target)) {
+				return; // TODO: handle user mode changes too
+			}
+
+			let chanmodes = client.isupport.get("CHANMODES") || irc.STD_CHANMODES;
+			let prefix = client.isupport.get("PREFIX") || "";
+
+			let prefixByMode = new Map(irc.parseMembershipModes(prefix).map((membership) => {
+				return [membership.mode, membership.prefix];
+			}));
+
+			let typeByMode = new Map();
+			let [a, b, c, d] = chanmodes.split(",");
+			Array.from(a).forEach((mode) => typeByMode.set(mode, "A"));
+			Array.from(b).forEach((mode) => typeByMode.set(mode, "B"));
+			Array.from(c).forEach((mode) => typeByMode.set(mode, "C"));
+			Array.from(d).forEach((mode) => typeByMode.set(mode, "D"));
+			prefixByMode.forEach((prefix, mode) => typeByMode.set(mode, "B"));
+
+			return updateBuffer(target, (buf) => {
+				let members = new irc.CaseMapMap(buf.members);
+
+				let plusMinus = null;
+				let j = 0;
+				for (let i = 0; i < change.length; i++) {
+					if (change[i] === "+" || change[i] === "-") {
+						plusMinus = change[i];
+						continue;
+					}
+					if (!plusMinus) {
+						throw new Error("malformed mode string: missing plus/minus");
+					}
+
+					let mode = change[i];
+					let add = plusMinus === "+";
+
+					let modeType = typeByMode.get(mode);
+					if (!modeType) {
+						continue;
+					}
+
+					let arg = null;
+					if (modeType === "A" || modeType === "B" || (modeType === "C" && add)) {
+						arg = args[j];
+						j++;
+					}
+
+					if (prefixByMode.has(mode)) {
+						let nick = arg;
+						let membership = members.get(nick);
+						let letter = prefixByMode.get(mode);
+						members.set(nick, updateMembership(membership, letter, add, client));
+					}
+				}
+
+				return { members };
+			});
 		}
 	},
 	addMessage(state, msg, bufID) {
