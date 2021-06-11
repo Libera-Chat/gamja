@@ -67,6 +67,7 @@ button {
 	border-color: var(--button-border);
 	border-width: 1px;
 	font-size: 0.8rem;
+	cursor: pointer;
 }
 
 button:hover {
@@ -351,6 +352,7 @@ a.nick:hover, a.nick:active {
 
 details summary[role="button"] {
 	user-select: none;
+	cursor: pointer;
 }
 
 #buffer {
