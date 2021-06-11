@@ -1,6 +1,6 @@
 # [gamja]
 
-A bare-bones IRC web client.
+A simple IRC web client.
 
 ![screenshot](https://l.sr.ht/7Npm.png)
 
