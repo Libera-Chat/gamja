@@ -365,6 +365,11 @@ export default {
 			return setUserHostMode(app, args, "-q");
 		},
 	},
+	"unvoice": {
+		usage: "<nick>",
+		description: "Remove a user from the voiced list",
+		execute: (app, args) => givemode(app, args, "-v"),
+	},
 	"voice": {
 		usage: "<nick>",
 		description: "Give a user voiced status on this channel",
