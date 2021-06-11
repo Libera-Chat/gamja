@@ -413,63 +413,27 @@ export const State = {
 			return updateBuffer(channel, { topic });
 		case "MODE":
 			target = msg.params[0];
-			let change = msg.params[1];
-			let args = msg.params.slice(2);
 
 			if (!client.isChannel(target)) {
 				return; // TODO: handle user mode changes too
 			}
 
-			let chanmodes = client.isupport.get("CHANMODES") || irc.STD_CHANMODES;
 			let prefix = client.isupport.get("PREFIX") || "";
-
 			let prefixByMode = new Map(irc.parseMembershipModes(prefix).map((membership) => {
 				return [membership.mode, membership.prefix];
 			}));
 
-			let typeByMode = new Map();
-			let [a, b, c, d] = chanmodes.split(",");
-			Array.from(a).forEach((mode) => typeByMode.set(mode, "A"));
-			Array.from(b).forEach((mode) => typeByMode.set(mode, "B"));
-			Array.from(c).forEach((mode) => typeByMode.set(mode, "C"));
-			Array.from(d).forEach((mode) => typeByMode.set(mode, "D"));
-			prefixByMode.forEach((prefix, mode) => typeByMode.set(mode, "B"));
-
 			return updateBuffer(target, (buf) => {
 				let members = new irc.CaseMapMap(buf.members);
 
-				let plusMinus = null;
-				let j = 0;
-				for (let i = 0; i < change.length; i++) {
-					if (change[i] === "+" || change[i] === "-") {
-						plusMinus = change[i];
-						continue;
-					}
-					if (!plusMinus) {
-						throw new Error("malformed mode string: missing plus/minus");
-					}
-
-					let mode = change[i];
-					let add = plusMinus === "+";
-
-					let modeType = typeByMode.get(mode);
-					if (!modeType) {
-						continue;
-					}
-
-					let arg = null;
-					if (modeType === "A" || modeType === "B" || (modeType === "C" && add)) {
-						arg = args[j];
-						j++;
-					}
-
+				irc.forEachChannelModeUpdate(msg, client.isupport, (mode, add, arg) => {
 					if (prefixByMode.has(mode)) {
 						let nick = arg;
 						let membership = members.get(nick);
 						let letter = prefixByMode.get(mode);
 						members.set(nick, updateMembership(membership, letter, add, client));
 					}
-				}
+				});
 
 				return { members };
 			});
