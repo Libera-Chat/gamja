@@ -136,6 +136,7 @@ function insertMessage(list, msg) {
 
 let lastServerID = 0;
 let lastBufferID = 0;
+let lastMessageKey = 0;
 
 export const State = {
 	updateServer(state, id, updater) {
@@ -391,6 +392,9 @@ export const State = {
 		}
 	},
 	addMessage(state, msg, bufID) {
+		lastMessageKey++;
+		msg.key = lastMessageKey;
+
 		return State.updateBuffer(state, bufID, (buf) => {
 			let messages = insertMessage(buf.messages, msg);
 			return { messages };

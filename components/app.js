@@ -45,8 +45,6 @@ const configPromise = fetch("./config.json")
 
 const CHATHISTORY_MAX_SIZE = 4000;
 
-let messagesCount = 0;
-
 function parseQueryString() {
 	let query = window.location.search.substring(1);
 	let params = {};
@@ -347,9 +345,6 @@ export default class App extends Component {
 
 	addMessage(serverID, bufName, msg) {
 		let client = this.clients.get(serverID);
-
-		msg.key = messagesCount;
-		messagesCount++;
 
 		msg.isHighlight = irc.isHighlight(msg, client.nick, client.cm);
 
