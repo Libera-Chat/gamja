@@ -3,6 +3,7 @@ import linkify from "../lib/linkify.js";
 import * as irc from "../lib/irc.js";
 import { strip as stripANSI } from "../lib/ansi.js";
 import { BufferType, getNickURL, getChannelURL, getMessageURL } from "../state.js";
+import Membership from "./membership.js";
 
 function djb2(s) {
 	let hash = 5381;
@@ -63,6 +64,8 @@ class LogLine extends Component {
 
 	render() {
 		let msg = this.props.message;
+		let buf = this.props.buffer;
+		let server = this.props.server;
 
 		let onNickClick = this.props.onNickClick;
 		let onChannelClick = this.props.onChannelClick;
@@ -88,6 +91,7 @@ class LogLine extends Component {
 		switch (msg.command) {
 		case "NOTICE":
 		case "PRIVMSG":
+			let target = msg.params[0];
 			let text = msg.params[1];
 
 			let ctcp = irc.parseCTCP(msg);
@@ -107,6 +111,15 @@ class LogLine extends Component {
 					prefix = suffix = "-";
 				}
 				content = html`${prefix}${createNick(msg.prefix.name)}${suffix} ${linkify(stripANSI(text), onChannelClick)}`;
+			}
+
+			let status = null;
+			let allowedPrefixes = server.isupport.get("STATUSMSG");
+			if (target !== buf.name && allowedPrefixes) {
+				let parts = irc.parseTargetPrefix(target, allowedPrefixes);
+				if (parts.name === buf.name) {
+					content = [html`(<${Membership} value=${parts.prefix}/>)`, " ", content];
+				}
 			}
 
 			if (msg.isHighlight) {
@@ -154,7 +167,7 @@ class LogLine extends Component {
 			let invitee = msg.params[0];
 			let channel = msg.params[1];
 			// TODO: instead of checking buffer type, check if invitee is our nick
-			if (this.props.buffer.type === BufferType.SERVER) {
+			if (buf.type === BufferType.SERVER) {
 				lineClass = "talk";
 				content = html`
 					You have been invited to ${createChannel(channel)} by ${createNick(msg.prefix.name)}
@@ -178,7 +191,7 @@ class LogLine extends Component {
 
 		return html`
 			<div class="logline ${lineClass}" data-key=${msg.key}>
-				<${Timestamp} date=${new Date(msg.tags.time)} url=${getMessageURL(this.props.buffer, msg)}/>
+				<${Timestamp} date=${new Date(msg.tags.time)} url=${getMessageURL(buf, msg)}/>
 				${" "}
 				${content}
 			</div>
@@ -397,6 +410,7 @@ export default class Buffer extends Component {
 
 	render() {
 		let buf = this.props.buffer;
+		let server = this.props.server;
 		if (!buf) {
 			return null;
 		}
@@ -414,6 +428,7 @@ export default class Buffer extends Component {
 					key=${"msg-" + msg.key}
 					message=${msg}
 					buffer=${buf}
+					server=${server}
 					onChannelClick=${onChannelClick}
 					onNickClick=${onNickClick}
 				/>
@@ -447,6 +462,7 @@ export default class Buffer extends Component {
 					key=${"fold-" + msgs[0].key + "-" + msgs[msgs.length - 1].key}
 					messages=${msgs}
 					buffer=${buf}
+					server=${server}
 					onNickClick=${onNickClick}
 				/>
 			`;

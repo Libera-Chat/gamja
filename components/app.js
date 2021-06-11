@@ -1361,6 +1361,7 @@ export default class App extends Component {
 				<section id="buffer" ref=${this.buffer}>
 					<${Buffer}
 						buffer=${activeBuffer}
+						server=${activeServer}
 						onChannelClick=${this.handleChannelClick}
 						onNickClick=${this.handleNickClick}/>
 				</section>

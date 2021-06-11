@@ -1,5 +1,6 @@
 import { html, Component } from "../lib/index.js";
 import { getNickURL } from "../state.js";
+import Membership from "./membership.js";
 
 class MemberItem extends Component {
 	constructor(props) {
@@ -10,7 +11,7 @@ class MemberItem extends Component {
 
 	shouldComponentUpdate(nextProps) {
 		return this.props.nick !== nextProps.nick
-			|| this.props.membership != nextProps.membership;
+			|| this.props.membership !== nextProps.membership;
 	}
 
 	handleClick(event) {
@@ -43,7 +44,10 @@ class MemberItem extends Component {
 					href=${getNickURL(this.props.nick)}
 					class="nick"
 					onClick=${this.handleClick}
-				>${membership}${this.props.nick}</a>
+				>
+					<${Membership} value=${this.props.membership}/>
+					${this.props.nick}
+				</a>
 			</li>
 		`;
 	}
