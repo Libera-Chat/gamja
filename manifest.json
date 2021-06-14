@@ -1,0 +1,7 @@
+{
+	"name": "gamja IRC client",
+	"short_name": "gamja",
+	"start_url": ".",
+	"display": "standalone",
+	"scope": "."
+}
