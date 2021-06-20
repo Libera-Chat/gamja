@@ -76,6 +76,9 @@ function fillConnectParams(params) {
 	if (params.url.startsWith("/")) {
 		params.url = proto + "//" + host + params.url;
 	}
+	if (params.url.indexOf("://") < 0) {
+		params.url = proto + "//" + params.url;
+	}
 	if (!params.username) {
 		params.username = params.nick;
 	}
