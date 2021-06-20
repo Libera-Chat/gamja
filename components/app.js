@@ -204,7 +204,7 @@ export default class App extends Component {
 		}
 
 		let queryParams = parseQueryString();
-		if (queryParams.server) {
+		if (typeof queryParams.server === "string") {
 			connectParams.url = queryParams.server;
 
 			// When using a custom server, some configuration options don't
