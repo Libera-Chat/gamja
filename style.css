@@ -460,7 +460,7 @@ details summary[role="button"] {
 	margin: 0.5rem;
 }
 
-#error-msg button {
+#error-msg button, .dialog button.dialog-close {
 	border: none;
 	background: transparent;
 	color: inherit;
@@ -489,11 +489,19 @@ details summary[role="button"] {
 	padding: 15px;
 	border: 1px solid rgba(0, 0, 0, 0.6);
 }
-.dialog a.dialog-close {
-	float: right;
-	text-decoration: none;
+.dialog .dialog-header {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	margin-bottom: 1em;
+}
+.dialog .dialog-header h2 {
+	flex-grow: 1;
+	margin: 0;
+}
+.dialog .dialog-header button.dialog-close {
 	font-size: 1.5em;
-	color: inherit;
+	padding: 0 5px;
 }
 .dialog h2 {
 	margin-top: 0;

@@ -50,8 +50,8 @@ export default class Dialog extends Component {
 			<div class="dialog" onClick=${this.handleBackdropClick}>
 				<div class="dialog-body" ref=${this.body}>
 					<div class="dialog-header">
-						<a href="#" class="dialog-close" onClick=${this.handleCloseClick}>×</span>
 						<h2>${this.props.title}</h2>
+						<button class="dialog-close" onClick=${this.handleCloseClick}>×</button>
 					</div>
 					${this.props.children}
 				</div>
