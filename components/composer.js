@@ -63,6 +63,11 @@ export default class Composer extends Component {
 			return;
 		}
 
+		// If a modifier is pressed, reserve for key bindings.
+		if (event.altKey || event.ctrlKey || event.metaKey) {
+			return;
+		}
+
 		// Ignore events that don't produce a Unicode string. If the key event
 		// result in a character being typed by the user, KeyboardEvent.key
 		// will contain the typed string. The key string may contain one
