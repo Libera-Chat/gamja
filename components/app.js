@@ -214,10 +214,10 @@ export default class App extends Component {
 			// make sense anymore.
 			config.server.auth = null;
 		}
-		if (queryParams.nick) {
+		if (typeof queryParams.nick === "string") {
 			connectParams.nick = queryParams.nick;
 		}
-		if (queryParams.channels) {
+		if (typeof queryParams.channels == "string") {
 			connectParams.autojoin = queryParams.channels.split(",");
 		}
 
