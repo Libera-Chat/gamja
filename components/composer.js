@@ -83,8 +83,18 @@ export default class Composer extends Component {
 	}
 
 	render() {
+		let className = "";
+		if (this.props.readOnly && !this.state.text) {
+			className = "read-only";
+		}
+
 		return html`
-			<form id="composer" class="${this.props.readOnly && !this.state.text ? "read-only" : ""}" onInput=${this.handleInput} onSubmit=${this.handleSubmit}>
+			<form
+				id="composer"
+				class=${className}
+				onInput=${this.handleInput}
+				onSubmit=${this.handleSubmit}
+			>
 				<input
 					type="text"
 					name="text"

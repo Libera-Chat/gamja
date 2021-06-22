@@ -44,7 +44,7 @@ function setUserHostMode(app, args, mode) {
 }
 
 function markServerBufferUnread(app) {
-	var activeBuffer = app.state.buffers.get(app.state.activeBuffer);
+	let activeBuffer = app.state.buffers.get(app.state.activeBuffer);
 	if (!activeBuffer || activeBuffer.type === BufferType.SERVER) {
 		return;
 	}
