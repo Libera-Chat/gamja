@@ -460,9 +460,12 @@ details summary[role="button"] {
 	margin: 0.5rem;
 }
 
-#error-msg a {
-	color: white;
-	text-decoration: none;
+#error-msg button {
+	border: none;
+	background: transparent;
+	color: inherit;
+	font-size: inherit;
+	padding: 0;
 }
 
 .error-text {

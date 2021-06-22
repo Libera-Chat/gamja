@@ -1231,11 +1231,11 @@ export default class App extends Component {
 		let error = null;
 		if (this.state.error) {
 			error = html`
-				<p id="error-msg">
+				<div id="error-msg">
 					${this.state.error}
 					${" "}
-					<a href="#" onClick=${this.dismissError}>×</a>
-				</p>
+					<button onClick=${this.dismissError}>×</button>
+				</div>
 			`;
 		}
 
