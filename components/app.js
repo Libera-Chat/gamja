@@ -290,8 +290,8 @@ export default class App extends Component {
 				lastReadReceipt,
 			});
 
-			if (this.composer.current) {
-				this.composer.current.focus();
+			if (this.buffer.current) {
+				this.buffer.current.focus();
 			}
 
 			if (buf.messages.length == 0) {
@@ -1275,7 +1275,7 @@ export default class App extends Component {
 				scrollKey=${this.state.activeBuffer}
 				onScrollTop=${this.handleBufferScrollTop}
 			>
-				<section id="buffer" ref=${this.buffer}>
+				<section id="buffer" ref=${this.buffer} tabindex="-1">
 					<${Buffer}
 						buffer=${activeBuffer}
 						server=${activeServer}

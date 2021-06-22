@@ -58,12 +58,35 @@ export default class Composer extends Component {
 	}
 
 	handleWindowKeyDown(event) {
-		if (document.activeElement === document.body && event.key === "/" && !this.state.text) {
-			event.preventDefault();
-			this.setState({ text: "/" }, () => {
-				this.focus();
-			});
+		// If an <input> or <button> is focused, ignore.
+		if (document.activeElement !== document.body && document.activeElement.tagName !== "SECTION") {
+			return;
 		}
+
+		// Ignore events that don't produce a Unicode string. If the key event
+		// result in a character being typed by the user, KeyboardEvent.key
+		// will contain the typed string. The key string may contain one
+		// Unicode non-control character and multiple Unicode combining
+		// characters. String.prototype.length cannot be used since it would
+		// return the number of Unicode code-points. Instead, the spread
+		// operator is used to count the number of non-combining Unicode
+		// characters.
+		if ([...event.key].length !== 1) {
+			return;
+		}
+
+		if (this.state.text) {
+			return;
+		}
+
+		if (this.props.readOnly && event.key !== "/") {
+			return;
+		}
+
+		event.preventDefault();
+		this.setState({ text: event.key }, () => {
+			this.focus();
+		});
 	}
 
 	componentDidMount() {
