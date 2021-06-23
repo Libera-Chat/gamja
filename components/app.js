@@ -349,7 +349,9 @@ export default class App extends Component {
 	addMessage(serverID, bufName, msg) {
 		let client = this.clients.get(serverID);
 
-		msg.isHighlight = irc.isHighlight(msg, client.nick, client.cm);
+		// Treat server-wide broadcasts as highlights. They're sent by server
+		// operators and can contain important information.
+		msg.isHighlight = irc.isHighlight(msg, client.nick, client.cm) || irc.isServerBroadcast(msg);
 
 		if (!msg.tags) {
 			msg.tags = {};
