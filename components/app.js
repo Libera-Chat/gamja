@@ -364,6 +364,10 @@ export default class App extends Component {
 		let isRead = this.hasReceipt(bufName, ReceiptType.READ, msg);
 		// TODO: messages coming from infinite scroll shouldn't trigger notifications
 
+		if (client.isMyNick(msg.prefix.name)) {
+			isRead = true;
+		}
+
 		let msgUnread = Unread.NONE;
 		if ((msg.command == "PRIVMSG" || msg.command == "NOTICE") && !isRead) {
 			let target = msg.params[0];
