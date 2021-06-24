@@ -88,6 +88,7 @@ class LogLine extends Component {
 
 		let lineClass = "";
 		let content;
+		let invitee;
 		switch (msg.command) {
 		case "NOTICE":
 		case "PRIVMSG":
@@ -164,7 +165,7 @@ class LogLine extends Component {
 			`;
 			break;
 		case "INVITE":
-			let invitee = msg.params[0];
+			invitee = msg.params[0];
 			let channel = msg.params[1];
 			// TODO: instead of checking buffer type, check if invitee is our nick
 			if (buf.type === BufferType.SERVER) {
@@ -177,6 +178,10 @@ class LogLine extends Component {
 					${createNick(msg.prefix.name)} has invited ${createNick(invitee)} to the channel
 				`;
 			}
+			break;
+		case irc.RPL_INVITING:
+			invitee = msg.params[1];
+			content = html`${createNick(invitee)} has been invited to the channel`;
 			break;
 		case irc.RPL_MOTD:
 			lineClass = "motd";
