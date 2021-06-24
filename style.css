@@ -363,6 +363,9 @@ details summary[role="button"] {
 #buffer .logline-list {
 	padding: 10px;
 }
+#buffer .logline {
+	white-space: pre-wrap;
+}
 #buffer .talk, #buffer .motd {
 	color: var(--main-color);
 }
