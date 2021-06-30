@@ -5,6 +5,7 @@ export default class Composer extends Component {
 		text: "",
 	};
 	textInput = createRef();
+	lastAutocomplete = null;
 
 	constructor(props) {
 		super(props);
@@ -42,48 +43,76 @@ export default class Composer extends Component {
 
 		event.preventDefault();
 
-		let carretIndex = input.selectionStart;
+		let carretPos = input.selectionStart;
 		let text = this.state.text;
-		let wordStart;
-		for (wordStart = carretIndex - 1; wordStart >= 0; wordStart--) {
-			if (text[wordStart] === " ") {
-				break;
+		let autocomplete;
+		if (this.lastAutocomplete && this.lastAutocomplete.text === text && this.lastAutocomplete.carretPos === carretPos) {
+			autocomplete = this.lastAutocomplete;
+		} else {
+			this.lastAutocomplete = null;
+
+			let wordStart;
+			for (wordStart = carretPos - 1; wordStart >= 0; wordStart--) {
+				if (text[wordStart] === " ") {
+					break;
+				}
 			}
-		}
-		wordStart++;
+			wordStart++;
 
-		let wordEnd;
-		for (wordEnd = carretIndex; wordEnd < text.length; wordEnd++) {
-			if (text[wordEnd] === " ") {
-				break;
+			let wordEnd;
+			for (wordEnd = carretPos; wordEnd < text.length; wordEnd++) {
+				if (text[wordEnd] === " ") {
+					break;
+				}
 			}
+
+			let word = text.slice(wordStart, wordEnd);
+			if (!word) {
+				return;
+			}
+
+			let replacements = this.props.autocomplete(word);
+			if (replacements.length === 0) {
+				return;
+			}
+
+			autocomplete = {
+				text,
+				carretPos: input.selectionStart,
+				prefix: text.slice(0, wordStart),
+				suffix: text.slice(wordEnd),
+				replacements,
+				replIndex: -1,
+			};
 		}
 
-		let word = text.slice(wordStart, wordEnd);
-		if (!word) {
-			return;
+		let n = autocomplete.replacements.length;
+		if (event.shiftKey) {
+			autocomplete.replIndex--;
+		} else {
+			autocomplete.replIndex++;
 		}
+		autocomplete.replIndex = (autocomplete.replIndex + n) % n;
 
-		let repl = this.props.autocomplete(word);
-		if (!repl) {
-			return;
-		}
-
-		if (wordStart === 0 && wordEnd === text.length) {
-			if (word.startsWith("/")) {
+		let repl = autocomplete.replacements[autocomplete.replIndex];
+		if (!autocomplete.prefix && !autocomplete.suffix) {
+			if (repl.startsWith("/")) {
 				repl += " ";
 			} else {
 				repl += ": ";
 			}
 		}
 
-		text = text.slice(0, wordStart) + repl + text.slice(wordEnd);
+		autocomplete.text = autocomplete.prefix + repl + autocomplete.suffix;
+		autocomplete.carretPos = autocomplete.prefix.length + repl.length;
 
-		input.value = text;
-		input.selectionStart = wordStart + repl.length;
+		input.value = autocomplete.text;
+		input.selectionStart = autocomplete.carretPos;
 		input.selectionEnd = input.selectionStart;
 
-		this.setState({ text });
+		this.lastAutocomplete = autocomplete;
+
+		this.setState({ text: autocomplete.text });
 	}
 
 	handleWindowKeyDown(event) {

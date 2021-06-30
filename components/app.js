@@ -1007,13 +1007,10 @@ export default class App extends Component {
 	autocomplete(prefix) {
 		function fromList(l, prefix) {
 			prefix = prefix.toLowerCase();
-			let repl = null;
+			let repl = [];
 			for (let item of l) {
 				if (item.toLowerCase().startsWith(prefix)) {
-					if (repl) {
-						return null;
-					}
-					repl = item;
+					repl.push(item);
 				}
 			}
 			return repl;
@@ -1021,15 +1018,12 @@ export default class App extends Component {
 
 		if (prefix.startsWith("/")) {
 			let repl = fromList(Object.keys(commands), prefix.slice(1));
-			if (repl) {
-				repl = "/" + repl;
-			}
-			return repl;
+			return repl.map(cmd => "/" + cmd);
 		}
 
 		let buf = this.state.buffers.get(this.state.activeBuffer);
 		if (!buf || !buf.members) {
-			return null;
+			return [];
 		}
 		return fromList(buf.members.keys(), prefix);
 	}
