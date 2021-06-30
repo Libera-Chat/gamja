@@ -69,6 +69,14 @@ export default class Composer extends Component {
 			return;
 		}
 
+		if (wordStart === 0 && wordEnd === text.length) {
+			if (word.startsWith("/")) {
+				repl += " ";
+			} else {
+				repl += ": ";
+			}
+		}
+
 		text = text.slice(0, wordStart) + repl + text.slice(wordEnd);
 
 		input.value = text;
