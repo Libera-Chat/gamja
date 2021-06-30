@@ -30,30 +30,51 @@ export default class Composer extends Component {
 	}
 
 	handleInputKeyDown(event) {
+		let input = event.target;
+
 		if (!this.props.autocomplete || event.key !== "Tab") {
 			return;
 		}
 
-		let text = this.state.text;
-		let i;
-		for (i = text.length - 1; i >= 0; i--) {
-			if (text[i] === " ") {
-				break;
-			}
-		}
-		let prefix = text.slice(i + 1);
-		if (!prefix) {
+		if (input.selectionStart !== input.selectionEnd) {
 			return;
 		}
 
 		event.preventDefault();
 
-		let repl = this.props.autocomplete(prefix);
+		let carretIndex = input.selectionStart;
+		let text = this.state.text;
+		let wordStart;
+		for (wordStart = carretIndex - 1; wordStart >= 0; wordStart--) {
+			if (text[wordStart] === " ") {
+				break;
+			}
+		}
+		wordStart++;
+
+		let wordEnd;
+		for (wordEnd = carretIndex; wordEnd < text.length; wordEnd++) {
+			if (text[wordEnd] === " ") {
+				break;
+			}
+		}
+
+		let word = text.slice(wordStart, wordEnd);
+		if (!word) {
+			return;
+		}
+
+		let repl = this.props.autocomplete(word);
 		if (!repl) {
 			return;
 		}
 
-		text = text.slice(0, i + 1) + repl;
+		text = text.slice(0, wordStart) + repl + text.slice(wordEnd);
+
+		input.value = text;
+		input.selectionStart = wordStart + repl.length;
+		input.selectionEnd = input.selectionStart;
+
 		this.setState({ text });
 	}
 
