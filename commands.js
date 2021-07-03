@@ -395,4 +395,15 @@ export default {
 			markServerBufferUnread(app);
 		},
 	},
+	"whowas": {
+		usage: "<nick> [count]",
+		description: "Retrieve information about an offline user",
+		execute: (app, args) => {
+			if (args.length < 1) {
+				throw new Error("Missing nick");
+			}
+			getActiveClient(app).send({ command: "WHOWAS", params: args });
+			markServerBufferUnread(app);
+		},
+	},
 };
