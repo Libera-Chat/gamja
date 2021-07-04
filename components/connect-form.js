@@ -1,4 +1,4 @@
-import { html, Component } from "../lib/index.js";
+import { html, Component, createRef } from "../lib/index.js";
 
 export default class ConnectForm extends Component {
 	state = {
@@ -11,6 +11,7 @@ export default class ConnectForm extends Component {
 		realname: "",
 		autojoin: "",
 	};
+	nickInput = createRef();
 
 	constructor(props) {
 		super(props);
@@ -73,6 +74,12 @@ export default class ConnectForm extends Component {
 		this.props.onSubmit(params);
 	}
 
+	componentDidMount() {
+		if (this.nickInput.current) {
+			this.nickInput.current.focus();
+		}
+	}
+
 	render() {
 		let disabled = this.props.connecting;
 
@@ -133,7 +140,7 @@ export default class ConnectForm extends Component {
 
 				<label>
 					Nickname:<br/>
-					<input type="username" name="nick" value=${this.state.nick} disabled=${disabled} autofocus required/>
+					<input type="username" name="nick" value=${this.state.nick} disabled=${disabled} ref=${this.nickInput} autofocus required/>
 				</label>
 				<br/><br/>
 
