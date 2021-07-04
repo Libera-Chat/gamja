@@ -131,6 +131,7 @@ export default class App extends Component {
 		bouncerNetworks: new Map(),
 		activeBuffer: null,
 		connectForm: true,
+		loading: true,
 		dialog: null,
 		error: null,
 		openPanels: {
@@ -186,6 +187,8 @@ export default class App extends Component {
 	 * - Default server URL constructed from the current URL location
 	 */
 	handleConfig(config) {
+		this.setState({ loading: false });
+
 		let connectParams = {};
 
 		if (config.server) {
@@ -1123,6 +1126,10 @@ export default class App extends Component {
 	}
 
 	render() {
+		if (this.state.loading) {
+			return html`<section id="connect"></section>`;
+		}
+
 		let activeBuffer = null, activeServer = null, activeBouncerNetwork = null;
 		let isBouncer = false;
 		if (this.state.buffers.get(this.state.activeBuffer)) {
