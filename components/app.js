@@ -133,6 +133,7 @@ export default class App extends Component {
 		connectForm: true,
 		loading: true,
 		dialog: null,
+		dialogData: null,
 		error: null,
 		openPanels: {
 			bufferList: false,
@@ -160,7 +161,7 @@ export default class App extends Component {
 		this.handleNickClick = this.handleNickClick.bind(this);
 		this.autocomplete = this.autocomplete.bind(this);
 		this.handleBufferScrollTop = this.handleBufferScrollTop.bind(this);
-		this.handleDialogDismiss = this.handleDialogDismiss.bind(this);
+		this.dismissDialog = this.dismissDialog.bind(this);
 		this.handleAddNetworkClick = this.handleAddNetworkClick.bind(this);
 		this.handleNetworkSubmit = this.handleNetworkSubmit.bind(this);
 		this.handleNetworkRemove = this.handleNetworkRemove.bind(this);
@@ -995,16 +996,16 @@ export default class App extends Component {
 	}
 
 	handleJoinClick(serverID) {
-		this.setState({ dialog: "join", joinDialog: { server: serverID } });
+		this.openDialog("join", { server: serverID });
 	}
 
 	handleJoinSubmit(data) {
-		let client = this.clients.get(this.state.joinDialog.server);
+		let client = this.clients.get(this.state.dialogData.server);
 
 		this.switchToChannel = data.channel;
 		client.send({ command: "JOIN", params: [data.channel] });
 
-		this.setState({ dialog: null, joinDialog: null });
+		this.dismissDialog();
 	}
 
 	autocomplete(prefix) {
@@ -1032,7 +1033,7 @@ export default class App extends Component {
 	}
 
 	openHelp() {
-		this.setState({ dialog: "help" });
+		this.openDialog("help");
 	}
 
 	handleBufferScrollTop() {
@@ -1065,39 +1066,40 @@ export default class App extends Component {
 		});
 	}
 
-	handleDialogDismiss() {
-		this.setState({ dialog: null });
+	openDialog(name, data) {
+		this.setState({ dialog: name, dialogData: data });
+	}
+
+	dismissDialog() {
+		this.setState({ dialog: null, dialogData: null });
 	}
 
 	handleAddNetworkClick() {
-		this.setState({ dialog: "network", networkDialog: null });
+		this.openDialog("network");
 	}
 
 	handleManageNetworkClick(serverID) {
 		let server = this.state.servers.get(serverID);
 		let bouncerNetID = server.isupport.get("BOUNCER_NETID");
 		let bouncerNetwork = this.state.bouncerNetworks.get(bouncerNetID);
-		this.setState({
-			dialog: "network",
-			networkDialog: {
-				id: bouncerNetID,
-				params: bouncerNetwork,
-			},
+		this.openDialog("network", {
+			id: bouncerNetID,
+			params: bouncerNetwork,
 		});
 	}
 
 	handleNetworkSubmit(attrs) {
 		let client = this.clients.values().next().value;
 
-		if (this.state.networkDialog && this.state.networkDialog.id) {
+		if (this.state.dialogData && this.state.dialogData.id) {
 			if (Object.keys(attrs).length == 0) {
-				this.setState({ dialog: null });
+				this.dismissDialog();
 				return;
 			}
 
 			client.send({
 				command: "BOUNCER",
-				params: ["CHANGENETWORK", this.state.networkDialog.id, irc.formatTags(attrs)],
+				params: ["CHANGENETWORK", this.state.dialogData.id, irc.formatTags(attrs)],
 			});
 		} else {
 			attrs = { ...attrs, tls: "1" };
@@ -1107,7 +1109,7 @@ export default class App extends Component {
 			});
 		}
 
-		this.setState({ dialog: null, networkDialog: null });
+		this.dismissDialog();
 	}
 
 	handleNetworkRemove() {
@@ -1115,10 +1117,10 @@ export default class App extends Component {
 
 		client.send({
 			command: "BOUNCER",
-			params: ["DELNETWORK", this.state.networkDialog.id],
+			params: ["DELNETWORK", this.state.dialogData.id],
 		});
 
-		this.setState({ dialog: null, networkDialog: null });
+		this.dismissDialog();
 	}
 
 	componentDidMount() {
@@ -1212,27 +1214,27 @@ export default class App extends Component {
 		let dialog = null;
 		switch (this.state.dialog) {
 		case "network":
-			let title = this.state.networkDialog ? "Edit network" : "Add network";
+			let title = this.state.dialogData ? "Edit network" : "Add network";
 			dialog = html`
-				<${Dialog} title=${title} onDismiss=${this.handleDialogDismiss}>
+				<${Dialog} title=${title} onDismiss=${this.dismissDialog}>
 					<${NetworkForm}
 						onSubmit=${this.handleNetworkSubmit}
 						onRemove=${this.handleNetworkRemove}
-						params=${this.state.networkDialog ? this.state.networkDialog.params : null}
+						params=${this.state.dialogData ? this.state.dialogData.params : null}
 					/>
 				</>
 			`;
 			break;
 		case "help":
 			dialog = html`
-				<${Dialog} title="Help" onDismiss=${this.handleDialogDismiss}>
+				<${Dialog} title="Help" onDismiss=${this.dismissDialog}>
 					<${Help}/>
 				</>
 			`;
 			break;
 		case "join":
 			dialog = html`
-				<${Dialog} title="Join channel" onDismiss=${this.handleDialogDismiss}>
+				<${Dialog} title="Join channel" onDismiss=${this.dismissDialog}>
 					<${JoinForm} onSubmit=${this.handleJoinSubmit}/>
 				</>
 			`;
