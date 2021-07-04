@@ -88,7 +88,13 @@ export default class ConnectForm extends Component {
 			serverURL = html`
 				<label>
 					Server URL:<br/>
-					<input type="text" name="url" value=${this.state.url} disabled=${disabled} inputmode="url"/>
+					<input
+						type="text"
+						name="url"
+						value=${this.state.url}
+						disabled=${disabled}
+						inputmode="url"
+					/>
 				</label>
 				<br/><br/>
 			`;
@@ -126,7 +132,13 @@ export default class ConnectForm extends Component {
 		let autojoin = html`
 			<label>
 				Auto-join channels:<br/>
-				<input type="text" name="autojoin" value=${this.state.autojoin} disabled=${disabled} placeholder="Comma-separated list of channels"/>
+				<input
+					type="text"
+					name="autojoin"
+					value=${this.state.autojoin}
+					disabled=${disabled}
+					placeholder="Comma-separated list of channels"
+				/>
 			</label>
 			<br/>
 		`;
@@ -140,7 +152,14 @@ export default class ConnectForm extends Component {
 
 				<label>
 					Nickname:<br/>
-					<input type="username" name="nick" value=${this.state.nick} disabled=${disabled} ref=${this.nickInput} autofocus required/>
+					<input
+						type="username"
+						name="nick"
+						value=${this.state.nick}
+						disabled=${disabled}
+						ref=${this.nickInput}
+						required
+					/>
 				</label>
 				<br/><br/>
 
@@ -149,7 +168,12 @@ export default class ConnectForm extends Component {
 				${!isAutojoinAdvanced ? [autojoin, html`<br/>`] : null}
 
 				<label>
-					<input type="checkbox" name="rememberMe" checked=${this.state.rememberMe} disabled=${disabled}/>
+					<input
+						type="checkbox"
+						name="rememberMe"
+						checked=${this.state.rememberMe}
+						disabled=${disabled}
+					/>
 					Remember me
 				</label>
 				<br/><br/>
@@ -163,19 +187,37 @@ export default class ConnectForm extends Component {
 
 					<label>
 						Username:<br/>
-						<input type="username" name="username" value=${this.state.username} disabled=${disabled} placeholder="Same as nickname"/>
+						<input
+							type="username"
+							name="username"
+							value=${this.state.username}
+							disabled=${disabled}
+							placeholder="Same as nickname"
+						/>
 					</label>
 					<br/><br/>
 
 					<label>
 						Real name:<br/>
-						<input type="text" name="realname" value=${this.state.realname} disabled=${disabled} placeholder="Same as nickname"/>
+						<input
+							type="text"
+							name="realname"
+							value=${this.state.realname}
+							disabled=${disabled}
+							placeholder="Same as nickname"
+						/>
 					</label>
 					<br/><br/>
 
 					<label>
 						Server password:<br/>
-						<input type="text" name="pass" value=${this.state.pass} disabled=${disabled} placeholder="None"/>
+						<input
+							type="text"
+							name="pass"
+							value=${this.state.pass}
+							disabled=${disabled}
+							placeholder="None"
+						/>
 					</label>
 					<br/><br/>
 
