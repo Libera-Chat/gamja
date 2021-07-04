@@ -1150,7 +1150,6 @@ export default class App extends Component {
 		if (this.state.connectForm) {
 			let status = activeServer ? activeServer.status : ServerStatus.DISCONNECTED;
 			let connecting = status === ServerStatus.CONNECTING || status === ServerStatus.REGISTERING;
-			// TODO: using key=connectParams trashes the ConnectForm state on update
 			return html`
 				<section id="connect">
 					<${ConnectForm}
@@ -1159,7 +1158,6 @@ export default class App extends Component {
 						auth=${this.config.server.auth}
 						connecting=${connecting}
 						onSubmit=${this.handleConnectSubmit}
-						key=${this.state.connectParams}
 					/>
 				</section>
 			`;
