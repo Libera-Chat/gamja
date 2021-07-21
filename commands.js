@@ -262,7 +262,7 @@ export default {
 		},
 	},
 	"query": {
-		usage: "<nick>",
+		usage: "<nick> [message]",
 		description: "Open a buffer to send messages to a nickname",
 		execute: (app, args) => {
 			let nick = args[0];
@@ -270,6 +270,11 @@ export default {
 				throw new Error("Missing nickname");
 			}
 			app.open(nick);
+
+			if (args.length > 1) {
+				var text = args.slice(1).join(" ");
+				app.privmsg(nick, text);
+			}
 		},
 	},
 	"quiet": {
