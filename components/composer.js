@@ -14,6 +14,7 @@ export default class Composer extends Component {
 		this.handleSubmit = this.handleSubmit.bind(this);
 		this.handleInputKeyDown = this.handleInputKeyDown.bind(this);
 		this.handleWindowKeyDown = this.handleWindowKeyDown.bind(this);
+		this.handleWindowPaste = this.handleWindowPaste.bind(this);
 	}
 
 	handleInput(event) {
@@ -152,12 +153,38 @@ export default class Composer extends Component {
 		});
 	}
 
+	handleWindowPaste(event) {
+		// If an <input> is focused, ignore.
+		if (document.activeElement !== document.body && document.activeElement.tagName !== "SECTION") {
+			return;
+		}
+
+		if (this.props.readOnly) {
+			return;
+		}
+
+		if (!this.textInput.current) {
+			return;
+		}
+
+		let text = event.clipboardData.getData('text');
+
+		event.preventDefault();
+		event.stopImmediatePropagation();
+
+		this.textInput.current.focus();
+		this.textInput.current.setRangeText(text, undefined, undefined, "end");
+		this.setState({ text: this.textInput.current.value });
+	}
+
 	componentDidMount() {
 		window.addEventListener("keydown", this.handleWindowKeyDown);
+		window.addEventListener("paste", this.handleWindowPaste);
 	}
 
 	componentWillUnmount() {
 		window.removeEventListener("keydown", this.handleWindowKeyDown);
+		window.removeEventListener("paste", this.handleWindowPaste);
 	}
 
 	focus() {
