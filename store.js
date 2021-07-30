@@ -1,14 +1,5 @@
 const PREFIX = "gamja_";
 
-function getItem(k) {
-	k = PREFIX + k;
-
-}
-
-function setItem(k, v) {
-	k = PREFIX + k;
-}
-
 class Item {
 	constructor(k) {
 		this.k = PREFIX + k;
