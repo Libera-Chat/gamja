@@ -227,6 +227,10 @@ button.danger:hover {
 	grid-column: 2;
 }
 
+#buffer:focus {
+	outline: none;
+}
+
 #member-list {
 	grid-row: 1 / 4;
 	grid-column: 3;
