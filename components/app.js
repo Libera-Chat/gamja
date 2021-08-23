@@ -1068,6 +1068,17 @@ export default class App extends Component {
 			return repl.map(cmd => "/" + cmd);
 		}
 
+		// TODO: consider using the CHANTYPES ISUPPORT token here
+		if (prefix.startsWith("#")) {
+			let chanNames = [];
+			for (const buf of this.state.buffers.values()) {
+				if (buf.name.startsWith("#")) {
+					chanNames.push(buf.name);
+				}
+			}
+			return fromList(chanNames, prefix);
+		}
+
 		let buf = this.state.buffers.get(this.state.activeBuffer);
 		if (!buf || !buf.members) {
 			return [];
