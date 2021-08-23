@@ -170,6 +170,7 @@ export default class App extends Component {
 		this.saveReceipts = debounce(this.saveReceipts.bind(this), 500);
 
 		this.receipts = store.receipts.load();
+		this.bufferStore = new store.Buffer();
 
 		configPromise.then((config) => {
 			this.handleConfig(config);
@@ -264,13 +265,14 @@ export default class App extends Component {
 	}
 
 	createBuffer(serverID, name) {
+		let client = this.clients.get(serverID);
 		let id = null;
 		this.setState((state) => {
-			let client = this.clients.get(serverID);
 			let updated;
 			[id, updated] = State.createBuffer(state, name, serverID, client);
 			return updated;
 		});
+		this.bufferStore.put({ name, server: client.params });
 		return id;
 	}
 
@@ -538,6 +540,15 @@ export default class App extends Component {
 					command: "JOIN",
 					params: [this.state.connectParams.autojoin.join(",")],
 				});
+			}
+
+			// Restore opened user query buffers
+			for (let buf of this.bufferStore.load(client.params)) {
+				if (buf.name === "*" || client.isChannel(buf.name)) {
+					continue;
+				}
+				this.createBuffer(serverID, buf.name);
+				client.who(buf.name);
 			}
 
 			let lastReceipt = this.latestReceipt(ReceiptType.READ);
@@ -869,9 +880,12 @@ export default class App extends Component {
 				for (let serverID of this.clients.keys()) {
 					this.close({ server: serverID, name: SERVER_BUFFER });
 				}
+				this.bufferStore.clear();
+			} else {
+				this.bufferStore.clear(client.params);
 			}
 
-			// TODO: only clear local storage if this server is stored there
+			// TODO: only clear autoconnect if this server is stored there
 			if (buf.server == 1) {
 				store.autoconnect.put(null);
 			}
@@ -889,6 +903,8 @@ export default class App extends Component {
 
 			this.receipts.delete(buf.name);
 			this.saveReceipts();
+
+			this.bufferStore.delete({ name: buf.name, server: client.params });
 			break;
 		}
 	}
