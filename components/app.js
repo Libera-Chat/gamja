@@ -272,7 +272,11 @@ export default class App extends Component {
 			[id, updated] = State.createBuffer(state, name, serverID, client);
 			return updated;
 		});
-		this.bufferStore.put({ name, server: client.params });
+		this.bufferStore.put({
+			name,
+			server: client.params,
+			unread: Unread.NONE,
+		});
 		return id;
 	}
 
@@ -305,6 +309,13 @@ export default class App extends Component {
 			}
 			let lastMsg = buf.messages[buf.messages.length - 1];
 			this.setReceipt(buf.name, ReceiptType.READ, lastMsg);
+
+			let client = this.clients.get(buf.server);
+			this.bufferStore.put({
+				name: buf.name,
+				server: client.params,
+				unread: Unread.NONE,
+			});
 		});
 	}
 
@@ -442,12 +453,17 @@ export default class App extends Component {
 			// TODO: set unread if scrolled up
 			let unread = buf.unread;
 			let lastReadReceipt = buf.lastReadReceipt;
-			if (this.state.activeBuffer != buf.id) {
+			if (this.state.activeBuffer !== buf.id) {
 				unread = Unread.union(unread, msgUnread);
 			} else {
 				this.setReceipt(bufName, ReceiptType.READ, msg);
 				lastReadReceipt = this.getReceipt(bufName, ReceiptType.READ);
 			}
+			this.bufferStore.put({
+				name: buf.name,
+				server: client.params,
+				unread,
+			});
 			return { unread, lastReadReceipt };
 		});
 	}
@@ -548,6 +564,9 @@ export default class App extends Component {
 					continue;
 				}
 				this.createBuffer(serverID, buf.name);
+				if (client.enabledCaps["draft/chathistory"]) {
+					this.setBufferState({ server: serverID, name: buf.name }, { unread: buf.unread });
+				}
 				client.who(buf.name);
 			}
 

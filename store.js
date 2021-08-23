@@ -65,14 +65,23 @@ export class Buffer {
 	}
 
 	put(buf) {
+		let key = this.key(buf);
+
+		let prev = this.m.get(key);
+		if (prev && prev.unread === buf.unread) {
+			return;
+		}
+
 		this.m.set(this.key(buf), {
 			name: buf.name,
+			unread: buf.unread,
 			server: {
 				url: buf.server.url,
 				nick: buf.server.nick,
 				bouncerNetwork: buf.server.bouncerNetwork,
 			},
 		});
+
 		this.save();
 	}
 
