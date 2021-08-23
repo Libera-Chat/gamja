@@ -64,6 +64,10 @@ export class Buffer {
 		}
 	}
 
+	get(buf) {
+		return this.m.get(this.key(buf));
+	}
+
 	put(buf) {
 		let key = this.key(buf);
 
@@ -90,7 +94,7 @@ export class Buffer {
 		this.save();
 	}
 
-	load(server) {
+	list(server) {
 		let buffers = [];
 		for (const buf of this.m.values()) {
 			if (buf.server.url !== server.url || buf.server.nick !== server.nick || buf.server.bouncerNetwork !== server.bouncerNetwork) {

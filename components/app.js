@@ -264,6 +264,22 @@ export default class App extends Component {
 		}, callback);
 	}
 
+	syncBufferUnread(serverID, name) {
+		let client = this.clients.get(serverID);
+
+		let stored = this.bufferStore.get({ name, server: client.params });
+		if (client.enabledCaps["draft/chathistory"] && stored) {
+			this.setBufferState({ server: serverID, name }, { unread: stored.unread });
+		}
+		if (!stored) {
+			this.bufferStore.put({
+				name,
+				server: client.params,
+				unread: Unread.NONE,
+			});
+		}
+	}
+
 	createBuffer(serverID, name) {
 		let client = this.clients.get(serverID);
 		let id = null;
@@ -272,11 +288,7 @@ export default class App extends Component {
 			[id, updated] = State.createBuffer(state, name, serverID, client);
 			return updated;
 		});
-		this.bufferStore.put({
-			name,
-			server: client.params,
-			unread: Unread.NONE,
-		});
+		this.syncBufferUnread(serverID, name);
 		return id;
 	}
 
@@ -353,7 +365,7 @@ export default class App extends Component {
 		let last = null;
 		this.receipts.forEach((receipts, target) => {
 			let delivery = receipts[type];
-			if (target == "*" || !delivery || !delivery.time) {
+			if (!delivery || !delivery.time) {
 				return;
 			}
 			if (!last || delivery.time > last.time) {
@@ -559,26 +571,20 @@ export default class App extends Component {
 			}
 
 			// Restore opened user query buffers
-			for (let buf of this.bufferStore.load(client.params)) {
+			for (let buf of this.bufferStore.list(client.params)) {
 				if (buf.name === "*" || client.isChannel(buf.name)) {
 					continue;
 				}
 				this.createBuffer(serverID, buf.name);
-				if (client.enabledCaps["draft/chathistory"]) {
-					this.setBufferState({ server: serverID, name: buf.name }, { unread: buf.unread });
-				}
 				client.who(buf.name);
 			}
 
-			let lastReceipt = this.latestReceipt(ReceiptType.READ);
+			let lastReceipt = this.latestReceipt(ReceiptType.DELIVERED);
 			if (lastReceipt && lastReceipt.time && client.enabledCaps["draft/chathistory"] && (!client.enabledCaps["soju.im/bouncer-networks"] || client.params.bouncerNetwork)) {
 				let now = irc.formatDate(new Date());
 				client.fetchHistoryTargets(now, lastReceipt.time).then((targets) => {
 					targets.forEach((target) => {
-						let from = this.getReceipt(target, ReceiptType.READ);
-						if (!from) {
-							from = lastReceipt;
-						}
+						let from = lastReceipt;
 						let to = { time: msg.tags.time || irc.formatDate(new Date()) };
 						this.fetchBacklog(client, target.name, from, to);
 					});
@@ -618,6 +624,8 @@ export default class App extends Component {
 			break;
 		case "JOIN":
 			channel = msg.params[0];
+
+			this.syncBufferUnread(serverID, channel);
 
 			if (!client.isMyNick(msg.prefix.name)) {
 				this.addMessage(serverID, channel, msg);
