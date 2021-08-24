@@ -479,7 +479,7 @@ export default class Buffer extends Component {
 		buf.messages.forEach((msg) => {
 			let sep = [];
 
-			if (!hasUnreadSeparator && buf.type != BufferType.SERVER && buf.lastReadReceipt && msg.tags.time > buf.lastReadReceipt.time) {
+			if (!hasUnreadSeparator && buf.type != BufferType.SERVER && buf.prevReadReceipt && msg.tags.time > buf.prevReadReceipt.time) {
 				sep.push(html`<${UnreadSeparator} key="unread"/>`);
 				hasUnreadSeparator = true;
 			}

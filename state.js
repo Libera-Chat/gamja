@@ -275,7 +275,7 @@ export const State = {
 			offline: false, // if nick
 			messages: [],
 			unread: Unread.NONE,
-			lastReadReceipt: null,
+			prevReadReceipt: null,
 		});
 		bufferList = bufferList.sort(compareBuffers);
 		let buffers = new Map(bufferList.map((buf) => [buf.id, buf]));

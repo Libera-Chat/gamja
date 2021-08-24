@@ -305,11 +305,11 @@ export default class App extends Component {
 				return;
 			}
 
-			let lastReadReceipt = this.getReceipt(buf.name, ReceiptType.READ);
+			let prevReadReceipt = this.getReceipt(buf.name, ReceiptType.READ);
 			// TODO: only mark as read if user scrolled at the bottom
 			this.setBufferState(buf.id, {
 				unread: Unread.NONE,
-				lastReadReceipt,
+				prevReadReceipt,
 			});
 
 			if (this.buffer.current) {
