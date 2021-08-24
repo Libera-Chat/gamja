@@ -577,6 +577,7 @@ export default class App extends Component {
 				}
 				this.createBuffer(serverID, buf.name);
 				client.who(buf.name);
+				client.monitor(buf.name);
 			}
 
 			let lastReceipt = this.latestReceipt(ReceiptType.DELIVERED);
@@ -785,6 +786,8 @@ export default class App extends Component {
 		case irc.RPL_TOPICWHOTIME:
 		case irc.RPL_NAMREPLY:
 		case irc.RPL_ENDOFNAMES:
+		case irc.RPL_MONONLINE:
+		case irc.RPL_MONOFFLINE:
 		case "AWAY":
 		case "SETNAME":
 		case "CAP":
@@ -853,6 +856,7 @@ export default class App extends Component {
 			client.send({ command: "JOIN", params: [target] });
 		} else {
 			client.who(target);
+			client.monitor(target);
 			this.createBuffer(serverID, target);
 			this.switchBuffer({ server: serverID, name: target });
 		}
@@ -927,6 +931,8 @@ export default class App extends Component {
 				buffers.delete(buf.id);
 				return { buffers };
 			});
+
+			client.unmonitor(buf.name);
 
 			this.receipts.delete(buf.name);
 			this.saveReceipts();

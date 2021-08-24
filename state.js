@@ -293,7 +293,7 @@ export const State = {
 			return;
 		}
 
-		let target, channel, topic;
+		let target, channel, topic, targets;
 		switch (msg.command) {
 		case irc.RPL_MYINFO:
 			// TODO: parse available modes
@@ -437,6 +437,30 @@ export const State = {
 
 				return { members };
 			});
+		case irc.RPL_MONONLINE:
+			targets = msg.params[1].split(",");
+
+			for (let target of targets) {
+				let prefix = irc.parsePrefix(target);
+				let update = updateBuffer(prefix.name, (buf) => {
+					return { offline: false };
+				});
+				state = { ...state, ...update };
+			}
+
+			return state;
+		case irc.RPL_MONOFFLINE:
+			targets = msg.params[1].split(",");
+
+			for (let target of targets) {
+				let prefix = irc.parsePrefix(target);
+				let update = updateBuffer(prefix.name, (buf) => {
+					return { offline: true };
+				});
+				state = { ...state, ...update };
+			}
+
+			return state;
 		}
 	},
 	addMessage(state, msg, bufID) {
