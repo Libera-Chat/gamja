@@ -364,6 +364,9 @@ export default class App extends Component {
 	latestReceipt(type) {
 		let last = null;
 		this.receipts.forEach((receipts, target) => {
+			if (target === "*") {
+				return;
+			}
 			let delivery = receipts[type];
 			if (!delivery || !delivery.time) {
 				return;
