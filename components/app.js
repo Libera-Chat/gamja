@@ -467,19 +467,17 @@ export default class App extends Component {
 		this.setBufferState(bufID, (buf) => {
 			// TODO: set unread if scrolled up
 			let unread = buf.unread;
-			let lastReadReceipt = buf.lastReadReceipt;
 			if (this.state.activeBuffer !== buf.id) {
 				unread = Unread.union(unread, msgUnread);
 			} else {
 				this.setReceipt(bufName, ReceiptType.READ, msg);
-				lastReadReceipt = this.getReceipt(bufName, ReceiptType.READ);
 			}
 			this.bufferStore.put({
 				name: buf.name,
 				server: client.params,
 				unread,
 			});
-			return { unread, lastReadReceipt };
+			return { unread };
 		});
 	}
 
