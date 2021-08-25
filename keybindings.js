@@ -23,8 +23,17 @@ export const keybindings = [
 						let lastMsg = buf.messages[buf.messages.length - 1];
 						app.setReceipt(buf.name, ReceiptType.READ, lastMsg);
 					}
+
 					buffers.set(buf.id, {
 						...buf,
+						unread: Unread.NONE,
+						prevReadReceipt: null,
+					});
+
+					let client = app.clients.get(buf.server);
+					app.bufferStore.put({
+						name: buf.name,
+						server: client.params,
 						unread: Unread.NONE,
 					});
 				});
