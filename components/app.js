@@ -629,9 +629,9 @@ export default class App extends Component {
 		case "JOIN":
 			channel = msg.params[0];
 
-			this.syncBufferUnread(serverID, channel);
-
-			if (!client.isMyNick(msg.prefix.name)) {
+			if (client.isMyNick(msg.prefix.name)) {
+				this.syncBufferUnread(serverID, channel);
+			} else {
 				this.addMessage(serverID, channel, msg);
 			}
 			if (channel == this.switchToChannel) {
