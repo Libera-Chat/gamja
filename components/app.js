@@ -469,17 +469,25 @@ export default class App extends Component {
 		this.setBufferState(bufID, (buf) => {
 			// TODO: set unread if scrolled up
 			let unread = buf.unread;
+			let prevReadReceipt = buf.prevReadReceipt;
+
 			if (this.state.activeBuffer !== buf.id) {
 				unread = Unread.union(unread, msgUnread);
 			} else {
 				this.setReceipt(bufName, ReceiptType.READ, msg);
 			}
+
+			// Don't show unread marker for my own messages
+			if (client.isMyNick(msg.prefix.name)) {
+				prevReadReceipt = { time: msg.tags.time };
+			}
+
 			this.bufferStore.put({
 				name: buf.name,
 				server: client.params,
 				unread,
 			});
-			return { unread };
+			return { unread, prevReadReceipt };
 		});
 	}
 
