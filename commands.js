@@ -272,7 +272,7 @@ export default {
 			app.open(nick);
 
 			if (args.length > 1) {
-				var text = args.slice(1).join(" ");
+				let text = args.slice(1).join(" ");
 				app.privmsg(nick, text);
 			}
 		},
