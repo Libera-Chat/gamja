@@ -401,6 +401,15 @@ export const State = {
 				let who = { ...buf.who, realname: msg.params[0] };
 				return { who };
 			});
+		case "CHGHOST":
+			return updateBuffer(msg.prefix.name, (buf) => {
+				let who = {
+					...buf.who,
+					username: msg.params[0],
+					hostname: msg.params[1],
+				};
+				return { who };
+			});
 		case "AWAY":
 			let awayMessage = msg.params[0];
 
