@@ -585,8 +585,7 @@ export default class App extends Component {
 					continue;
 				}
 				this.createBuffer(serverID, buf.name);
-				client.who(buf.name);
-				client.monitor(buf.name);
+				this.whoUserBuffer(buf.name, serverID);
 			}
 
 			let lastReceipt = this.latestReceipt(ReceiptType.DELIVERED);
@@ -853,6 +852,15 @@ export default class App extends Component {
 		});
 	}
 
+	whoUserBuffer(target, serverID) {
+		let client = this.clients.get(serverID);
+
+		client.who(target, {
+			fields: ["flags", "hostname", "nick", "realname", "username", "account"],
+		});
+		client.monitor(target);
+	}
+
 	open(target, serverID) {
 		if (!serverID) {
 			serverID = State.getActiveServerID(this.state);
@@ -865,8 +873,7 @@ export default class App extends Component {
 			this.switchToChannel = target;
 			client.send({ command: "JOIN", params: [target] });
 		} else {
-			client.who(target);
-			client.monitor(target);
+			this.whoUserBuffer(target, serverID);
 			this.createBuffer(serverID, target);
 			this.switchBuffer({ server: serverID, name: target });
 		}

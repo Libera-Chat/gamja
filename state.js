@@ -363,16 +363,16 @@ export const State = {
 		case irc.RPL_ENDOFNAMES:
 			break;
 		case irc.RPL_WHOREPLY:
-			let last = msg.params[msg.params.length - 1];
-			who = {
-				username: msg.params[2],
-				hostname: msg.params[3],
-				server: msg.params[4],
-				nick: msg.params[5],
-				away: msg.params[6] == 'G', // H for here, G for gone
-				realname: last.slice(last.indexOf(" ") + 1),
-				offline: false,
-			};
+		case irc.RPL_WHOSPCRPL:
+			let who = client.parseWhoReply(msg);
+
+			if (who.flags !== undefined) {
+				who.away = who.flags.indexOf("G") >= 0; // H for here, G for gone
+				delete who.flags;
+			}
+
+			who.offline = false;
+
 			return updateUser(who.nick, who);
 		case irc.RPL_ENDOFWHO:
 			target = msg.params[1];
