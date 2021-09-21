@@ -1,5 +1,6 @@
 import { html, Component } from "../lib/index.js";
 import { getNickURL } from "../state.js";
+import { strip as stripANSI } from "../lib/ansi.js";
 import Membership from "./membership.js";
 
 class MemberItem extends Component {
@@ -41,8 +42,20 @@ class MemberItem extends Component {
 
 		let title = null;
 		let user = this.props.user;
-		if (user && user.username && user.hostname) {
-			title = `${user.username}@${user.hostname}`;
+		if (user) {
+			let mask = "";
+			if (user.username && user.hostname) {
+				mask = `${user.username}@${user.hostname}`;
+			}
+
+			if (user.realname) {
+				title = stripANSI(user.realname);
+				if (mask) {
+					title = `${title} (${mask})`;
+				}
+			} else {
+				title = mask;
+			}
 		}
 
 		return html`

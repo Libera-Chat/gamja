@@ -410,6 +410,13 @@ export const State = {
 			if (msg.prefix.host) {
 				who.hostname = msg.prefix.host;
 			}
+			if (msg.params.length > 2) {
+				who.account = msg.params[1];
+				if (who.account === "*") {
+					who.account = null;
+				}
+				who.realname = msg.params[2];
+			}
 			update = updateUser(msg.prefix.name, who);
 			state = { ...state, ...update };
 
