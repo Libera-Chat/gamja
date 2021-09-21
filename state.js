@@ -364,7 +364,7 @@ export const State = {
 			break;
 		case irc.RPL_WHOREPLY:
 		case irc.RPL_WHOSPCRPL:
-			let who = client.parseWhoReply(msg);
+			who = client.parseWhoReply(msg);
 
 			if (who.flags !== undefined) {
 				who.away = who.flags.indexOf("G") >= 0; // H for here, G for gone
