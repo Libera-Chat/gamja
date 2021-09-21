@@ -138,12 +138,16 @@ export default function BufferHeader(props) {
 				realname = stripANSI(props.user.realname || "");
 			}
 
-			let mask = null;
+			let details = [];
 			if (props.user.username && props.user.hostname) {
-				mask = `(${props.user.username}@${props.user.hostname})`;
+				details.push(`${props.user.username}@${props.user.hostname}`);
 			}
+			if (props.user.account) {
+				details.push(`authenticated as ${props.user.account}`);
+			}
+			details = details.length > 0 ? `(${details.join(", ")})` : null;
 
-			description = html`<${NickStatus} status=${status}/> ${realname} ${mask}`;
+			description = html`<${NickStatus} status=${status}/> ${realname} ${details}`;
 		}
 
 		actions = html`

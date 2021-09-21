@@ -56,6 +56,10 @@ class MemberItem extends Component {
 			} else {
 				title = mask;
 			}
+
+			if (user.account) {
+				title += `\nAuthenticated as ${user.account}`;
+			}
 		}
 
 		return html`
