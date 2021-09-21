@@ -2,6 +2,7 @@ import { html, Component } from "../lib/index.js";
 import { getNickURL } from "../state.js";
 import { strip as stripANSI } from "../lib/ansi.js";
 import Membership from "./membership.js";
+import * as irc from "../lib/irc.js";
 
 class MemberItem extends Component {
 	constructor(props) {
@@ -48,7 +49,7 @@ class MemberItem extends Component {
 				mask = `${user.username}@${user.hostname}`;
 			}
 
-			if (user.realname) {
+			if (irc.isMeaningfulRealname(user.realname, this.props.nick)) {
 				title = stripANSI(user.realname);
 				if (mask) {
 					title = `${title} (${mask})`;

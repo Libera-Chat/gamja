@@ -2,6 +2,7 @@ import { html, Component } from "../lib/index.js";
 import linkify from "../lib/linkify.js";
 import { strip as stripANSI } from "../lib/ansi.js";
 import { BufferType, ServerStatus, getServerName } from "../state.js";
+import * as irc from "../lib/irc.js";
 
 const UserStatus = {
 	HERE: "here",
@@ -134,7 +135,7 @@ export default function BufferHeader(props) {
 			}
 
 			let realname = props.buffer.name;
-			if (props.user.realname) {
+			if (irc.isMeaningfulRealname(props.user.realname, props.buffer.name)) {
 				realname = stripANSI(props.user.realname || "");
 			}
 
