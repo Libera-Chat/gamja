@@ -581,13 +581,6 @@ export default class App extends Component {
 		let target, channel, affectedBuffers;
 		switch (msg.command) {
 		case irc.RPL_WELCOME:
-			if (this.state.connectParams.autojoin.length > 0) {
-				client.send({
-					command: "JOIN",
-					params: [this.state.connectParams.autojoin.join(",")],
-				});
-			}
-
 			let lastReceipt = this.latestReceipt(ReceiptType.DELIVERED);
 			if (lastReceipt && lastReceipt.time && client.enabledCaps["draft/chathistory"] && (!client.enabledCaps["soju.im/bouncer-networks"] || client.params.bouncerNetwork)) {
 				let now = irc.formatDate(new Date());
@@ -604,13 +597,32 @@ export default class App extends Component {
 		case irc.ERR_NOMOTD:
 			// These messages are used to indicate the end of the ISUPPORT list
 
-			// Restore opened user query buffers
+			// Restore opened channel and user buffers
+			let join = [];
 			for (let buf of this.bufferStore.list(client.params)) {
-				if (buf.name === "*" || client.isChannel(buf.name)) {
+				if (buf.name === "*") {
 					continue;
 				}
-				this.createBuffer(serverID, buf.name);
-				this.whoUserBuffer(buf.name, serverID);
+
+				if (client.isChannel(buf.name)) {
+					if (client.enabledCaps["soju.im/bouncer-networks"]) {
+						continue;
+					}
+					join.push(buf.name);
+				} else {
+					this.createBuffer(serverID, buf.name);
+					this.whoUserBuffer(buf.name, serverID);
+				}
+			}
+
+			// Auto-join channels given at connect-time
+			join = join.concat(this.state.connectParams.autojoin);
+
+			if (join.length > 0) {
+				client.send({
+					command: "JOIN",
+					params: [join.join(",")],
+				});
 			}
 		case "MODE":
 			target = msg.params[0];
