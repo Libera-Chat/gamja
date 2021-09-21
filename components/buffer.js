@@ -36,7 +36,14 @@ function Timestamp({ date, url }) {
 	let ss = date.getSeconds().toString().padStart(2, "0");
 	let timestamp = `${hh}:${mm}:${ss}`;
 	return html`
-		<a href=${url} class="timestamp" onClick=${(event) => event.preventDefault()}>${timestamp}</a>
+		<a
+			href=${url}
+			class="timestamp"
+			title=${date.toLocaleString()}
+			onClick=${(event) => event.preventDefault()}
+		>
+			${timestamp}
+		</a>
 	`;
 }
 
