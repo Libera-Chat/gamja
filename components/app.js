@@ -326,6 +326,11 @@ export default class App extends Component {
 				server: client.params,
 				unread: Unread.NONE,
 			});
+
+			let server = this.state.servers.get(buf.server);
+			if (buf.type === BufferType.NICK && !server.users.has(buf.name)) {
+				this.whoUserBuffer(buf.name, buf.server);
+			}
 		});
 	}
 
