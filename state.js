@@ -311,7 +311,7 @@ export const State = {
 			return;
 		}
 
-		let target, channel, topic, targets;
+		let target, channel, topic, targets, who;
 		switch (msg.command) {
 		case irc.RPL_MYINFO:
 			// TODO: parse available modes
@@ -364,7 +364,7 @@ export const State = {
 			break;
 		case irc.RPL_WHOREPLY:
 			let last = msg.params[msg.params.length - 1];
-			let who = {
+			who = {
 				username: msg.params[2],
 				hostname: msg.params[3],
 				server: msg.params[4],
@@ -401,7 +401,19 @@ export const State = {
 				members.set(msg.prefix.name, "");
 				return { members };
 			});
-			return { ...state, ...update };
+			state = { ...state, ...update };
+
+			who = { nick: msg.prefix.name, offline: false };
+			if (msg.prefix.user) {
+				who.username = msg.prefix.user;
+			}
+			if (msg.prefix.host) {
+				who.hostname = msg.prefix.host;
+			}
+			update = updateUser(msg.prefix.name, who);
+			state = { ...state, ...update };
+
+			return state;
 		case "PART":
 			channel = msg.params[0];
 
