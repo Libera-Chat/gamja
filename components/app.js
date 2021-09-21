@@ -281,12 +281,16 @@ export default class App extends Component {
 	createBuffer(serverID, name) {
 		let client = this.clients.get(serverID);
 		let id = null;
+		let isNew = false;
 		this.setState((state) => {
 			let updated;
 			[id, updated] = State.createBuffer(state, name, serverID, client);
+			isNew = !!updated;
 			return updated;
 		});
-		this.syncBufferUnread(serverID, name);
+		if (isNew) {
+			this.syncBufferUnread(serverID, name);
+		}
 		return id;
 	}
 
