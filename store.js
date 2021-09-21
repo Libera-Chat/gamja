@@ -41,7 +41,7 @@ export class Buffer {
 	m = null;
 
 	constructor() {
-		var obj = this.raw.load();
+		let obj = this.raw.load();
 		this.m = new Map(Object.entries(obj || {}));
 	}
 
