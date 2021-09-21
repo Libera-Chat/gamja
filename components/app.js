@@ -798,6 +798,8 @@ export default class App extends Component {
 		case irc.RPL_MONOFFLINE:
 		case "AWAY":
 		case "SETNAME":
+		case "CHGHOST":
+		case "ACCOUNT":
 		case "CAP":
 		case "AUTHENTICATE":
 		case "PING":

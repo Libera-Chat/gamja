@@ -464,6 +464,12 @@ export const State = {
 				username: msg.params[0],
 				hostname: msg.params[1],
 			});
+		case "ACCOUNT":
+			let account = msg.params[0];
+			if (account === "*") {
+				account = null;
+			}
+			return updateUser(msg.prefix.name, { account });
 		case "AWAY":
 			let awayMessage = msg.params[0];
 			return updateUser(msg.prefix.name, { away: !!awayMessage });
