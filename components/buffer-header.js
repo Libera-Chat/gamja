@@ -125,23 +125,25 @@ export default function BufferHeader(props) {
 		`;
 		break;
 	case BufferType.NICK:
-		if (props.buffer.who) {
-			let who = props.buffer.who;
-
-			let realname = stripANSI(who.realname || "");
-
+		if (props.user) {
 			let status = UserStatus.HERE;
-			if (who.away) {
+			if (props.user.offline) {
+				status = UserStatus.OFFLINE;
+			} else if (props.user.away) {
 				status = UserStatus.GONE;
 			}
-			if (props.buffer.offline) {
-				status = UserStatus.OFFLINE;
+
+			let realname = props.buffer.name;
+			if (props.user.realname) {
+				realname = stripANSI(props.user.realname || "");
 			}
 
-			description = html`<${NickStatus} status=${status}/> ${realname} (${who.username}@${who.hostname})`;
-		} else if (props.buffer.offline) {
-			// User is offline, but we don't have WHO information
-			description = html`<${NickStatus} status=${UserStatus.OFFLINE}/> ${props.buffer.name}`;
+			let mask = null;
+			if (props.user.username && props.user.hostname) {
+				mask = `(${props.user.username}@${props.user.hostname})`;
+			}
+
+			description = html`<${NickStatus} status=${status}/> ${realname} ${mask}`;
 		}
 
 		actions = html`

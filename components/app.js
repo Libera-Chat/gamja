@@ -1234,11 +1234,17 @@ export default class App extends Component {
 
 		let bufferHeader = null;
 		if (activeBuffer) {
+			let activeUser = null;
+			if (activeBuffer.type == BufferType.NICK) {
+				activeUser = activeServer.users.get(activeBuffer.name);
+			}
+
 			bufferHeader = html`
 				<section id="buffer-header">
 					<${BufferHeader}
 						buffer=${activeBuffer}
 						server=${activeServer}
+						user=${activeUser}
 						isBouncer=${isBouncer}
 						bouncerNetwork=${activeBouncerNetwork}
 						onChannelClick=${this.handleChannelClick}
