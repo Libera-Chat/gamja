@@ -584,15 +584,6 @@ export default class App extends Component {
 				});
 			}
 
-			// Restore opened user query buffers
-			for (let buf of this.bufferStore.list(client.params)) {
-				if (buf.name === "*" || client.isChannel(buf.name)) {
-					continue;
-				}
-				this.createBuffer(serverID, buf.name);
-				this.whoUserBuffer(buf.name, serverID);
-			}
-
 			let lastReceipt = this.latestReceipt(ReceiptType.DELIVERED);
 			if (lastReceipt && lastReceipt.time && client.enabledCaps["draft/chathistory"] && (!client.enabledCaps["soju.im/bouncer-networks"] || client.params.bouncerNetwork)) {
 				let now = irc.formatDate(new Date());
@@ -605,6 +596,18 @@ export default class App extends Component {
 				});
 			}
 			break;
+		case irc.RPL_ENDOFMOTD:
+		case irc.ERR_NOMOTD:
+			// These messages are used to indicate the end of the ISUPPORT list
+
+			// Restore opened user query buffers
+			for (let buf of this.bufferStore.list(client.params)) {
+				if (buf.name === "*" || client.isChannel(buf.name)) {
+					continue;
+				}
+				this.createBuffer(serverID, buf.name);
+				this.whoUserBuffer(buf.name, serverID);
+			}
 		case "MODE":
 			target = msg.params[0];
 			if (client.isChannel(target)) {
