@@ -206,6 +206,7 @@ export default class App extends Component {
 				...connectParams,
 				...autoconnect,
 				autoconnect: true,
+				autojoin: [], // handled by store.Buffer
 			};
 		}
 
