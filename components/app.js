@@ -675,8 +675,7 @@ export default class App extends Component {
 						}
 						let members = new irc.CaseMapMap(buf.members);
 						members.delete(msg.prefix.name);
-						let offline = client.cm(buf.name) === client.cm(msg.prefix.name);
-						buffers.set(buf.id, { ...buf, members, offline });
+						buffers.set(buf.id, { ...buf, members });
 						affectedBuffers.push(buf.name);
 					});
 					return { buffers };

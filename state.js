@@ -419,6 +419,25 @@ export const State = {
 				members.delete(nick);
 				return { members };
 			});
+		case "QUIT":
+			return updateUser(msg.prefix.name, (user) => {
+				if (!user) {
+					return;
+				}
+				return { offline: true };
+			});
+		case "NICK":
+			let newNick = msg.params[0];
+			return updateServer((server) => {
+				let users = new irc.CaseMapMap(server.users);
+				let user = users.get(msg.prefix.name);
+				if (!user) {
+					return;
+				}
+				users.set(newNick, user);
+				users.delete(msg.prefix.name);
+				return { users };
+			});
 		case "SETNAME":
 			return updateUser(msg.prefix.name, { realname: msg.params[0] });
 		case "CHGHOST":
