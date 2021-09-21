@@ -1276,6 +1276,7 @@ export default class App extends Component {
 						</section>
 						<${MemberList}
 							members=${activeBuffer.members}
+							users=${activeServer.users}
 							onNickClick=${this.handleNickClick}
 						/>
 					</section>

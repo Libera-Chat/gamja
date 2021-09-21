@@ -38,11 +38,19 @@ class MemberItem extends Component {
 				</span>
 			`;
 		};
+
+		let title = null;
+		let user = this.props.user;
+		if (user && user.username && user.hostname) {
+			title = `${user.username}@${user.hostname}`;
+		}
+
 		return html`
 			<li>
 				<a
 					href=${getNickURL(this.props.nick)}
 					class="nick"
+					title=${title}
 					onClick=${this.handleClick}
 				>
 					<${Membership} value=${this.props.membership}/>
@@ -84,6 +92,7 @@ export default class MemberList extends Component {
 						key=${nick}
 						nick=${nick}
 						membership=${membership}
+						user=${this.props.users.get(nick)}
 						onClick=${() => this.props.onNickClick(nick)}
 					/>
 				`)}
