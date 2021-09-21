@@ -161,6 +161,13 @@ let lastBufferID = 0;
 let lastMessageKey = 0;
 
 export const State = {
+	create() {
+		return {
+			servers: new Map(),
+			buffers: new Map(),
+			activeBuffer: null,
+		};
+	},
 	updateServer(state, id, updater) {
 		let server = state.servers.get(id);
 		if (!server) {

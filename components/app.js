@@ -116,6 +116,7 @@ function showNotification(title, options) {
 
 export default class App extends Component {
 	state = {
+		...State.create(),
 		connectParams: {
 			url: null,
 			pass: null,
@@ -126,10 +127,7 @@ export default class App extends Component {
 			autoconnect: false,
 			autojoin: [],
 		},
-		servers: new Map(),
-		buffers: new Map(),
 		bouncerNetworks: new Map(),
-		activeBuffer: null,
 		connectForm: true,
 		loading: true,
 		dialog: null,
