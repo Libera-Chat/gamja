@@ -194,6 +194,14 @@ class LogLine extends Component {
 			lineClass = "motd";
 			content = linkify(stripANSI(msg.params[1]), onChannelClick);
 			break;
+		case irc.RPL_UMODEIS:
+			let mode = msg.params[1];
+			if (mode) {
+				content = html`Your user mode is ${mode}`;
+			} else {
+				content = html`You have no user mode`;
+			}
+			break;
 		default:
 			if (irc.isError(msg.command) && msg.command != irc.ERR_NOMOTD) {
 				lineClass = "error";
