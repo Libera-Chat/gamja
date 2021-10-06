@@ -202,6 +202,13 @@ class LogLine extends Component {
 				content = html`You have no user mode`;
 			}
 			break;
+		case irc.RPL_CHANNELMODEIS:
+			content = html`Channel mode is ${msg.params.slice(2).join(" ")}`;
+			break;
+		case irc.RPL_CREATIONTIME:
+			let date = new Date(parseInt(msg.params[2], 10) * 1000);
+			content = html`Channel was created on ${date.toLocaleString()}`;
+			break;
 		default:
 			if (irc.isError(msg.command) && msg.command != irc.ERR_NOMOTD) {
 				lineClass = "error";
