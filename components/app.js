@@ -214,7 +214,7 @@ export default class App extends Component {
 		}
 
 		let queryParams = parseQueryString();
-		if (typeof queryParams.server === "string") {
+		if (typeof queryParams.server === "string" && !connectParams.url) {
 			connectParams.url = queryParams.server;
 
 			// When using a custom server, some configuration options don't
@@ -224,7 +224,7 @@ export default class App extends Component {
 		if (typeof queryParams.nick === "string") {
 			connectParams.nick = queryParams.nick;
 		}
-		if (typeof queryParams.channels == "string") {
+		if (typeof queryParams.channels === "string") {
 			connectParams.autojoin = queryParams.channels.split(",");
 		}
 
