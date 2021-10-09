@@ -201,6 +201,9 @@ export default class App extends Component {
 			} else if (typeof config.server.autojoin === "string") {
 				connectParams.autojoin = [config.server.autojoin];
 			}
+			if (typeof config.server.nick === "string") {
+				connectParams.nick = config.server.nick;
+			}
 			if (typeof config.server.autoconnect === "boolean") {
 				connectParams.autoconnect = config.server.autoconnect;
 			}

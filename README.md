@@ -90,6 +90,8 @@ gamja default settings can be set using a `config.json` file at the root:
 		// require it, and "disabled" to never ask for a password. Defaults to
 		// "optional".
 		"auth": "optional",
+		// Default nickname (string).
+		"nick": "asdf",
 		// Don't display the login UI, immediately connect to the server
 		// (boolean).
 		"autoconnect": true,
