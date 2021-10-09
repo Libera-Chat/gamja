@@ -184,12 +184,13 @@ export default class App extends Component {
 	 * - URL params
 	 * - Saved parameters in local storage
 	 * - Configuration data (fetched from the config.json file)
-	 * - Default server URL constructed from the current URL location
+	 * - Default server URL constructed from the current URL location (this is
+	 *   done in fillConnectParams)
 	 */
 	handleConfig(config) {
 		this.setState({ loading: false });
 
-		let connectParams = {};
+		let connectParams = { ...this.state.connectParams };
 
 		if (config.server) {
 			if (typeof config.server.url === "string") {
@@ -233,14 +234,7 @@ export default class App extends Component {
 
 		this.config = config;
 
-		this.setState((state) => {
-			return {
-				connectParams: {
-					...state.connectParams,
-					...connectParams,
-				},
-			};
-		});
+		this.setState({ connectParams: connectParams });
 
 		if (connectParams.autoconnect) {
 			this.setState({ connectForm: false });
