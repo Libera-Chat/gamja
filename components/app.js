@@ -192,10 +192,12 @@ export default class App extends Component {
 		let connectParams = {};
 
 		if (config.server) {
-			connectParams.url = config.server.url;
+			if (typeof config.server.url === "string") {
+				connectParams.url = config.server.url;
+			}
 			if (Array.isArray(config.server.autojoin)) {
 				connectParams.autojoin = config.server.autojoin;
-			} else if (config.server.autojoin) {
+			} else if (typeof config.server.autojoin === "string") {
 				connectParams.autojoin = [config.server.autojoin];
 			}
 		}
