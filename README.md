@@ -90,6 +90,9 @@ gamja default settings can be set using a `config.json` file at the root:
 		// require it, and "disabled" to never ask for a password. Defaults to
 		// "optional".
 		"auth": "optional",
+		// Don't display the login UI, immediately connect to the server
+		// (boolean).
+		"autoconnect": true,
 		// Interval in seconds to send PING commands (number). Set to 0 to
 		// disable. Enabling PINGs can have an impact on client power usage and
 		// should only be enabled if necessary.
