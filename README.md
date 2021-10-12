@@ -48,9 +48,9 @@ location /socket {
 }
 ```
 
-If you are unable to configure the proxy timeout accordingly, you can set the
-`server.ping` option in `config.json` to an interval, in seconds, between which
-gamja will send opportunistic pings.
+If you are unable to configure the proxy timeout accordingly, or if your IRC
+server doesn't send PINGs, you can set the `server.ping` option in
+`config.json` (see below).
 
 ### Development server
 
