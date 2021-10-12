@@ -124,6 +124,7 @@ export default class App extends Component {
 			realname: null,
 			nick: null,
 			saslPlain: null,
+			saslExternal: false,
 			autoconnect: false,
 			autojoin: [],
 		},
@@ -206,6 +207,9 @@ export default class App extends Component {
 			}
 			if (typeof config.server.autoconnect === "boolean") {
 				connectParams.autoconnect = config.server.autoconnect;
+			}
+			if (config.server.auth === "external") {
+				connectParams.saslExternal = true;
 			}
 		}
 

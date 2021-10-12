@@ -87,8 +87,8 @@ gamja default settings can be set using a `config.json` file at the root:
 		"autojoin": "#gamja",
 		// Controls how the password UI is presented to the user. Set to
 		// "mandatory" to require a password, "optional" to accept one but not
-		// require it, and "disabled" to never ask for a password. Defaults to
-		// "optional".
+		// require it, "disabled" to never ask for a password, or "external" to
+		// use SASL EXTERNAL. Defaults to "optional".
 		"auth": "optional",
 		// Default nickname (string).
 		"nick": "asdf",

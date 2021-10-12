@@ -61,6 +61,8 @@ export default class ConnectForm extends Component {
 				username: params.username || params.nick,
 				password: this.state.password,
 			};
+		} else if (this.props.auth === "external") {
+			params.saslExternal = true;
 		}
 
 		this.state.autojoin.split(",").forEach(function(ch) {
@@ -112,7 +114,7 @@ export default class ConnectForm extends Component {
 		}
 
 		let auth = null;
-		if (this.props.auth !== "disabled") {
+		if (this.props.auth !== "disabled" && this.props.auth !== "external") {
 			auth = html`
 				<label>
 					Password:<br/>
