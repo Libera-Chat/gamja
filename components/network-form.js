@@ -14,7 +14,6 @@ export default class NetworkForm extends Component {
 	prevParams = null;
 	state = {
 		...defaultParams,
-		isNew: true,
 	};
 
 	constructor(props) {
@@ -24,8 +23,6 @@ export default class NetworkForm extends Component {
 
 		this.handleChange = this.handleChange.bind(this);
 		this.handleSubmit = this.handleSubmit.bind(this);
-
-		this.state.isNew = !props.params;
 
 		if (props.params) {
 			Object.keys(defaultParams).forEach((k) => {
@@ -48,7 +45,10 @@ export default class NetworkForm extends Component {
 
 		let params = {};
 		Object.keys(defaultParams).forEach((k) => {
-			if (this.prevParams[k] == this.state[k]) {
+			if (!this.props.isNew && this.prevParams[k] == this.state[k]) {
+				return;
+			}
+			if (this.props.isNew && defaultParams[k] == this.state[k]) {
 				return;
 			}
 			params[k] = this.state[k];
@@ -59,7 +59,7 @@ export default class NetworkForm extends Component {
 
 	render() {
 		let removeNetwork = null;
-		if (!this.state.isNew) {
+		if (!this.props.isNew) {
 			removeNetwork = html`
 				<button type="button" class="danger" onClick=${() => this.props.onRemove()}>
 					Remove network
@@ -121,7 +121,7 @@ export default class NetworkForm extends Component {
 				${removeNetwork}
 				${" "}
 				<button>
-					${this.state.isNew ? "Add network" : "Save network"}
+					${this.props.isNew ? "Add network" : "Save network"}
 				</button>
 			</form>
 		`;

@@ -883,7 +883,13 @@ export default class App extends Component {
 				}
 			}
 			if (!bouncerNetID) {
-				// TODO: open dialog to create network if bouncer
+				// Open dialog to create network if bouncer
+				let client = this.clients.values().next().value;
+				if (client && client.enabledCaps["soju.im/bouncer-networks"]) {
+					event.preventDefault();
+					let params = { host: url.host };
+					this.openDialog("network", { params });
+				}
 				return;
 			}
 
@@ -1364,13 +1370,15 @@ export default class App extends Component {
 		let dialog = null;
 		switch (this.state.dialog) {
 		case "network":
-			let title = this.state.dialogData ? "Edit network" : "Add network";
+			let isNew = !!(!this.state.dialogData || !this.state.dialogData.id);
+			let title = isNew ? "Add network" : "Edit network";
 			dialog = html`
 				<${Dialog} title=${title} onDismiss=${this.dismissDialog}>
 					<${NetworkForm}
 						onSubmit=${this.handleNetworkSubmit}
 						onRemove=${this.handleNetworkRemove}
 						params=${this.state.dialogData ? this.state.dialogData.params : null}
+						isNew=${isNew}
 					/>
 				</>
 			`;
