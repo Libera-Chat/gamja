@@ -906,7 +906,7 @@ export default class App extends Component {
 
 		event.preventDefault();
 
-		let buf = State.getBuffer(this.state, { server: serverID, name: url.channel });
+		let buf = State.getBuffer(this.state, { server: serverID, name: url.channel || SERVER_BUFFER });
 		if (buf) {
 			this.switchBuffer(buf.id);
 		} else {
