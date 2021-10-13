@@ -1,8 +1,8 @@
 {
   "name": "gamja",
   "dependencies": {
-    "anchorme": "^2.1.2",
     "htm": "^3.0.4",
+    "linkifyjs": "^3.0.2",
     "preact": "^10.5.9"
   },
   "devDependencies": {
