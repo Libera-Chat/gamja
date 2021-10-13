@@ -865,13 +865,46 @@ export default class App extends Component {
 		this.connect(connectParams);
 	}
 
-	handleChannelClick(channel) {
-		let serverID = State.getActiveServerID(this.state);
-		let buf = State.getBuffer(this.state, { server: serverID, name: channel });
+	handleChannelClick(event) {
+		let url = irc.parseURL(event.target.href);
+		if (!url) {
+			return;
+		}
+
+		let serverID;
+		if (!url.host) {
+			serverID = State.getActiveServerID(this.state);
+		} else {
+			let bouncerNetID;
+			for (let [id, bouncerNetwork] of this.state.bouncerNetworks) {
+				if (bouncerNetwork.host === url.host) {
+					bouncerNetID = id;
+					break;
+				}
+			}
+			if (!bouncerNetID) {
+				// TODO: open dialog to create network if bouncer
+				return;
+			}
+
+			for (let [id, server] of this.state.servers) {
+				if (server.isupport.get("BOUNCER_NETID") === bouncerNetID) {
+					serverID = id;
+					break;
+				}
+			}
+		}
+		if (!serverID) {
+			return;
+		}
+
+		event.preventDefault();
+
+		let buf = State.getBuffer(this.state, { server: serverID, name: url.channel });
 		if (buf) {
 			this.switchBuffer(buf.id);
 		} else {
-			this.open(channel);
+			this.open(url.channel, serverID);
 		}
 	}
 
