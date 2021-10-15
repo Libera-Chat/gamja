@@ -71,7 +71,7 @@ export function getServerName(server, bouncerNetwork, isBouncer) {
 			// User has picked a custom name for the network, use that
 			return bouncerNetwork.name;
 		}
-		return netName || bouncerNetwork.name || "server";
+		return netName || bouncerNetwork.name || bouncerNetwork.host || "server";
 	}
 	if (isBouncer) {
 		return "bouncer";
