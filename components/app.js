@@ -153,6 +153,7 @@ export default class App extends Component {
 		this.handleConnectSubmit = this.handleConnectSubmit.bind(this);
 		this.handleJoinSubmit = this.handleJoinSubmit.bind(this);
 		this.handleBufferListClick = this.handleBufferListClick.bind(this);
+		this.handleBufferListClose = this.handleBufferListClose.bind(this);
 		this.toggleBufferList = this.toggleBufferList.bind(this);
 		this.toggleMemberList = this.toggleMemberList.bind(this);
 		this.handleComposerSubmit = this.handleComposerSubmit.bind(this);
@@ -1095,6 +1096,11 @@ export default class App extends Component {
 		this.closeBufferList();
 	}
 
+	handleBufferListClose(id) {
+		this.close(id);
+		this.closeBufferList();
+	}
+
 	toggleBufferList() {
 		this.setState((state) => {
 			let openPanels = {
@@ -1430,6 +1436,7 @@ export default class App extends Component {
 					isBouncer=${isBouncer}
 					activeBuffer=${this.state.activeBuffer}
 					onBufferClick=${this.handleBufferListClick}
+					onBufferClose=${this.handleBufferListClose}
 				/>
 				<button
 					class="expander"

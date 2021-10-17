@@ -7,6 +7,12 @@ function BufferItem(props) {
 		event.preventDefault();
 		props.onClick();
 	}
+	function handleMouseDown(event) {
+		if (event.button === 1) { // middle click
+			event.preventDefault();
+			props.onClose();
+		}
+	}
 
 	let name = props.buffer.name;
 	if (props.buffer.type == BufferType.SERVER) {
@@ -23,7 +29,11 @@ function BufferItem(props) {
 
 	return html`
 		<li class="${classes.join(" ")}">
-			<a href=${getBufferURL(props.buffer)} onClick=${handleClick}>${name}</a>
+			<a
+				href=${getBufferURL(props.buffer)}
+				onClick=${handleClick}
+				onMouseDown=${handleMouseDown}
+			>${name}</a>
 		</li>
 	`;
 }
@@ -47,6 +57,7 @@ export default function BufferList(props) {
 				isBouncer=${props.isBouncer}
 				bouncerNetwork=${bouncerNetwork}
 				onClick=${() => props.onBufferClick(buf)}
+				onClose=${() => props.onBufferClose(buf)}
 				active=${props.activeBuffer == buf.id}
 			/>
 		`;
