@@ -66,18 +66,23 @@ export function getMessageURL(buf, msg) {
 export function getServerName(server, bouncerNetwork, isBouncer) {
 	let netName = server.isupport.get("NETWORK");
 
-	if (bouncerNetwork) {
-		if (bouncerNetwork.name && bouncerNetwork.name !== bouncerNetwork.host) {
-			// User has picked a custom name for the network, use that
-			return bouncerNetwork.name;
-		}
-		return netName || bouncerNetwork.name || bouncerNetwork.host || "server";
-	}
-	if (isBouncer) {
-		return "bouncer";
+	if (bouncerNetwork && bouncerNetwork.name && bouncerNetwork.name !== bouncerNetwork.host) {
+		// User has picked a custom name for the network, use that
+		return bouncerNetwork.name;
 	}
 
-	return netName || "server";
+	if (netName) {
+		// Server has specified a name
+		return netName;
+	}
+
+	if (bouncerNetwork) {
+		return bouncerNetwork.name || bouncerNetwork.host || "server";
+	} else if (isBouncer) {
+		return "bouncer";
+	} else {
+		return "server";
+	}
 }
 
 function updateState(state, updater) {
