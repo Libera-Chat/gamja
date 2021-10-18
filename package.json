@@ -11,5 +11,11 @@
   "scripts": {
     "start": "http-server ."
   },
-  "private": true
+  "private": true,
+  "targets": {
+    "default": {
+      "source": "index.html",
+      "publicUrl": "."
+    }
+  }
 }

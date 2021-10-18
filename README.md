@@ -62,6 +62,13 @@ Start your IRC WebSocket server, e.g. on port 8080. Then run:
 This will start a development HTTP server for gamja. Connect to it and append
 `?server=ws://localhost:8080` to the URL.
 
+### Production build
+
+Optionally, [Parcel] can be used to build a minified version of gamja. Install
+Parcel and then run:
+
+    parcel build
+
 ## Query parameters
 
 gamja settings can be overridden using URL query parameters:
@@ -119,3 +126,4 @@ Copyright (C) 2020 The gamja Contributors
 [webircgateway]: https://github.com/kiwiirc/webircgateway
 [mailing list]: https://lists.sr.ht/~emersion/public-inbox
 [issue tracker]: https://todo.sr.ht/~emersion/gamja
+[Parcel]: https://parceljs.org
