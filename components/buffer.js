@@ -194,6 +194,13 @@ class LogLine extends Component {
 			lineClass = "motd";
 			content = linkify(stripANSI(msg.params[1]), onChannelClick);
 			break;
+		case irc.RPL_LOGGEDIN:
+			let account = msg.params[2];
+			content = html`You are now authenticated as ${account}`;
+			break;
+		case irc.RPL_LOGGEDOUT:
+			content = html`You are now unauthenticated`;
+			break;
 		case irc.RPL_UMODEIS:
 			let mode = msg.params[1];
 			if (mode) {
