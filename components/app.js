@@ -822,6 +822,7 @@ export default class App extends Component {
 			channel = msg.params[2];
 			this.addMessage(serverID, channel, msg);
 			break;
+		case irc.RPL_YOURHOST:
 		case irc.RPL_MYINFO:
 		case irc.RPL_ISUPPORT:
 		case irc.RPL_NOTOPIC:
