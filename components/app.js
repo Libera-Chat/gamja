@@ -909,11 +909,11 @@ export default class App extends Component {
 
 		event.preventDefault();
 
-		let buf = State.getBuffer(this.state, { server: serverID, name: url.channel || SERVER_BUFFER });
+		let buf = State.getBuffer(this.state, { server: serverID, name: url.entity || SERVER_BUFFER });
 		if (buf) {
 			this.switchBuffer(buf.id);
 		} else {
-			this.open(url.channel, serverID);
+			this.open(url.entity, serverID);
 		}
 	}
 
