@@ -806,42 +806,6 @@ export default class App extends Component {
 				this.saveReceipts();
 			}
 			break;
-		case "QUIT":
-			this.setState((state) => {
-				let buffers = new Map(state.buffers);
-				state.buffers.forEach((buf) => {
-					if (buf.server != serverID) {
-						return;
-					}
-					if (!buf.members.has(msg.prefix.name)) {
-						return;
-					}
-					let members = new irc.CaseMapMap(buf.members);
-					members.delete(msg.prefix.name);
-					buffers.set(buf.id, { ...buf, members });
-				});
-				return { buffers };
-			});
-			break;
-		case "NICK":
-			let newNick = msg.params[0];
-			this.setState((state) => {
-				let buffers = new Map(state.buffers);
-				state.buffers.forEach((buf) => {
-					if (buf.server != serverID) {
-						return;
-					}
-					if (!buf.members.has(msg.prefix.name)) {
-						return;
-					}
-					let members = new irc.CaseMapMap(buf.members);
-					members.set(newNick, members.get(msg.prefix.name));
-					members.delete(msg.prefix.name);
-					buffers.set(buf.id, { ...buf, members });
-				});
-				return { buffers };
-			});
-			break;
 		case "BOUNCER":
 			if (msg.params[0] !== "NETWORK") {
 				break; // We're only interested in network updates
