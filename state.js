@@ -354,19 +354,19 @@ export const State = {
 		case irc.RPL_TOPICWHOTIME:
 			// Ignore
 			break;
-		case irc.RPL_NAMREPLY:
-			channel = msg.params[2];
-			let membersList = msg.params[3].split(" ");
-
+		case irc.RPL_ENDOFNAMES:
+			channel = msg.params[1];
 			return updateBuffer(channel, (buf) => {
-				let members = new irc.CaseMapMap(buf.members);
-				membersList.forEach((s) => {
-					let member = irc.parseTargetPrefix(s);
-					members.set(member.name, member.prefix);
+				let members = new irc.CaseMapMap(null, buf.members.caseMap);
+				msg.list.forEach((namreply) => {
+					let membersList = namreply.params[3].split(" ");
+					membersList.forEach((s) => {
+						let member = irc.parseTargetPrefix(s);
+						members.set(member.name, member.prefix);
+					});
 				});
 				return { members };
 			});
-		case irc.RPL_ENDOFNAMES:
 			break;
 		case irc.RPL_WHOREPLY:
 		case irc.RPL_WHOSPCRPL:
