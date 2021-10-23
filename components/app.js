@@ -584,13 +584,164 @@ export default class App extends Component {
 		return null;
 	}
 
-	handleMessage(serverID, msg) {
+	routeMessage(serverID, msg) {
 		let client = this.clients.get(serverID);
 		let chatHistoryBatch = irc.findBatchByType(msg, "chathistory");
 
+		let target, channel, affectedBuffers;
+		switch (msg.command) {
+		case "MODE":
+			target = msg.params[0];
+			if (client.isChannel(target)) {
+				return [target];
+			}
+			return [];
+		case "NOTICE":
+		case "PRIVMSG":
+			target = msg.params[0];
+			if (client.isMyNick(target)) {
+				if (client.cm(msg.prefix.name) === client.cm(client.serverPrefix.name)) {
+					target = SERVER_BUFFER;
+				} else {
+					target = msg.prefix.name;
+				}
+			}
+			if (msg.command === "NOTICE" && !State.getBuffer(this.state, { server: serverID, name: target })) {
+				// Don't open a new buffer if this is just a NOTICE
+				target = SERVER_BUFFER;
+			}
+
+			let allowedPrefixes = client.isupport.get("STATUSMSG");
+			if (allowedPrefixes) {
+				let parts = irc.parseTargetPrefix(target, allowedPrefixes);
+				if (client.isChannel(parts.name)) {
+					target = parts.name;
+				}
+			}
+			return [target];
+		case "JOIN":
+			channel = msg.params[0];
+			if (!client.isMyNick(msg.prefix.name)) {
+				return [channel];
+			}
+			return [];
+		case "PART":
+			channel = msg.params[0];
+			return [channel];
+		case "KICK":
+			channel = msg.params[0];
+			return [channel];
+		case "QUIT":
+			affectedBuffers = [];
+			if (chatHistoryBatch) {
+				affectedBuffers.push(chatHistoryBatch.params[0]);
+			} else {
+				this.state.buffers.forEach((buf) => {
+					if (buf.server != serverID) {
+						return;
+					}
+					if (!buf.members.has(msg.prefix.name) && client.cm(buf.name) !== client.cm(msg.prefix.name)) {
+						return;
+					}
+					affectedBuffers.push(buf.name);
+				});
+			}
+			return affectedBuffers;
+		case "NICK":
+			let newNick = msg.params[0];
+
+			affectedBuffers = [];
+			if (chatHistoryBatch) {
+				affectedBuffers.push(chatHistoryBatch.params[0]);
+			} else {
+				this.state.buffers.forEach((buf) => {
+					if (buf.server != serverID) {
+						return;
+					}
+					if (!buf.members.has(msg.prefix.name)) {
+						return;
+					}
+					affectedBuffers.push(buf.name);
+				});
+			}
+			return affectedBuffers;
+		case "TOPIC":
+			channel = msg.params[0];
+			return [channel];
+		case "INVITE":
+			channel = msg.params[1];
+
+			// TODO: find a more reliable way to do this
+			let bufName = channel;
+			if (!State.getBuffer(this.state, { server: serverID, name: channel })) {
+				bufName = SERVER_BUFFER;
+			}
+
+			return [bufName];
+		case irc.RPL_CHANNELMODEIS:
+		case irc.RPL_CREATIONTIME:
+		case irc.RPL_INVITELIST:
+		case irc.RPL_ENDOFINVITELIST:
+		case irc.RPL_EXCEPTLIST:
+		case irc.RPL_ENDOFEXCEPTLIST:
+		case irc.RPL_BANLIST:
+		case irc.RPL_ENDOFBANLIST:
+		case irc.RPL_QUIETLIST:
+		case irc.RPL_ENDOFQUIETLIST:
+			channel = msg.params[1];
+			return [channel];
+		case irc.RPL_INVITING:
+			channel = msg.params[2];
+			return [channel];
+		case irc.RPL_WELCOME:
+		case irc.RPL_YOURHOST:
+		case irc.RPL_MYINFO:
+		case irc.RPL_ISUPPORT:
+		case irc.RPL_ENDOFMOTD:
+		case irc.ERR_NOMOTD:
+		case irc.RPL_NOTOPIC:
+		case irc.RPL_TOPIC:
+		case irc.RPL_TOPICWHOTIME:
+		case irc.RPL_NAMREPLY:
+		case irc.RPL_ENDOFNAMES:
+		case irc.RPL_MONONLINE:
+		case irc.RPL_MONOFFLINE:
+		case irc.RPL_SASLSUCCESS:
+		case "AWAY":
+		case "SETNAME":
+		case "CHGHOST":
+		case "ACCOUNT":
+		case "CAP":
+		case "AUTHENTICATE":
+		case "PING":
+		case "PONG":
+		case "BATCH":
+		case "TAGMSG":
+		case "CHATHISTORY":
+		case "ACK":
+		case "BOUNCER":
+			// Ignore these
+			return [];
+		default:
+			return [SERVER_BUFFER];
+		}
+	}
+
+	handleMessage(serverID, msg) {
+		let client = this.clients.get(serverID);
+
+		var destBuffers = this.routeMessage(serverID, msg);
+
+		if (irc.findBatchByType(msg, "chathistory")) {
+			destBuffers.forEach((bufName) => {
+				this.addMessage(serverID, bufName, msg);
+			});
+			return;
+		}
+
 		this.setState((state) => State.handleMessage(state, msg, serverID, client));
 
-		let target, channel, affectedBuffers;
+		let target, channel;
 		switch (msg.command) {
 		case irc.RPL_WELCOME:
 			let lastReceipt = this.latestReceipt(ReceiptType.DELIVERED);
@@ -636,44 +787,11 @@ export default class App extends Component {
 					params: [join.join(",")],
 				});
 			}
-		case "MODE":
-			target = msg.params[0];
-			if (client.isChannel(target)) {
-				this.addMessage(serverID, target, msg);
-			}
-			break;
-		case "NOTICE":
-		case "PRIVMSG":
-			target = msg.params[0];
-			if (client.isMyNick(target)) {
-				if (client.cm(msg.prefix.name) === client.cm(client.serverPrefix.name)) {
-					target = SERVER_BUFFER;
-				} else {
-					target = msg.prefix.name;
-				}
-			}
-			if (msg.command === "NOTICE" && !State.getBuffer(this.state, { server: serverID, name: target })) {
-				// Don't open a new buffer if this is just a NOTICE
-				target = SERVER_BUFFER;
-			}
-
-			let allowedPrefixes = client.isupport.get("STATUSMSG");
-			if (allowedPrefixes) {
-				let parts = irc.parseTargetPrefix(target, allowedPrefixes);
-				if (client.isChannel(parts.name)) {
-					target = parts.name;
-				}
-			}
-
-			this.addMessage(serverID, target, msg);
-			break;
 		case "JOIN":
 			channel = msg.params[0];
 
 			if (client.isMyNick(msg.prefix.name)) {
 				this.syncBufferUnread(serverID, channel);
-			} else {
-				this.addMessage(serverID, channel, msg);
 			}
 			if (channel == this.switchToChannel) {
 				this.switchBuffer({ server: serverID, name: channel });
@@ -683,84 +801,46 @@ export default class App extends Component {
 		case "PART":
 			channel = msg.params[0];
 
-			this.addMessage(serverID, channel, msg);
-
-			if (!chatHistoryBatch && client.isMyNick(msg.prefix.name)) {
+			if (client.isMyNick(msg.prefix.name)) {
 				this.receipts.delete(channel);
 				this.saveReceipts();
 			}
 			break;
-		case "KICK":
-			channel = msg.params[0];
-			this.addMessage(serverID, channel, msg);
-			break;
 		case "QUIT":
-			affectedBuffers = [];
-			if (chatHistoryBatch) {
-				affectedBuffers.push(chatHistoryBatch.params[0]);
-			} else {
-				this.setState((state) => {
-					let buffers = new Map(state.buffers);
-					state.buffers.forEach((buf) => {
-						if (buf.server != serverID) {
-							return;
-						}
-						if (!buf.members.has(msg.prefix.name) && client.cm(buf.name) !== client.cm(msg.prefix.name)) {
-							return;
-						}
-						let members = new irc.CaseMapMap(buf.members);
-						members.delete(msg.prefix.name);
-						buffers.set(buf.id, { ...buf, members });
-						affectedBuffers.push(buf.name);
-					});
-					return { buffers };
+			this.setState((state) => {
+				let buffers = new Map(state.buffers);
+				state.buffers.forEach((buf) => {
+					if (buf.server != serverID) {
+						return;
+					}
+					if (!buf.members.has(msg.prefix.name)) {
+						return;
+					}
+					let members = new irc.CaseMapMap(buf.members);
+					members.delete(msg.prefix.name);
+					buffers.set(buf.id, { ...buf, members });
 				});
-			}
-
-			affectedBuffers.forEach((name) => this.addMessage(serverID, name, msg));
+				return { buffers };
+			});
 			break;
 		case "NICK":
 			let newNick = msg.params[0];
-
-			affectedBuffers = [];
-			if (chatHistoryBatch) {
-				affectedBuffers.push(chatHistoryBatch.params[0]);
-			} else {
-				this.setState((state) => {
-					let buffers = new Map(state.buffers);
-					state.buffers.forEach((buf) => {
-						if (buf.server != serverID) {
-							return;
-						}
-						if (!buf.members.has(msg.prefix.name)) {
-							return;
-						}
-						let members = new irc.CaseMapMap(buf.members);
-						members.set(newNick, members.get(msg.prefix.name));
-						members.delete(msg.prefix.name);
-						buffers.set(buf.id, { ...buf, members });
-						affectedBuffers.push(buf.name);
-					});
-					return { buffers };
+			this.setState((state) => {
+				let buffers = new Map(state.buffers);
+				state.buffers.forEach((buf) => {
+					if (buf.server != serverID) {
+						return;
+					}
+					if (!buf.members.has(msg.prefix.name)) {
+						return;
+					}
+					let members = new irc.CaseMapMap(buf.members);
+					members.set(newNick, members.get(msg.prefix.name));
+					members.delete(msg.prefix.name);
+					buffers.set(buf.id, { ...buf, members });
 				});
-			}
-
-			affectedBuffers.forEach((name) => this.addMessage(serverID, name, msg));
-			break;
-		case "TOPIC":
-			channel = msg.params[0];
-			this.addMessage(serverID, channel, msg);
-			break;
-		case "INVITE":
-			channel = msg.params[1];
-
-			// TODO: find a more reliable way to do this
-			let bufName = channel;
-			if (!State.getBuffer(this.state, { server: serverID, name: channel })) {
-				bufName = SERVER_BUFFER;
-			}
-
-			this.addMessage(serverID, bufName, msg);
+				return { buffers };
+			});
 			break;
 		case "BOUNCER":
 			if (msg.params[0] !== "NETWORK") {
@@ -768,7 +848,7 @@ export default class App extends Component {
 			}
 
 			if (client.isupport.has("BOUNCER_NETID")) {
-				// This cn happen if the user has specified a network to bind
+				// This can happen if the user has specified a network to bind
 				// to via other means, e.g. "<username>/<network>".
 				break;
 			}
@@ -805,55 +885,16 @@ export default class App extends Component {
 				}
 			});
 			break;
-		case irc.RPL_CHANNELMODEIS:
-		case irc.RPL_CREATIONTIME:
-		case irc.RPL_INVITELIST:
-		case irc.RPL_ENDOFINVITELIST:
-		case irc.RPL_EXCEPTLIST:
-		case irc.RPL_ENDOFEXCEPTLIST:
-		case irc.RPL_BANLIST:
-		case irc.RPL_ENDOFBANLIST:
-		case irc.RPL_QUIETLIST:
-		case irc.RPL_ENDOFQUIETLIST:
-			channel = msg.params[1];
-			this.addMessage(serverID, channel, msg);
-			break;
-		case irc.RPL_INVITING:
-			channel = msg.params[2];
-			this.addMessage(serverID, channel, msg);
-			break;
-		case irc.RPL_YOURHOST:
-		case irc.RPL_MYINFO:
-		case irc.RPL_ISUPPORT:
-		case irc.RPL_NOTOPIC:
-		case irc.RPL_TOPIC:
-		case irc.RPL_TOPICWHOTIME:
-		case irc.RPL_NAMREPLY:
-		case irc.RPL_ENDOFNAMES:
-		case irc.RPL_MONONLINE:
-		case irc.RPL_MONOFFLINE:
-		case irc.RPL_SASLSUCCESS:
-		case "AWAY":
-		case "SETNAME":
-		case "CHGHOST":
-		case "ACCOUNT":
-		case "CAP":
-		case "AUTHENTICATE":
-		case "PING":
-		case "PONG":
-		case "BATCH":
-		case "TAGMSG":
-		case "CHATHISTORY":
-		case "ACK":
-			// Ignore these
-			break;
 		default:
 			if (irc.isError(msg.command) && msg.command != irc.ERR_NOMOTD) {
 				let description = msg.params[msg.params.length - 1];
 				this.setState({ error: description });
 			}
-			this.addMessage(serverID, SERVER_BUFFER, msg);
 		}
+
+		destBuffers.forEach((bufName) => {
+			this.addMessage(serverID, bufName, msg);
+		});
 	}
 
 	handleConnectSubmit(connectParams) {
