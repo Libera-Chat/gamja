@@ -6,7 +6,7 @@
     "preact": "^10.5.9"
   },
   "devDependencies": {
-    "http-server": "^13.0.2"
+    "http-server": "^14.0.0"
   },
   "scripts": {
     "start": "http-server ."
