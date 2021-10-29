@@ -750,7 +750,7 @@ export default class App extends Component {
 				client.fetchHistoryTargets(now, lastReceipt.time).then((targets) => {
 					targets.forEach((target) => {
 						let from = lastReceipt;
-						let to = { time: msg.tags.time || irc.formatDate(new Date()) };
+						let to = { time: msg.tags.time || now };
 						this.fetchBacklog(client, target.name, from, to);
 					});
 				});
