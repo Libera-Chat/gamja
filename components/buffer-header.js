@@ -146,6 +146,9 @@ export default function BufferHeader(props) {
 			if (props.user.account) {
 				details.push(`authenticated as ${props.user.account}`);
 			}
+			if (props.user.operator) {
+				details.push("server operator");
+			}
 			details = details.length > 0 ? `(${details.join(", ")})` : null;
 
 			description = html`<${NickStatus} status=${status}/> ${realname} ${details}`;

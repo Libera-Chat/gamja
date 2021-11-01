@@ -374,6 +374,7 @@ export const State = {
 
 			if (who.flags !== undefined) {
 				who.away = who.flags.indexOf("G") >= 0; // H for here, G for gone
+				who.operator = who.flags.indexOf("*") >= 0;
 				delete who.flags;
 			}
 
