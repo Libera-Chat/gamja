@@ -149,6 +149,10 @@ export default function BufferHeader(props) {
 				} else {
 					details.push(`authenticated as ${props.user.account}`);
 				}
+			} else if (props.server.isupport.has("MONITOR") && props.server.isupport.has("WHOX")) {
+				// If the server supports MONITOR and WHOX, we can faithfully
+				// keep user.account up-to-date for user queries
+				details.push("unauthenticated");
 			}
 			if (props.user.operator) {
 				details.push("server operator");
