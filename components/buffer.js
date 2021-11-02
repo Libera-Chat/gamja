@@ -186,6 +186,10 @@ class LogLine extends Component {
 				`;
 			}
 			break;
+		case irc.RPL_WELCOME:
+			let nick = msg.params[0];
+			content = html`Connected to server, your nickname is ${nick}`;
+			break;
 		case irc.RPL_INVITING:
 			invitee = msg.params[1];
 			content = html`${createNick(invitee)} has been invited to the channel`;

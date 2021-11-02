@@ -693,7 +693,6 @@ export default class App extends Component {
 		case irc.RPL_INVITING:
 			channel = msg.params[2];
 			return [channel];
-		case irc.RPL_WELCOME:
 		case irc.RPL_YOURHOST:
 		case irc.RPL_MYINFO:
 		case irc.RPL_ISUPPORT:
