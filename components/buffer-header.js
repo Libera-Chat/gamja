@@ -144,7 +144,11 @@ export default function BufferHeader(props) {
 				details.push(`${props.user.username}@${props.user.hostname}`);
 			}
 			if (props.user.account) {
-				details.push(`authenticated as ${props.user.account}`);
+				if (props.user.account === props.buffer.name) {
+					details.push("authenticated");
+				} else {
+					details.push(`authenticated as ${props.user.account}`);
+				}
 			}
 			if (props.user.operator) {
 				details.push("server operator");
