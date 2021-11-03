@@ -1224,7 +1224,12 @@ export default class App extends Component {
 		// Avoids sending multiple CHATHISTORY commands in parallel
 		this.endOfHistory.set(buf.id, true);
 
-		client.fetchHistoryBefore(buf.name, before, 100).then((result) => {
+		let limit = 100;
+		if (client.enabledCaps["draft/event-playback"]) {
+			limit = 200;
+		}
+
+		client.fetchHistoryBefore(buf.name, before, limit).then((result) => {
 			this.endOfHistory.set(buf.id, !result.more);
 		});
 	}
