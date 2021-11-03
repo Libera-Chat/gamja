@@ -663,6 +663,9 @@ export default class App extends Component {
 					}
 					affectedBuffers.push(buf.name);
 				});
+				if (client.isMyNick(newNick)) {
+					affectedBuffers.push(SERVER_BUFFER);
+				}
 			}
 			return affectedBuffers;
 		case "TOPIC":
