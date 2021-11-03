@@ -595,7 +595,7 @@ export default class App extends Component {
 			if (client.isChannel(target)) {
 				return [target];
 			}
-			return [];
+			return [SERVER_BUFFER];
 		case "NOTICE":
 		case "PRIVMSG":
 			target = msg.params[0];
