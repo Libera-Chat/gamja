@@ -144,20 +144,33 @@ export default function BufferHeader(props) {
 				details.push(`${props.user.username}@${props.user.hostname}`);
 			}
 			if (props.user.account) {
+				let desc = `This user is verified and has logged in to the server with the account ${props.user.account}.`;
+				let item;
 				if (props.user.account === props.buffer.name) {
-					details.push("authenticated");
+					item = "authenticated";
 				} else {
-					details.push(`authenticated as ${props.user.account}`);
+					item = `authenticated as ${props.user.account}`;
 				}
+				details.push(html`<abbr title=${desc}>${item}</abbr>`);
 			} else if (props.server.isupport.has("MONITOR") && props.server.isupport.has("WHOX")) {
 				// If the server supports MONITOR and WHOX, we can faithfully
 				// keep user.account up-to-date for user queries
-				details.push("unauthenticated");
+				let desc = "This user has not been verified and is not logged in.";
+				details.push(html`<abbr title=${desc}>unauthenticated</abbr>`);
 			}
 			if (props.user.operator) {
-				details.push("server operator");
+				let desc = "This user is a server operator, they have administrator privileges.";
+				details.push(html`<abbr title=${desc}>server operator</abbr>`);
 			}
-			details = details.length > 0 ? `(${details.join(", ")})` : null;
+			details = details.map((item, i) => {
+				if (i === 0) {
+					return item;
+				}
+				return [", ", item];
+			});
+			if (details.length > 0) {
+				details = ["(", details, ")"];
+			}
 
 			description = html`<${NickStatus} status=${status}/> ${realname} ${details}`;
 		}
