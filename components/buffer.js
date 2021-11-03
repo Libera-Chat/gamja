@@ -95,11 +95,11 @@ class LogLine extends Component {
 
 		let lineClass = "";
 		let content;
-		let invitee;
+		let invitee, target;
 		switch (msg.command) {
 		case "NOTICE":
 		case "PRIVMSG":
-			let target = msg.params[0];
+			target = msg.params[0];
 			let text = msg.params[1];
 
 			let ctcp = irc.parseCTCP(msg);
@@ -161,9 +161,14 @@ class LogLine extends Component {
 			`;
 			break;
 		case "MODE":
+			target = msg.params[0];
 			content = html`
 				* ${createNick(msg.prefix.name)} sets mode ${msg.params.slice(1).join(" ")}
 			`;
+			// TODO: case-mapping
+			if (buf.name !== target) {
+				content = html`${content} on ${target}`;
+			}
 			break;
 		case "TOPIC":
 			let topic = msg.params[1];
