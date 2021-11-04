@@ -12,6 +12,9 @@ First install dependencies:
 
     npm install --production
 
+Then configure an HTTP server to serve the gamja files. Below are some
+server-specific instructions.
+
 ### [soju]
 
 Add a WebSocket listener to soju, e.g. `listen wss://127.0.0.1:8080`.
@@ -54,20 +57,24 @@ server doesn't send PINGs, you can set the `server.ping` option in
 
 ### Development server
 
-Start your IRC WebSocket server, e.g. on port 8080. Then run:
+Any HTTP server capable of serving static files can be used. For instance:
 
-    npm install
+    python -m http.server
+
+If your IRC WebSocket server is started on port 8080, you can head over to
+`http://localhost:8000/?server=ws://localhost:8080` to connect to the server.
+
+Alternatively, the gamja development dependencies also include an HTTP server:
+
+    npm install --include=dev
     npm start
-
-This will start a development HTTP server for gamja. Connect to it and append
-`?server=ws://localhost:8080` to the URL.
 
 ### Production build
 
-Optionally, [Parcel] can be used to build a minified version of gamja. Install
-Parcel and then run:
+Optionally, [Parcel] can be used to build a minified version of gamja.
 
-    parcel build
+    npm install --include=dev
+    npm run build
 
 ## Query parameters
 
