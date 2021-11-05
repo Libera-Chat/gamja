@@ -297,7 +297,9 @@ class FoldGroup extends Component {
 				return;
 			}
 
-			let plural = byCommand[cmd].length > 1;
+			let nicks = new Set(byCommand[cmd].map((msg) => msg.prefix.name));
+
+			let plural = nicks.size > 1;
 			let action;
 			switch (cmd) {
 			case "JOIN":
@@ -317,9 +319,7 @@ class FoldGroup extends Component {
 				content.push(", ");
 			}
 
-			let nicks = byCommand[cmd].map((msg) => msg.prefix.name);
-
-			content.push(createNickList(nicks, createNick));
+			content.push(createNickList([...nicks], createNick));
 			content.push(" " + action);
 		});
 
