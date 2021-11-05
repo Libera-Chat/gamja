@@ -1023,7 +1023,9 @@ export default class App extends Component {
 			}
 			break;
 		case BufferType.CHANNEL:
-			client.send({ command: "PART", params: [buf.name] });
+			if (buf.joined) {
+				client.send({ command: "PART", params: [buf.name] });
+			}
 			// fallthrough
 		case BufferType.NICK:
 			this.switchBuffer({ name: SERVER_BUFFER });
@@ -1150,8 +1152,16 @@ export default class App extends Component {
 		});
 	}
 
-	handleJoinClick(serverID) {
-		this.openDialog("join", { server: serverID });
+	handleJoinClick(buf) {
+		switch (buf.type) {
+		case BufferType.SERVER:
+			this.openDialog("join", { server: buf.server });
+			break;
+		case BufferType.CHANNEL:
+			let client = this.clients.get(buf.server);
+			client.send({ command: "JOIN", params: [buf.name] });
+			break;
+		}
 	}
 
 	handleJoinSubmit(data) {
@@ -1351,7 +1361,7 @@ export default class App extends Component {
 						bouncerNetwork=${activeBouncerNetwork}
 						onChannelClick=${this.handleChannelClick}
 						onClose=${() => this.close(activeBuffer)}
-						onJoin=${() => this.handleJoinClick(activeBuffer.server)}
+						onJoin=${() => this.handleJoinClick(activeBuffer)}
 						onAddNetwork=${this.handleAddNetworkClick}
 						onManageNetwork=${() => this.handleManageNetworkClick(activeBuffer.server)}
 					/>

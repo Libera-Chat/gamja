@@ -283,6 +283,7 @@ export const State = {
 			type,
 			server: serverID,
 			serverInfo: null, // if server
+			joined: false, // if channel
 			topic: null, // if channel
 			members: new irc.CaseMapMap(null, client.cm), // if channel
 			messages: [],
@@ -406,7 +407,10 @@ export const State = {
 			update = updateBuffer(channel, (buf) => {
 				let members = new irc.CaseMapMap(buf.members);
 				members.set(msg.prefix.name, "");
-				return { members };
+
+				let joined = buf.joined || client.isMyNick(msg.prefix.name);
+
+				return { members, joined };
 			});
 			state = { ...state, ...update };
 
@@ -434,7 +438,10 @@ export const State = {
 			return updateBuffer(channel, (buf) => {
 				let members = new irc.CaseMapMap(buf.members);
 				members.delete(msg.prefix.name);
-				return { members };
+
+				let joined = buf.joined && !client.isMyNick(msg.prefix.name);
+
+				return { members, joined };
 			});
 		case "KICK":
 			channel = msg.params[0];

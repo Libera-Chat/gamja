@@ -117,13 +117,27 @@ export default function BufferHeader(props) {
 		if (props.buffer.topic) {
 			description = linkify(stripANSI(props.buffer.topic), props.onChannelClick);
 		}
-		actions = html`
-			<button
-				key="part"
-				class="danger"
-				onClick=${handleCloseClick}
-			>Leave</button>
-		`;
+		if (props.buffer.joined) {
+			actions = html`
+				<button
+					key="part"
+					class="danger"
+					onClick=${handleCloseClick}
+				>Leave</button>
+			`;
+		} else {
+			actions = html`
+				<button
+					key="join"
+					onClick=${handleJoinClick}
+				>Join</button>
+				<button
+					key="part"
+					class="danger"
+					onClick=${handleCloseClick}
+				>Close</button>
+			`;
+		}
 		break;
 	case BufferType.NICK:
 		if (props.user) {
