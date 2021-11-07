@@ -3,6 +3,7 @@ import linkify from "../lib/linkify.js";
 import * as irc from "../lib/irc.js";
 import { strip as stripANSI } from "../lib/ansi.js";
 import { BufferType, getNickURL, getChannelURL, getMessageURL } from "../state.js";
+import * as store from "../store.js";
 import Membership from "./membership.js";
 
 function djb2(s) {
@@ -415,6 +416,46 @@ class NotificationNagger extends Component {
 	}
 }
 
+class ProtocolHandlerNagger extends Component {
+	state = { nag: true };
+
+	constructor(props) {
+		super(props);
+
+		this.handleClick = this.handleClick.bind(this);
+
+		this.state.nag = !store.naggedProtocolHandler.load();
+	}
+
+	handleClick(event) {
+		event.preventDefault();
+
+		let url = window.location.origin + window.location.pathname + "?open=%s";
+		try {
+			navigator.registerProtocolHandler("irc", url);
+			navigator.registerProtocolHandler("ircs", url);
+		} catch (err) {
+			console.error("Failed to register protocol handler: ", err);
+		}
+
+		store.naggedProtocolHandler.put(true);
+		this.setState({ nag: false });
+	}
+
+	render() {
+		if (!navigator.registerProtocolHandler || !this.state.nag) {
+			return null;
+		}
+		return html`
+			<div class="logline">
+				<${Timestamp}/>
+				${" "}
+				To open IRC links here, <a href="#" onClick=${this.handleClick}>enable the IRC link handler</a>
+			</div>
+		`;
+	}
+}
+
 class DateSeparator extends Component {
 	constructor(props) {
 		super(props);
@@ -461,6 +502,9 @@ export default class Buffer extends Component {
 		let children = [];
 		if (buf.type == BufferType.SERVER) {
 			children.push(html`<${NotificationNagger}/>`);
+		}
+		if (buf.type == BufferType.SERVER && this.props.isBouncer && !server.isupport.has("BOUNCER_NETID")) {
+			children.push(html`<${ProtocolHandlerNagger}/>`);
 		}
 
 		let onChannelClick = this.props.onChannelClick;

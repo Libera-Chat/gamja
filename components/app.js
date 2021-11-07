@@ -1571,6 +1571,7 @@ export default class App extends Component {
 					<${Buffer}
 						buffer=${activeBuffer}
 						server=${activeServer}
+						isBouncer=${isBouncer}
 						onChannelClick=${this.handleChannelClick}
 						onNickClick=${this.handleNickClick}/>
 				</section>

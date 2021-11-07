@@ -23,6 +23,7 @@ class Item {
 }
 
 export const autoconnect = new Item("autoconnect");
+export const naggedProtocolHandler = new Item("naggedProtocolHandler");
 
 const rawReceipts = new Item("receipts");
 
