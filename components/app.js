@@ -732,7 +732,7 @@ export default class App extends Component {
 	handleMessage(serverID, msg) {
 		let client = this.clients.get(serverID);
 
-		var destBuffers = this.routeMessage(serverID, msg);
+		let destBuffers = this.routeMessage(serverID, msg);
 
 		if (irc.findBatchByType(msg, "chathistory")) {
 			destBuffers.forEach((bufName) => {
