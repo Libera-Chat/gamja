@@ -872,6 +872,12 @@ export default class App extends Component {
 			store.autoconnect.put(null);
 		}
 
+		// Disconnect previous server, if any
+		let activeBuffer = this.state.buffers.get(this.state.activeBuffer);
+		if (activeBuffer) {
+			this.close(activeBuffer.server);
+		}
+
 		this.connect(connectParams);
 	}
 
