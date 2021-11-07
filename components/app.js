@@ -781,7 +781,16 @@ export default class App extends Component {
 			}
 
 			// Auto-join channels given at connect-time
-			join = join.concat(this.state.connectParams.autojoin);
+			let server = this.state.servers.get(serverID);
+			let bouncerNetID = server.isupport.get("BOUNCER_NETID");
+			let bouncerNetwork = null;
+			if (bouncerNetID) {
+				bouncerNetwork = this.state.bouncerNetworks.get(bouncerNetID);
+			}
+			if (!bouncerNetwork || bouncerNetwork.state === "connected") {
+				join = join.concat(client.params.autojoin);
+				client.params.autojoin = [];
+			}
 
 			if (join.length > 0) {
 				client.send({
@@ -849,6 +858,18 @@ export default class App extends Component {
 						bouncerNetwork: id,
 					});
 				}
+
+				if (attrs && attrs.state === "connected") {
+					let serverID = this.serverFromBouncerNetwork(id);
+					let client = this.clients.get(serverID);
+					if (client && client.status === Client.Status.REGISTERED && client.params.autojoin && client.params.autojoin.length > 0) {
+						client.send({
+							command: "JOIN",
+							params: [client.params.autojoin.join(",")],
+						});
+						client.params.autojoin = [];
+					}
+				}
 			});
 			break;
 		default:
@@ -904,7 +925,7 @@ export default class App extends Component {
 				if (client && client.enabledCaps["soju.im/bouncer-networks"]) {
 					event.preventDefault();
 					let params = { host: url.host };
-					this.openDialog("network", { params });
+					this.openDialog("network", { params, autojoin: url.entity });
 				}
 				return;
 			}
@@ -1275,7 +1296,7 @@ export default class App extends Component {
 		});
 	}
 
-	handleNetworkSubmit(attrs) {
+	handleNetworkSubmit(attrs, autojoin) {
 		let client = this.clients.values().next().value;
 
 		if (this.state.dialogData && this.state.dialogData.id) {
@@ -1290,9 +1311,18 @@ export default class App extends Component {
 			});
 		} else {
 			attrs = { ...attrs, tls: "1" };
-			client.send({
-				command: "BOUNCER",
-				params: ["ADDNETWORK", irc.formatTags(attrs)],
+			client.createBouncerNetwork(attrs).then((id) => {
+				if (!autojoin) {
+					return;
+				}
+
+				// By this point, bouncer-networks-notify should've advertised
+				// the new network
+				let serverID = this.serverFromBouncerNetwork(id);
+				let client = this.clients.get(serverID);
+				client.params.autojoin = [autojoin];
+
+				this.switchToChannel = autojoin;
 			});
 		}
 
@@ -1406,14 +1436,16 @@ export default class App extends Component {
 		let dialog = null;
 		switch (this.state.dialog) {
 		case "network":
-			let isNew = !!(!this.state.dialogData || !this.state.dialogData.id);
+			let data = this.state.dialogData || {};
+			let isNew = !data.id;
 			let title = isNew ? "Add network" : "Edit network";
 			dialog = html`
 				<${Dialog} title=${title} onDismiss=${this.dismissDialog}>
 					<${NetworkForm}
 						onSubmit=${this.handleNetworkSubmit}
 						onRemove=${this.handleNetworkRemove}
-						params=${this.state.dialogData ? this.state.dialogData.params : null}
+						params=${data.params}
+						autojoin=${data.autojoin}
 						isNew=${isNew}
 					/>
 				</>

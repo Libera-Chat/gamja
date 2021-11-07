@@ -14,6 +14,7 @@ export default class NetworkForm extends Component {
 	prevParams = null;
 	state = {
 		...defaultParams,
+		autojoin: true,
 	};
 
 	constructor(props) {
@@ -54,7 +55,8 @@ export default class NetworkForm extends Component {
 			params[k] = this.state[k];
 		});
 
-		this.props.onSubmit(params);
+		let autojoin = this.state.autojoin ? this.props.autojoin : null;
+		this.props.onSubmit(params, autojoin);
 	}
 
 	render() {
@@ -67,6 +69,21 @@ export default class NetworkForm extends Component {
 			`;
 		}
 
+		let autojoin = null;
+		if (this.props.autojoin) {
+			autojoin = html`
+				<label>
+					<input
+						type="checkbox"
+						name="autojoin"
+						checked=${this.state.autojoin}
+					/>
+					Auto-join channel <strong>${this.props.autojoin}</strong>
+				</label>
+				<br/><br/>
+			`;
+		}
+
 		return html`
 			<form onChange=${this.handleChange} onSubmit=${this.handleSubmit}>
 				<label>
@@ -74,6 +91,8 @@ export default class NetworkForm extends Component {
 					<input type="text" name="host" value=${this.state.host} autofocus required/>
 				</label>
 				<br/><br/>
+
+				${autojoin}
 
 				<details>
 					<summary role="button">Advanced options</summary>
