@@ -229,6 +229,8 @@ export default class App extends Component {
 			};
 		}
 
+		let autojoin = [];
+
 		let queryParams = parseQueryString();
 		// Don't allow to silently override the server URL if there's one in
 		// config.json, because this has security implications. But still allow
@@ -245,18 +247,27 @@ export default class App extends Component {
 			connectParams.nick = queryParams.nick;
 		}
 		if (typeof queryParams.channels === "string") {
-			connectParams.autojoin = queryParams.channels.split(",");
+			autojoin = queryParams.channels.split(",");
 		}
-
 		if (typeof queryParams.open === "string") {
 			this.autoOpenURL = irc.parseURL(queryParams.open);
 		}
 
 		if (window.location.hash) {
-			connectParams.autojoin = window.location.hash.split(",");
+			autojoin = window.location.hash.split(",");
 		}
 
 		this.config = config;
+
+		if (autojoin.length > 0) {
+			if (connectParams.autoconnect) {
+				// Ask the user whether they want to join that new channel.
+				// TODO: support multiple channels here
+				this.autoOpenURL = { host: "", entity: autojoin[0] };
+			} else {
+				connectParams.autojoin = autojoin;
+			}
+		}
 
 		this.setState({ connectParams: connectParams });
 
