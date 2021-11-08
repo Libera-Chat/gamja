@@ -146,6 +146,11 @@ export default class App extends Component {
 	buffer = createRef();
 	composer = createRef();
 	switchToChannel = null;
+	/**
+	 * Parsed irc:// URL to automatically open. The user will be prompted for
+	 * confirmation for security reasons.
+	 */
+	autoOpenURL = null;
 
 	constructor(props) {
 		super(props);
@@ -241,6 +246,10 @@ export default class App extends Component {
 		}
 		if (typeof queryParams.channels === "string") {
 			connectParams.autojoin = queryParams.channels.split(",");
+		}
+
+		if (typeof queryParams.open === "string") {
+			this.autoOpenURL = irc.parseURL(queryParams.open);
 		}
 
 		if (window.location.hash) {
@@ -798,6 +807,12 @@ export default class App extends Component {
 					params: [join.join(",")],
 				});
 			}
+
+			let serverHost = bouncerNetwork ? bouncerNetwork.host : "";
+			if (this.autoOpenURL && serverHost === this.autoOpenURL.host) {
+				this.openURL(this.autoOpenURL);
+				this.autoOpenURL = null;
+			}
 		case "JOIN":
 			channel = msg.params[0];
 
@@ -872,6 +887,24 @@ export default class App extends Component {
 				}
 			});
 			break;
+		case "BATCH":
+			if (!msg.params[0].startsWith("-")) {
+				break;
+			}
+			let name = msg.params[0].slice(1);
+			let batch = client.batches.get(name);
+			if (!batch || batch.type !== "soju.im/bouncer-networks") {
+				break;
+			}
+
+			// We've received a BOUNCER NETWORK batch. If we have a URL to
+			// auto-open and no existing network matches it, ask the user to
+			// create a new network.
+			if (this.autoOpenURL && this.autoOpenURL.host && !this.findBouncerNetIDByHost(this.autoOpenURL.host)) {
+				this.openURL(this.autoOpenURL);
+				this.autoOpenURL = null;
+			}
+			break;
 		default:
 			if (irc.isError(msg.command) && msg.command != irc.ERR_NOMOTD) {
 				let description = msg.params[msg.params.length - 1];
@@ -903,31 +936,44 @@ export default class App extends Component {
 	}
 
 	handleChannelClick(event) {
-		let url = irc.parseURL(event.target.href);
+		let handled = this.openURL(event.target.href);
+		if (handled) {
+			event.preventDefault();
+		}
+	}
+
+	findBouncerNetIDByHost(host) {
+		for (let [id, bouncerNetwork] of this.state.bouncerNetworks) {
+			if (bouncerNetwork.host === host) {
+				return id;
+			}
+		}
+		return null;
+	}
+
+	openURL(url) {
+		if (typeof url === "string") {
+			url = irc.parseURL(url);
+		}
 		if (!url) {
-			return;
+			return false;
 		}
 
 		let serverID;
 		if (!url.host) {
 			serverID = State.getActiveServerID(this.state);
 		} else {
-			let bouncerNetID;
-			for (let [id, bouncerNetwork] of this.state.bouncerNetworks) {
-				if (bouncerNetwork.host === url.host) {
-					bouncerNetID = id;
-					break;
-				}
-			}
+			let bouncerNetID = this.findBouncerNetIDByHost(url.host);
 			if (!bouncerNetID) {
 				// Open dialog to create network if bouncer
 				let client = this.clients.values().next().value;
-				if (client && client.enabledCaps["soju.im/bouncer-networks"]) {
-					event.preventDefault();
-					let params = { host: url.host };
-					this.openDialog("network", { params, autojoin: url.entity });
+				if (!client || !client.enabledCaps["soju.im/bouncer-networks"]) {
+					return false;
 				}
-				return;
+
+				let params = { host: url.host };
+				this.openDialog("network", { params, autojoin: url.entity });
+				return true;
 			}
 
 			for (let [id, server] of this.state.servers) {
@@ -938,10 +984,8 @@ export default class App extends Component {
 			}
 		}
 		if (!serverID) {
-			return;
+			return false;
 		}
-
-		event.preventDefault();
 
 		let buf = State.getBuffer(this.state, { server: serverID, name: url.entity || SERVER_BUFFER });
 		if (buf) {
@@ -949,6 +993,7 @@ export default class App extends Component {
 		} else {
 			this.openDialog("join", { server: serverID, channel: url.entity });
 		}
+		return true;
 	}
 
 	handleNickClick(nick) {

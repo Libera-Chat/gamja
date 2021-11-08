@@ -83,6 +83,7 @@ gamja settings can be overridden using URL query parameters:
 - `server`: path or URL to the WebSocket server
 - `nick`: nickname
 - `channels`: comma-separated list of channels to join (`#` needs to be escaped)
+- `open`: [IRC URL] to open
 
 Alternatively, the channels can be set with the URL fragment (ie, by just
 appending the channel name to the gamja URL).
@@ -134,3 +135,4 @@ Copyright (C) 2020 The gamja Contributors
 [mailing list]: https://lists.sr.ht/~emersion/public-inbox
 [issue tracker]: https://todo.sr.ht/~emersion/gamja
 [Parcel]: https://parceljs.org
+[IRC URL]: https://datatracker.ietf.org/doc/html/draft-butcher-irc-url-04
