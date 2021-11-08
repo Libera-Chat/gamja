@@ -947,7 +947,7 @@ export default class App extends Component {
 		if (buf) {
 			this.switchBuffer(buf.id);
 		} else {
-			this.open(url.entity, serverID);
+			this.openDialog("join", { server: serverID, channel: url.entity });
 		}
 	}
 
@@ -1192,11 +1192,7 @@ export default class App extends Component {
 	}
 
 	handleJoinSubmit(data) {
-		let client = this.clients.get(this.state.dialogData.server);
-
-		this.switchToChannel = data.channel;
-		client.send({ command: "JOIN", params: [data.channel] });
-
+		this.open(data.channel, this.state.dialogData.server);
 		this.dismissDialog();
 	}
 
@@ -1434,18 +1430,18 @@ export default class App extends Component {
 		}
 
 		let dialog = null;
+		let dialogData = this.state.dialogData || {};
 		switch (this.state.dialog) {
 		case "network":
-			let data = this.state.dialogData || {};
-			let isNew = !data.id;
+			let isNew = !dialogData.id;
 			let title = isNew ? "Add network" : "Edit network";
 			dialog = html`
 				<${Dialog} title=${title} onDismiss=${this.dismissDialog}>
 					<${NetworkForm}
 						onSubmit=${this.handleNetworkSubmit}
 						onRemove=${this.handleNetworkRemove}
-						params=${data.params}
-						autojoin=${data.autojoin}
+						params=${dialogData.params}
+						autojoin=${dialogData.autojoin}
 						isNew=${isNew}
 					/>
 				</>
@@ -1461,7 +1457,7 @@ export default class App extends Component {
 		case "join":
 			dialog = html`
 				<${Dialog} title="Join channel" onDismiss=${this.dismissDialog}>
-					<${JoinForm} onSubmit=${this.handleJoinSubmit}/>
+					<${JoinForm} channel=${dialogData.channel} onSubmit=${this.handleJoinSubmit}/>
 				</>
 			`;
 			break;

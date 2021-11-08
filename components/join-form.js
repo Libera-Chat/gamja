@@ -10,6 +10,10 @@ export default class JoinForm extends Component {
 
 		this.handleChange = this.handleChange.bind(this);
 		this.handleSubmit = this.handleSubmit.bind(this);
+
+		if (props.channel) {
+			this.state.channel = props.channel;
+		}
 	}
 
 	handleChange(event) {
