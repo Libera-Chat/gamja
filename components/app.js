@@ -350,18 +350,17 @@ export default class App extends Component {
 				this.buffer.current.focus();
 			}
 
-			if (buf.messages.length == 0) {
-				return;
-			}
-			let lastMsg = buf.messages[buf.messages.length - 1];
-			this.setReceipt(buf.name, ReceiptType.READ, lastMsg);
+			if (buf.messages.length > 0) {
+				let lastMsg = buf.messages[buf.messages.length - 1];
+				this.setReceipt(buf.name, ReceiptType.READ, lastMsg);
 
-			let client = this.clients.get(buf.server);
-			this.bufferStore.put({
-				name: buf.name,
-				server: client.params,
-				unread: Unread.NONE,
-			});
+				let client = this.clients.get(buf.server);
+				this.bufferStore.put({
+					name: buf.name,
+					server: client.params,
+					unread: Unread.NONE,
+				});
+			}
 
 			let server = this.state.servers.get(buf.server);
 			if (buf.type === BufferType.NICK && !server.users.has(buf.name)) {
