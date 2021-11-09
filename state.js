@@ -143,7 +143,7 @@ function updateMembership(membership, letter, add, client) {
 function insertMessage(list, msg) {
 	if (list.length == 0) {
 		return [msg];
-	} else if (list[list.length - 1].tags.time <= msg.tags.time) {
+	} else if (!irc.findBatchByType(msg, "chathistory") || list[list.length - 1].tags.time <= msg.tags.time) {
 		return list.concat(msg);
 	}
 
