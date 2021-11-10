@@ -384,14 +384,9 @@ export const State = {
 			return updateUser(who.nick, who);
 		case irc.RPL_ENDOFWHO:
 			target = msg.params[1];
-			if (!client.isChannel(target) && target.indexOf("*") < 0) {
+			if (msg.list.length == 0 && !client.isChannel(target) && target.indexOf("*") < 0) {
 				// Not a channel nor a mask, likely a nick
 				return updateUser(target, (user) => {
-					// TODO: mark user offline if we have old WHO info but this
-					// WHO reply is empty
-					if (user) {
-						return;
-					}
 					return { offline: true };
 				});
 			}
