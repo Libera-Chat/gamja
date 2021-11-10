@@ -1012,8 +1012,9 @@ export default class App extends Component {
 
 	fetchBacklog(client, target, after, before) {
 		client.fetchHistoryBetween(target, after, before, CHATHISTORY_MAX_SIZE).catch((err) => {
-			this.setState({ error: "Failed to fetch history for '" + target + "': " + err });
-			this.receipts.delete(channel);
+			console.error("Failed to fetch backlog for '" + target + "': ", err);
+			this.setState({ error: "Failed to fetch backlog for '" + target + "'" });
+			this.receipts.delete(target);
 			this.saveReceipts();
 		});
 	}
