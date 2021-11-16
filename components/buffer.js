@@ -446,11 +446,12 @@ class ProtocolHandlerNagger extends Component {
 		if (!navigator.registerProtocolHandler || !this.state.nag) {
 			return null;
 		}
+		let name = this.props.bouncerName || "this bouncer";
 		return html`
 			<div class="logline">
 				<${Timestamp}/>
 				${" "}
-				To open IRC links here, <a href="#" onClick=${this.handleClick}>enable the IRC link handler</a>
+				<a href="#" onClick=${this.handleClick}>Register our protocol handler</a> to open IRC links with ${name}
 			</div>
 		`;
 	}
@@ -504,7 +505,8 @@ export default class Buffer extends Component {
 			children.push(html`<${NotificationNagger}/>`);
 		}
 		if (buf.type == BufferType.SERVER && this.props.isBouncer && !server.isupport.has("BOUNCER_NETID")) {
-			children.push(html`<${ProtocolHandlerNagger}/>`);
+			let name = server.isupport.get("NETWORK");
+			children.push(html`<${ProtocolHandlerNagger} bouncerName=${name}/>`);
 		}
 
 		let onChannelClick = this.props.onChannelClick;
