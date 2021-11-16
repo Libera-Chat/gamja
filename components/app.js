@@ -9,6 +9,8 @@ import JoinForm from "./join-form.js";
 import Help from "./help.js";
 import NetworkForm from "./network-form.js";
 import AuthForm from "./auth-form.js";
+import RegisterForm from "./register-form.js";
+import VerifyForm from "./verify-form.js";
 import Composer from "./composer.js";
 import ScrollManager from "./scroll-manager.js";
 import Dialog from "./dialog.js";
@@ -193,6 +195,8 @@ export default class App extends Component {
 		this.handleNetworkRemove = this.handleNetworkRemove.bind(this);
 		this.handleDismissError = this.handleDismissError.bind(this);
 		this.handleAuthSubmit = this.handleAuthSubmit.bind(this);
+		this.handleRegisterSubmit = this.handleRegisterSubmit.bind(this);
+		this.handleVerifySubmit = this.handleVerifySubmit.bind(this);
 
 		this.saveReceipts = debounce(this.saveReceipts.bind(this), 500);
 
@@ -1403,6 +1407,7 @@ export default class App extends Component {
 	handleAuthSubmit(username, password) {
 		let serverID = State.getActiveServerID(this.state);
 		let client = this.clients.get(serverID);
+		// TODO: show auth status (pending/error) in dialog
 		client.authenticate("PLAIN", { username, password }).then(() => {
 			let firstClient = this.clients.values().next().value;
 			if (client !== firstClient) {
@@ -1422,6 +1427,51 @@ export default class App extends Component {
 			store.autoconnect.put(autoconnect);
 		});
 		this.dismissDialog();
+	}
+
+	handleRegisterClick(serverID) {
+		let client = this.clients.get(serverID);
+		let emailRequired = client.checkAccountRegistrationCap("email-required");
+		this.openDialog("register", { emailRequired });
+	}
+
+	handleRegisterSubmit(email, password) {
+		let serverID = State.getActiveServerID(this.state);
+		let client = this.clients.get(serverID);
+		// TODO: show registration status (pending/error) in dialog
+		client.registerAccount(email, password).then((data) => {
+			this.dismissDialog();
+
+			if (data.verificationRequired) {
+				this.openDialog("verify", data);
+			}
+
+			let firstClient = this.clients.values().next().value;
+			if (client !== firstClient) {
+				return;
+			}
+
+			let autoconnect = store.autoconnect.load();
+			if (!autoconnect) {
+				return;
+			}
+
+			console.log("Saving account registration credentials");
+			autoconnect = {
+				...autoconnect,
+				saslPlain: { username: data.account, password },
+			};
+			store.autoconnect.put(autoconnect);
+		});
+	}
+
+	handleVerifySubmit(code) {
+		let serverID = State.getActiveServerID(this.state);
+		let client = this.clients.get(serverID);
+		// TODO: display verification status (pending/error) in dialog
+		client.verifyAccount(this.state.dialogData.account, code).then(() => {
+			this.dismissDialog();
+		});
 	}
 
 	handleAddNetworkClick() {
@@ -1614,6 +1664,19 @@ export default class App extends Component {
 				</>
 			`;
 			break;
+		case "register":
+			dialog = html`
+				<${Dialog} title="Register a new ${getServerName(activeServer, activeBouncerNetwork, isBouncer)} account" onDismiss=${this.dismissDialog}>
+					<${RegisterForm} emailRequired=${dialogData.emailRequired} onSubmit=${this.handleRegisterSubmit}/>
+				</>
+			`;
+			break;
+		case "verify":
+			dialog = html`
+				<${Dialog} title="Verify ${getServerName(activeServer, activeBouncerNetwork, isBouncer)} account" onDismiss=${this.dismissDialog}>
+					<${VerifyForm} account=${dialogData.account} message=${dialogData.message} onSubmit=${this.handleVerifySubmit}/>
+				</>
+			`;
 		}
 
 		let error = null;
@@ -1669,9 +1732,11 @@ export default class App extends Component {
 						buffer=${activeBuffer}
 						server=${activeServer}
 						isBouncer=${isBouncer}
+						bouncerNetwork=${activeBouncerNetwork}
 						onChannelClick=${this.handleChannelClick}
 						onNickClick=${this.handleNickClick}
 						onAuthClick=${() => this.handleAuthClick(activeBuffer.server)}
+						onRegisterClick=${() => this.handleRegisterClick(activeBuffer.server)}
 					/>
 				</section>
 			</>

@@ -257,6 +257,7 @@ export const State = {
 			users: new irc.CaseMapMap(null, irc.CaseMapping.RFC1459),
 			account: null,
 			supportsSASLPlain: false,
+			supportsAccountRegistration: false,
 		});
 		return [id, { servers }];
 	},
@@ -348,11 +349,20 @@ export const State = {
 				}),
 			};
 		case "CAP":
-			return updateServer({ supportsSASLPlain: client.supportsSASL("PLAIN") });
+			return updateServer({
+				supportsSASLPlain: client.supportsSASL("PLAIN"),
+				supportsAccountRegistration: !!client.enabledCaps["draft/account-registration"],
+			});
 		case irc.RPL_LOGGEDIN:
 			return updateServer({ account: msg.params[2] });
 		case irc.RPL_LOGGEDOUT:
 			return updateServer({ account: null });
+		case "REGISTER":
+		case "VERIFY":
+			if (msg.params[0] === "SUCCESS") {
+				return updateServer({ account: msg.params[1] });
+			}
+			break;
 		case irc.RPL_NOTOPIC:
 			channel = msg.params[1];
 			return updateBuffer(channel, { topic: null });

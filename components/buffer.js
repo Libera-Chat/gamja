@@ -96,7 +96,7 @@ class LogLine extends Component {
 
 		let lineClass = "";
 		let content;
-		let invitee, target;
+		let invitee, target, account;
 		switch (msg.command) {
 		case "NOTICE":
 		case "PRIVMSG":
@@ -205,11 +205,27 @@ class LogLine extends Component {
 			content = linkify(stripANSI(msg.params[1]), onChannelClick);
 			break;
 		case irc.RPL_LOGGEDIN:
-			let account = msg.params[2];
+			account = msg.params[2];
 			content = html`You are now authenticated as ${account}`;
 			break;
 		case irc.RPL_LOGGEDOUT:
 			content = html`You are now unauthenticated`;
+			break;
+		case "REGISTER":
+			account = msg.params[1];
+			let reason = linkify(msg.params[2]);
+			switch (msg.params[0]) {
+			case "SUCCESS":
+				content = html`A new account has been created, you are now authenticated as ${account}`;
+				break;
+			case "VERIFICATION_REQUIRED":
+				content = html`A new account has been created, but further action is required to complete registration: ${reason}`;
+				break;
+			}
+			break;
+		case "VERIFY":
+			account = msg.params[1];
+			content = html`The new account has been verified, you are now authenticated as ${account}`;
 			break;
 		case irc.RPL_UMODEIS:
 			let mode = msg.params[1];
@@ -231,6 +247,10 @@ class LogLine extends Component {
 				lineClass = "error";
 			}
 			content = html`${msg.command} ${linkify(msg.params.join(" "))}`;
+		}
+
+		if (!content) {
+			return null;
 		}
 
 		return html`
@@ -457,22 +477,37 @@ class ProtocolHandlerNagger extends Component {
 	}
 }
 
-function AuthNagger({ server, onClick }) {
+function AccountNagger({ server, onAuthClick, onRegisterClick }) {
 	let accDesc = "an account on this server";
 	if (server.isupport.has("NETWORK")) {
 		accDesc = "a " + server.isupport.get("NETWORK") + " account";
 	}
 
-	function handleClick(event) {
+	function handleAuthClick(event) {
 		event.preventDefault();
-		onClick();
+		onAuthClick();
+	}
+	function handleRegisterClick(event) {
+		event.preventDefault();
+		onRegisterClick();
+	}
+
+	let msg = [html`
+		You are unauthenticated on this server,
+		${" "}
+		<a href="#" onClick=${handleAuthClick}>login</a>
+		${" "}
+	`];
+
+	if (server.supportsAccountRegistration) {
+		msg.push(html`or <a href="#" onClick=${handleRegisterClick}>register</a> ${accDesc}`);
+	} else {
+		msg.push(html`if you have ${accDesc}`);
 	}
 
 	return html`
 		<div class="logline">
-			<${Timestamp}/>
-			${" "}
-			You are unauthenticated on this server, <a href="#" onClick=${handleClick}>login</a> if you have ${accDesc}
+			<${Timestamp}/> ${msg}
 		</div>
 	`;
 }
@@ -515,21 +550,29 @@ export default class Buffer extends Component {
 
 	render() {
 		let buf = this.props.buffer;
-		let server = this.props.server;
 		if (!buf) {
 			return null;
 		}
+
+		let server = this.props.server;
+		let bouncerNetwork = this.props.bouncerNetwork;
+		let serverName = server.isupport.get("NETWORK");
 
 		let children = [];
 		if (buf.type == BufferType.SERVER) {
 			children.push(html`<${NotificationNagger}/>`);
 		}
 		if (buf.type == BufferType.SERVER && this.props.isBouncer && !server.isupport.has("BOUNCER_NETID")) {
-			let name = server.isupport.get("NETWORK");
-			children.push(html`<${ProtocolHandlerNagger} bouncerName=${name}/>`);
+			children.push(html`<${ProtocolHandlerNagger} bouncerName=${serverName}/>`);
 		}
 		if (buf.type == BufferType.SERVER && server.status == ServerStatus.REGISTERED && server.supportsSASLPlain && !server.account) {
-			children.push(html`<${AuthNagger} server=${server} onClick=${this.props.onAuthClick}/>`);
+			children.push(html`
+				<${AccountNagger}
+					server=${server}
+					onAuthClick=${this.props.onAuthClick}
+					onRegisterClick=${this.props.onRegisterClick}
+				/>
+			`);
 		}
 
 		let onChannelClick = this.props.onChannelClick;
