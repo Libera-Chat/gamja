@@ -58,6 +58,24 @@ function parseQueryString() {
 	return params;
 }
 
+function splitHostPort(str) {
+	let host = str;
+	let port = null;
+
+	// Literal IPv6 addresses contain colons and are enclosed in square brackets
+	let i = str.lastIndexOf(":");
+	if (i > 0 && !str.endsWith("]")) {
+		host = str.slice(0, i);
+		port = parseInt(str.slice(i + 1), 10);
+	}
+
+	if (host.startsWith("[") && host.endsWith("]")) {
+		host = host.slice(1, host.length - 1);
+	}
+
+	return { host, port };
+}
+
 function fillConnectParams(params) {
 	let host = window.location.host || "localhost:8080";
 	let proto = "wss:";
@@ -969,11 +987,13 @@ export default class App extends Component {
 			return false;
 		}
 
+		let { host, port } = splitHostPort(url.host);
+
 		let serverID;
 		if (!url.host) {
 			serverID = State.getActiveServerID(this.state);
 		} else {
-			let bouncerNetID = this.findBouncerNetIDByHost(url.host);
+			let bouncerNetID = this.findBouncerNetIDByHost(host);
 			if (!bouncerNetID) {
 				// Open dialog to create network if bouncer
 				let client = this.clients.values().next().value;
@@ -981,7 +1001,10 @@ export default class App extends Component {
 					return false;
 				}
 
-				let params = { host: url.host };
+				let params = { host };
+				if (typeof port === "number") {
+					params.port = port;
+				}
 				this.openDialog("network", { params, autojoin: url.entity });
 				return true;
 			}
