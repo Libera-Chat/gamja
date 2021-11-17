@@ -121,7 +121,7 @@ gamja default settings can be set using a `config.json` file at the root:
 ## Contributing
 
 Send patches on the [mailing list], report bugs on the [issue tracker]. Discuss
-in #soju on Libera Chat.
+in [#soju on Libera Chat].
 
 ## License
 
@@ -136,3 +136,4 @@ Copyright (C) 2020 The gamja Contributors
 [issue tracker]: https://todo.sr.ht/~emersion/gamja
 [Parcel]: https://parceljs.org
 [IRC URL]: https://datatracker.ietf.org/doc/html/draft-butcher-irc-url-04
+[#soju on Libera Chat]: ircs://irc.libera.chat/#soju
