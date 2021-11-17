@@ -1,0 +1,10 @@
+image: alpine/latest
+packages:
+- npm
+sources:
+- https://git.sr.ht/~emersion/gamja
+tasks:
+- setup: |
+    cd gamja
+    npm install --include=dev
+    npm run build
