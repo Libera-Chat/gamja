@@ -12,7 +12,7 @@ tasks:
     npm install --include=dev
     npm run build
 - deploy: |
-    [ "$(git branch --show-current)" = "master" ] || complete-build
     cd gamja/dist
+    [ "$(git branch --show-current)" = "master" ] || complete-build
     rsync --rsh="ssh -o StrictHostKeyChecking=no" -rP \
       --delete --delete-excluded . deploy@emersion.fr:/srv/http/gamja
