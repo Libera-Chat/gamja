@@ -13,6 +13,7 @@ tasks:
     npm run build
 - deploy: |
     cd gamja/dist
-    [ "$(git branch --show-current)" = "master" ] || complete-build
+    [ "$(git rev-parse HEAD)" = "$(git rev-parse master)" ] || complete-build
     rsync --rsh="ssh -o StrictHostKeyChecking=no" -rP \
-      --delete --delete-excluded . deploy@emersion.fr:/srv/http/gamja
+      --delete --exclude=config.json \
+      . deploy@emersion.fr:/srv/http/gamja
