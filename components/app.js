@@ -132,6 +132,8 @@ function showNotification(title, options) {
 	}
 }
 
+let lastErrorID = 0;
+
 export default class App extends Component {
 	state = {
 		...State.create(),
@@ -188,7 +190,7 @@ export default class App extends Component {
 		this.handleAddNetworkClick = this.handleAddNetworkClick.bind(this);
 		this.handleNetworkSubmit = this.handleNetworkSubmit.bind(this);
 		this.handleNetworkRemove = this.handleNetworkRemove.bind(this);
-		this.dismissError = this.dismissError.bind(this);
+		this.handleDismissError = this.handleDismissError.bind(this);
 
 		this.saveReceipts = debounce(this.saveReceipts.bind(this), 500);
 
@@ -295,9 +297,22 @@ export default class App extends Component {
 		}
 	}
 
-	dismissError(event) {
-		event.preventDefault();
+	showError(msg) {
+		this.setState({ error: msg });
+		lastErrorID++;
+		return lastErrorID;
+	}
+
+	dismissError(id) {
+		if (id && id !== lastErrorID) {
+			return;
+		}
 		this.setState({ error: null });
+	}
+
+	handleDismissError(event) {
+		event.preventDefault();
+		this.dismissError();
 	}
 
 	setServerState(id, updater, callback) {
@@ -560,10 +575,15 @@ export default class App extends Component {
 		this.clients.set(serverID, client);
 		this.setServerState(serverID, { status: client.status });
 
+		let errorID = null;
+
 		client.addEventListener("status", () => {
 			this.setServerState(serverID, { status: client.status });
 			if (client.status === Client.Status.REGISTERED) {
 				this.setState({ connectForm: false });
+				if (errorID) {
+					this.dismissError(errorID);
+				}
 			}
 		});
 
@@ -572,7 +592,7 @@ export default class App extends Component {
 		});
 
 		client.addEventListener("error", (event) => {
-			this.setState({ error: event.detail });
+			errorID = this.showError(event.detail);
 		});
 
 		this.createBuffer(serverID, SERVER_BUFFER);
@@ -936,7 +956,7 @@ export default class App extends Component {
 		default:
 			if (irc.isError(msg.command) && msg.command != irc.ERR_NOMOTD) {
 				let description = msg.params[msg.params.length - 1];
-				this.setState({ error: description });
+				this.showError(description);
 			}
 		}
 
@@ -946,7 +966,7 @@ export default class App extends Component {
 	}
 
 	handleConnectSubmit(connectParams) {
-		this.setState({ error: null });
+		this.dismissError();
 
 		if (connectParams.autoconnect) {
 			store.autoconnect.put(connectParams);
@@ -1036,7 +1056,7 @@ export default class App extends Component {
 	fetchBacklog(client, target, after, before) {
 		client.fetchHistoryBetween(target, after, before, CHATHISTORY_MAX_SIZE).catch((err) => {
 			console.error("Failed to fetch backlog for '" + target + "': ", err);
-			this.setState({ error: "Failed to fetch backlog for '" + target + "'" });
+			this.showError("Failed to fetch backlog for '" + target + "'");
 			this.receipts.delete(target);
 			this.saveReceipts();
 		});
@@ -1158,7 +1178,7 @@ export default class App extends Component {
 
 		let cmd = commands[name];
 		if (!cmd) {
-			this.setState({ error: `Unknown command "${name}" (run "/help" to get a command list)` });
+			this.showError(`Unknown command "${name}" (run "/help" to get a command list)`);
 			return;
 		}
 
@@ -1166,13 +1186,13 @@ export default class App extends Component {
 			cmd.execute(this, args);
 		} catch (error) {
 			console.error(`Failed to execute command "${name}":`, error);
-			this.setState({ error: error.message });
+			this.showError(error.message);
 		}
 	}
 
 	privmsg(target, text) {
 		if (target == SERVER_BUFFER) {
-			this.setState({ error: "Cannot send message in server buffer" });
+			this.showError("Cannot send message in server buffer");
 			return;
 		}
 
@@ -1548,7 +1568,7 @@ export default class App extends Component {
 				<div id="error-msg">
 					${this.state.error}
 					${" "}
-					<button onClick=${this.dismissError}>×</button>
+					<button onClick=${this.handleDismissError}>×</button>
 				</div>
 			`;
 		}
