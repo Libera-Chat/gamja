@@ -1,10 +1,18 @@
 image: alpine/latest
 packages:
 - npm
+- rsync
 sources:
 - https://git.sr.ht/~emersion/gamja
+secrets:
+- 5874ac5a-905e-4596-a117-fed1401c60ce # deploy SSH key
 tasks:
 - setup: |
     cd gamja
     npm install --include=dev
     npm run build
+- deploy: |
+    [ "$(git branch --show-current)" = "master" ] || complete-build
+    cd gamja/dist
+    rsync --rsh="ssh -o StrictHostKeyChecking=no" -rP \
+      --delete --delete-excluded . deploy@emersion.fr:/srv/http/gamja
