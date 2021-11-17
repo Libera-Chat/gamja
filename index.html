@@ -4,6 +4,7 @@
 		<meta charset="utf-8">
 		<title>gamja IRC client</title>
 		<link rel="stylesheet" href="./style.css">
+		<script type="module" src="./main.js"></script>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="manifest" href="manifest.json">
 	</head>
@@ -11,11 +12,5 @@
 		<noscript>
 			<p>Unfortunately gamja requires JavaScript. Please enable it!</p>
 		</noscript>
-		<script type="module">
-			import { html, render } from "./lib/index.js";
-			import App from "./components/app.js";
-
-			render(html`<${App}/>`, document.body);
-		</script>
 	</body>
 </html>
