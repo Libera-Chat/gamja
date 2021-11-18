@@ -411,4 +411,12 @@ export default {
 			markServerBufferUnread(app);
 		},
 	},
+	"list": {
+		usage: "[filter]",
+		description: "Retrieve a list of channels from a network",
+		execute: (app, args) => {
+			getActiveClient(app).send({ command: "LIST", params: args });
+			markServerBufferUnread(app);
+		},
+	},
 };
