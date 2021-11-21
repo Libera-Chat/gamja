@@ -255,6 +255,7 @@ export const State = {
 			status: ServerStatus.DISCONNECTED,
 			isupport: new Map(),
 			users: new irc.CaseMapMap(null, irc.CaseMapping.RFC1459),
+			account: null,
 		});
 		return [id, { servers }];
 	},
@@ -345,6 +346,10 @@ export const State = {
 					};
 				}),
 			};
+		case irc.RPL_LOGGEDIN:
+			return updateServer({ account: msg.params[2] });
+		case irc.RPL_LOGGEDOUT:
+			return updateServer({ account: null });
 		case irc.RPL_NOTOPIC:
 			channel = msg.params[1];
 			return updateBuffer(channel, { topic: null });
