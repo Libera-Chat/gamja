@@ -8,12 +8,13 @@ import ConnectForm from "./connect-form.js";
 import JoinForm from "./join-form.js";
 import Help from "./help.js";
 import NetworkForm from "./network-form.js";
+import AuthForm from "./auth-form.js";
 import Composer from "./composer.js";
 import ScrollManager from "./scroll-manager.js";
 import Dialog from "./dialog.js";
 import { html, Component, createRef } from "../lib/index.js";
 import { strip as stripANSI } from "../lib/ansi.js";
-import { SERVER_BUFFER, BufferType, ReceiptType, ServerStatus, Unread, State } from "../state.js";
+import { SERVER_BUFFER, BufferType, ReceiptType, ServerStatus, Unread, State, getServerName } from "../state.js";
 import commands from "../commands.js";
 import { setup as setupKeybindings } from "../keybindings.js";
 import * as store from "../store.js";
@@ -191,6 +192,7 @@ export default class App extends Component {
 		this.handleNetworkSubmit = this.handleNetworkSubmit.bind(this);
 		this.handleNetworkRemove = this.handleNetworkRemove.bind(this);
 		this.handleDismissError = this.handleDismissError.bind(this);
+		this.handleAuthSubmit = this.handleAuthSubmit.bind(this);
 
 		this.saveReceipts = debounce(this.saveReceipts.bind(this), 500);
 
@@ -1377,6 +1379,35 @@ export default class App extends Component {
 		this.setState({ dialog: null, dialogData: null });
 	}
 
+	handleAuthClick(serverID) {
+		let client = this.clients.get(serverID);
+		this.openDialog("auth", { username: client.nick });
+	}
+
+	handleAuthSubmit(username, password) {
+		let serverID = State.getActiveServerID(this.state);
+		let client = this.clients.get(serverID);
+		client.authenticate("PLAIN", { username, password }).then(() => {
+			let firstClient = this.clients.values().next().value;
+			if (client !== firstClient) {
+				return;
+			}
+
+			let autoconnect = store.autoconnect.load();
+			if (!autoconnect) {
+				return;
+			}
+
+			console.log("Saving SASL PLAIN credentials");
+			autoconnect = {
+				...autoconnect,
+				saslPlain: { username, password },
+			};
+			store.autoconnect.put(autoconnect);
+		});
+		this.dismissDialog();
+	}
+
 	handleAddNetworkClick() {
 		this.openDialog("network");
 	}
@@ -1560,6 +1591,13 @@ export default class App extends Component {
 				</>
 			`;
 			break;
+		case "auth":
+			dialog = html`
+				<${Dialog} title="Login to ${getServerName(activeServer, activeBouncerNetwork, isBouncer)}" onDismiss=${this.dismissDialog}>
+					<${AuthForm} username=${dialogData.username} onSubmit=${this.handleAuthSubmit}/>
+				</>
+			`;
+			break;
 		}
 
 		let error = null;
@@ -1616,7 +1654,9 @@ export default class App extends Component {
 						server=${activeServer}
 						isBouncer=${isBouncer}
 						onChannelClick=${this.handleChannelClick}
-						onNickClick=${this.handleNickClick}/>
+						onNickClick=${this.handleNickClick}
+						onAuthClick=${() => this.handleAuthClick(activeBuffer.server)}
+					/>
 				</section>
 			</>
 			${memberList}

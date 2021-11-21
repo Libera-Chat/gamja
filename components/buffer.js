@@ -2,7 +2,7 @@ import { html, Component } from "../lib/index.js";
 import linkify from "../lib/linkify.js";
 import * as irc from "../lib/irc.js";
 import { strip as stripANSI } from "../lib/ansi.js";
-import { BufferType, getNickURL, getChannelURL, getMessageURL } from "../state.js";
+import { BufferType, ServerStatus, getNickURL, getChannelURL, getMessageURL } from "../state.js";
 import * as store from "../store.js";
 import Membership from "./membership.js";
 
@@ -457,6 +457,26 @@ class ProtocolHandlerNagger extends Component {
 	}
 }
 
+function AuthNagger({ server, onClick }) {
+	let accDesc = "an account on this server";
+	if (server.isupport.has("NETWORK")) {
+		accDesc = "a " + server.isupport.get("NETWORK") + " account";
+	}
+
+	function handleClick(event) {
+		event.preventDefault();
+		onClick();
+	}
+
+	return html`
+		<div class="logline">
+			<${Timestamp}/>
+			${" "}
+			You are unauthenticated on this server, <a href="#" onClick=${handleClick}>login</a> if you have ${accDesc}
+		</div>
+	`;
+}
+
 class DateSeparator extends Component {
 	constructor(props) {
 		super(props);
@@ -507,6 +527,9 @@ export default class Buffer extends Component {
 		if (buf.type == BufferType.SERVER && this.props.isBouncer && !server.isupport.has("BOUNCER_NETID")) {
 			let name = server.isupport.get("NETWORK");
 			children.push(html`<${ProtocolHandlerNagger} bouncerName=${name}/>`);
+		}
+		if (buf.type == BufferType.SERVER && server.status == ServerStatus.REGISTERED && server.supportsSASLPlain && !server.account) {
+			children.push(html`<${AuthNagger} server=${server} onClick=${this.props.onAuthClick}/>`);
 		}
 
 		let onChannelClick = this.props.onChannelClick;

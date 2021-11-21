@@ -256,6 +256,7 @@ export const State = {
 			isupport: new Map(),
 			users: new irc.CaseMapMap(null, irc.CaseMapping.RFC1459),
 			account: null,
+			supportsSASLPlain: false,
 		});
 		return [id, { servers }];
 	},
@@ -346,6 +347,8 @@ export const State = {
 					};
 				}),
 			};
+		case "CAP":
+			return updateServer({ supportsSASLPlain: client.supportsSASL("PLAIN") });
 		case irc.RPL_LOGGEDIN:
 			return updateServer({ account: msg.params[2] });
 		case irc.RPL_LOGGEDOUT:
