@@ -760,6 +760,7 @@ export default class App extends Component {
 		case irc.RPL_ISUPPORT:
 		case irc.RPL_ENDOFMOTD:
 		case irc.ERR_NOMOTD:
+		case irc.RPL_AWAY:
 		case irc.RPL_NOTOPIC:
 		case irc.RPL_TOPIC:
 		case irc.RPL_TOPICWHOTIME:
