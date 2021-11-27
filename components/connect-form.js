@@ -9,7 +9,7 @@ export default class ConnectForm extends Component {
 		rememberMe: false,
 		username: "",
 		realname: "",
-		autojoin: "",
+		autojoin: true,
 	};
 	nickInput = createRef();
 
@@ -27,7 +27,6 @@ export default class ConnectForm extends Component {
 				rememberMe: props.params.autoconnect || false,
 				username: props.params.username || "",
 				realname: props.params.realname || "",
-				autojoin: (props.params.autojoin || []).join(","),
 			};
 		}
 	}
@@ -65,13 +64,9 @@ export default class ConnectForm extends Component {
 			params.saslExternal = true;
 		}
 
-		this.state.autojoin.split(",").forEach(function(ch) {
-			ch = ch.trim();
-			if (!ch) {
-				return;
-			}
-			params.autojoin.push(ch);
-		});
+		if (this.state.autojoin) {
+			params.autojoin = this.props.params.autojoin || [];
+		}
 
 		this.props.onSubmit(params);
 	}
@@ -131,22 +126,22 @@ export default class ConnectForm extends Component {
 			`;
 		}
 
-		let autojoin = html`
-			<label>
-				Auto-join channels:<br/>
-				<input
-					type="text"
-					name="autojoin"
-					value=${this.state.autojoin}
-					disabled=${disabled}
-					placeholder="Comma-separated list of channels"
-				/>
-			</label>
-			<br/>
-		`;
-
-		// Show autojoin field in advanced options, except if it's pre-filled
-		let isAutojoinAdvanced = (this.props.params.autojoin || []).length === 0;
+		let autojoin = null;
+		let channels = this.props.params.autojoin || [];
+		if (channels.length > 0) {
+			let s = channels.length > 1 ? "s" : "";
+			autojoin = html`
+				<label>
+					<input
+						type="checkbox"
+						name="autojoin"
+						checked=${this.state.autojoin}
+					/>
+					Auto-join channel${s} <strong>${channels.join(', ')}</strong>
+				</label>
+				<br/><br/>
+			`;
+		}
 
 		return html`
 			<form onChange=${this.handleChange} onSubmit=${this.handleSubmit}>
@@ -167,7 +162,7 @@ export default class ConnectForm extends Component {
 
 				${auth}
 
-				${!isAutojoinAdvanced ? [autojoin, html`<br/>`] : null}
+				${autojoin}
 
 				<label>
 					<input
@@ -222,8 +217,6 @@ export default class ConnectForm extends Component {
 						/>
 					</label>
 					<br/><br/>
-
-					${isAutojoinAdvanced ? autojoin : null}
 				</details>
 
 				<br/>
