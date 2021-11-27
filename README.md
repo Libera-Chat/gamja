@@ -40,6 +40,10 @@ If you use nginx as a reverse HTTP proxy, make sure to bump the default read
 timeout to a value higher than the IRC server PING interval. Example:
 
 ```
+location / {
+	root /path/to/gamja;
+}
+
 location /socket {
 	proxy_pass http://127.0.0.1:8080;
 	proxy_read_timeout 600s;
