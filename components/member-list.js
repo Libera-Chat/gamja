@@ -13,7 +13,8 @@ class MemberItem extends Component {
 
 	shouldComponentUpdate(nextProps) {
 		return this.props.nick !== nextProps.nick
-			|| this.props.membership !== nextProps.membership;
+			|| this.props.membership !== nextProps.membership
+			|| this.props.user !== nextProps.user;
 	}
 
 	handleClick(event) {
@@ -105,7 +106,8 @@ function sortMembers(a, b) {
 
 export default class MemberList extends Component {
 	shouldComponentUpdate(nextProps) {
-		return this.props.members !== nextProps.members;
+		return this.props.members !== nextProps.members
+			|| this.props.users !== nextProps.users;
 	}
 
 	render() {
