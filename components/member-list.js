@@ -43,6 +43,7 @@ class MemberItem extends Component {
 
 		let title = null;
 		let user = this.props.user;
+		let classes = ["nick"];
 		if (user) {
 			let mask = "";
 			if (user.username && user.hostname) {
@@ -61,13 +62,18 @@ class MemberItem extends Component {
 			if (user.account) {
 				title += `\nAuthenticated as ${user.account}`;
 			}
+
+			if (user.away) {
+				classes.push("away");
+				title += "\nAway";
+			}
 		}
 
 		return html`
 			<li>
 				<a
 					href=${getNickURL(this.props.nick)}
-					class="nick"
+					class=${classes.join(" ")}
 					title=${title}
 					onClick=${this.handleClick}
 				>
