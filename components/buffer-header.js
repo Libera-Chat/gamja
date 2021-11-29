@@ -38,7 +38,12 @@ export default function BufferHeader(props) {
 		props.onManageNetwork();
 	}
 
-	let description = null, actions = null;
+	let fullyConnected = props.server.status === ServerStatus.REGISTERED;
+	if (props.bouncerNetwork) {
+		fullyConnected = fullyConnected && props.bouncerNetwork.state === "connected";
+	}
+
+	let description = null, actions = [];
 	switch (props.buffer.type) {
 	case BufferType.SERVER:
 		switch (props.server.status) {
@@ -74,43 +79,52 @@ export default function BufferHeader(props) {
 			break;
 		}
 
+		let joinButton = html`
+			<button
+				key="join"
+				onClick=${handleJoinClick}
+			>Join channel</button>
+		`;
+
 		if (props.isBouncer) {
 			if (props.server.isupport.get("BOUNCER_NETID")) {
-				actions = html`
-					<button
-						key="join"
-						onClick=${handleJoinClick}
-					>Join channel</button>
-					<button
-						key="manage"
-						onClick=${handleManageNetworkClick}
-					>Manage network</button>
-				`;
+				if (fullyConnected) {
+					actions.push(joinButton);
+					actions.push(html`
+						<button
+							key="manage"
+							onClick=${handleManageNetworkClick}
+						>Manage network</button>
+					`);
+				}
 			} else {
-				actions = html`
-					<button
-						key="add"
-						onClick=${handleAddNetworkClick}
-					>Add network</button>
+				if (fullyConnected) {
+					actions.push(html`
+						<button
+							key="add"
+							onClick=${handleAddNetworkClick}
+						>Add network</button>
+					`);
+				}
+				actions.push(html`
 					<button
 						key="disconnect"
 						class="danger"
 						onClick=${handleCloseClick}
 					>Disconnect</button>
-				`;
+				`);
 			}
 		} else {
-			actions = html`
-				<button
-					key="join"
-					onClick=${handleJoinClick}
-				>Join channel</button>
+			if (fullyConnected) {
+				actions.push(joinButton);
+			}
+			actions.push(html`
 				<button
 					key="disconnect"
 					class="danger"
 					onClick=${handleCloseClick}
 				>Disconnect</button>
-			`;
+			`);
 		}
 		break;
 	case BufferType.CHANNEL:
@@ -126,11 +140,15 @@ export default function BufferHeader(props) {
 				>Leave</button>
 			`;
 		} else {
+			if (fullyConnected) {
+				actions.push(html`
+					<button
+						key="join"
+						onClick=${handleJoinClick}
+					>Join</button>
+				`);
+			}
 			actions = html`
-				<button
-					key="join"
-					onClick=${handleJoinClick}
-				>Join</button>
 				<button
 					key="part"
 					class="danger"
