@@ -581,11 +581,26 @@ export default class App extends Component {
 
 		client.addEventListener("status", () => {
 			this.setServerState(serverID, { status: client.status });
-			if (client.status === Client.Status.REGISTERED) {
+			switch (client.status) {
+			case Client.Status.DISCONNECTED:
+				this.setServerState(serverID, { account: null });
+				this.setState((state) => {
+					let buffers = new Map(state.buffers);
+					state.buffers.forEach((buf) => {
+						if (buf.server !== serverID) {
+							return;
+						}
+						buffers.set(buf.id, { ...buf, joined: false });
+					});
+					return { buffers };
+				});
+				break;
+			case Client.Status.REGISTERED:
 				this.setState({ connectForm: false });
 				if (errorID) {
 					this.dismissError(errorID);
 				}
+				break;
 			}
 		});
 
