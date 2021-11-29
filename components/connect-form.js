@@ -1,4 +1,5 @@
 import { html, Component, createRef } from "../lib/index.js";
+import linkify from "../lib/linkify.js";
 
 export default class ConnectForm extends Component {
 	state = {
@@ -104,7 +105,7 @@ export default class ConnectForm extends Component {
 			`;
 		} else if (this.props.error) {
 			status = html`
-				<p class="error-text">${this.props.error}</p>
+				<p class="error-text">${linkify(this.props.error)}</p>
 			`;
 		}
 

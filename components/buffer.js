@@ -230,7 +230,7 @@ class LogLine extends Component {
 			if (irc.isError(msg.command) && msg.command != irc.ERR_NOMOTD) {
 				lineClass = "error";
 			}
-			content = html`${msg.command} ${msg.params.join(" ")}`;
+			content = html`${msg.command} ${linkify(msg.params.join(" "))}`;
 		}
 
 		return html`
