@@ -90,6 +90,8 @@ export default function BufferHeader(props) {
 			if (props.server.isupport.get("BOUNCER_NETID")) {
 				if (fullyConnected) {
 					actions.push(joinButton);
+				}
+				if (props.server.status === ServerStatus.REGISTERED) {
 					actions.push(html`
 						<button
 							key="manage"
