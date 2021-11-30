@@ -77,6 +77,8 @@ class LogLine extends Component {
 
 		let onNickClick = this.props.onNickClick;
 		let onChannelClick = this.props.onChannelClick;
+		let onVerifyClick = this.props.onVerifyClick;
+
 		function createNick(nick) {
 			return html`
 				<${Nick} nick=${nick} onClick=${() => onNickClick(nick)}/>
@@ -213,13 +215,19 @@ class LogLine extends Component {
 			break;
 		case "REGISTER":
 			account = msg.params[1];
-			let reason = linkify(msg.params[2]);
+			let reason = msg.params[2];
+
+			function handleVerifyClick(event) {
+				event.preventDefault();
+				onVerifyClick(account, reason);
+			}
+
 			switch (msg.params[0]) {
 			case "SUCCESS":
 				content = html`A new account has been created, you are now authenticated as ${account}`;
 				break;
 			case "VERIFICATION_REQUIRED":
-				content = html`A new account has been created, but further action is required to complete registration: ${reason}`;
+				content = html`A new account has been created, but you need to <a href="#" onClick=${handleVerifyClick}>verify it</a>: ${linkify(reason)}`;
 				break;
 			}
 			break;
@@ -577,6 +585,8 @@ export default class Buffer extends Component {
 
 		let onChannelClick = this.props.onChannelClick;
 		let onNickClick = this.props.onNickClick;
+		let onVerifyClick = this.props.onVerifyClick;
+
 		function createLogLine(msg) {
 			return html`
 				<${LogLine}
@@ -586,6 +596,7 @@ export default class Buffer extends Component {
 					server=${server}
 					onChannelClick=${onChannelClick}
 					onNickClick=${onNickClick}
+					onVerifyClick=${onVerifyClick}
 				/>
 			`;
 		}

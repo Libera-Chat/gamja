@@ -196,6 +196,7 @@ export default class App extends Component {
 		this.handleDismissError = this.handleDismissError.bind(this);
 		this.handleAuthSubmit = this.handleAuthSubmit.bind(this);
 		this.handleRegisterSubmit = this.handleRegisterSubmit.bind(this);
+		this.handleVerifyClick = this.handleVerifyClick.bind(this);
 		this.handleVerifySubmit = this.handleVerifySubmit.bind(this);
 
 		this.saveReceipts = debounce(this.saveReceipts.bind(this), 500);
@@ -1443,7 +1444,7 @@ export default class App extends Component {
 			this.dismissDialog();
 
 			if (data.verificationRequired) {
-				this.openDialog("verify", data);
+				this.handleVerifyClick(data.account, data.message);
 			}
 
 			let firstClient = this.clients.values().next().value;
@@ -1463,6 +1464,10 @@ export default class App extends Component {
 			};
 			store.autoconnect.put(autoconnect);
 		});
+	}
+
+	handleVerifyClick(account, message) {
+		this.openDialog("verify", { account, message });
 	}
 
 	handleVerifySubmit(code) {
@@ -1737,6 +1742,7 @@ export default class App extends Component {
 						onNickClick=${this.handleNickClick}
 						onAuthClick=${() => this.handleAuthClick(activeBuffer.server)}
 						onRegisterClick=${() => this.handleRegisterClick(activeBuffer.server)}
+						onVerifyClick=${this.handleVerifyClick}
 					/>
 				</section>
 			</>
