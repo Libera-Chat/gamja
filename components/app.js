@@ -1400,6 +1400,17 @@ export default class App extends Component {
 		this.setState({ dialog: null, dialogData: null });
 	}
 
+	setDialogLoading(promise) {
+		const setLoading = (loading) => {
+			this.setState((state) => {
+				return { dialogData: { ...state.dialogData, loading } };
+			});
+		};
+
+		setLoading(true);
+		promise.finally(() => setLoading(false));
+	}
+
 	handleAuthClick(serverID) {
 		let client = this.clients.get(serverID);
 		this.openDialog("auth", { username: client.nick });
@@ -1408,8 +1419,9 @@ export default class App extends Component {
 	handleAuthSubmit(username, password) {
 		let serverID = State.getActiveServerID(this.state);
 		let client = this.clients.get(serverID);
-		// TODO: show auth status (pending/error) in dialog
-		client.authenticate("PLAIN", { username, password }).then(() => {
+		let promise = client.authenticate("PLAIN", { username, password }).then(() => {
+			this.dismissDialog();
+
 			let firstClient = this.clients.values().next().value;
 			if (client !== firstClient) {
 				return;
@@ -1427,24 +1439,13 @@ export default class App extends Component {
 			};
 			store.autoconnect.put(autoconnect);
 		});
-		this.dismissDialog();
+		this.setDialogLoading(promise);
 	}
 
 	handleRegisterClick(serverID) {
 		let client = this.clients.get(serverID);
 		let emailRequired = client.checkAccountRegistrationCap("email-required");
 		this.openDialog("register", { emailRequired });
-	}
-
-	setDialogLoading(promise) {
-		const setLoading = (loading) => {
-			this.setState((state) => {
-				return { dialogData: { ...state.dialogData, loading } };
-			});
-		};
-
-		setLoading(true);
-		promise.finally(() => setLoading(false));
 	}
 
 	handleRegisterSubmit(email, password) {
@@ -1677,9 +1678,16 @@ export default class App extends Component {
 			`;
 			break;
 		case "auth":
+			if (dialogData.loading) {
+				dialogBody = html`<p>Logging in…</p>`;
+			} else {
+				dialogBody = html`
+					<${AuthForm} username=${dialogData.username} onSubmit=${this.handleAuthSubmit}/>
+				`;
+			}
 			dialog = html`
 				<${Dialog} title="Login to ${getServerName(activeServer, activeBouncerNetwork, isBouncer)}" onDismiss=${this.dismissDialog}>
-					<${AuthForm} username=${dialogData.username} onSubmit=${this.handleAuthSubmit}/>
+					${dialogBody}
 				</>
 			`;
 			break;
