@@ -28,7 +28,9 @@ export default class RegisterForm extends Component {
 	render() {
 		return html`
 			<form onChange=${this.handleChange} onSubmit=${this.handleSubmit}>
-				<p>Your account <strong>${this.props.account}</strong> has been created, but a verification code is required to complete the registration:<br/>${linkify(this.props.message)}</p>
+				<p>Your account <strong>${this.props.account}</strong> has been created, but a verification code is required to complete the registration.</p>
+
+				<p>${linkify(this.props.message)}</p>
 
 				<label>
 					Verification code:<br/>

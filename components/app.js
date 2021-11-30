@@ -1436,11 +1436,22 @@ export default class App extends Component {
 		this.openDialog("register", { emailRequired });
 	}
 
+	setDialogLoading(promise) {
+		const setLoading = (loading) => {
+			this.setState((state) => {
+				return { dialogData: { ...state.dialogData, loading } };
+			});
+		};
+
+		setLoading(true);
+		promise.finally(() => setLoading(false));
+	}
+
 	handleRegisterSubmit(email, password) {
 		let serverID = State.getActiveServerID(this.state);
 		let client = this.clients.get(serverID);
 		// TODO: show registration status (pending/error) in dialog
-		client.registerAccount(email, password).then((data) => {
+		let promise = client.registerAccount(email, password).then((data) => {
 			this.dismissDialog();
 
 			if (data.verificationRequired) {
@@ -1464,6 +1475,7 @@ export default class App extends Component {
 			};
 			store.autoconnect.put(autoconnect);
 		});
+		this.setDialogLoading(promise);
 	}
 
 	handleVerifyClick(account, message) {
@@ -1474,9 +1486,10 @@ export default class App extends Component {
 		let serverID = State.getActiveServerID(this.state);
 		let client = this.clients.get(serverID);
 		// TODO: display verification status (pending/error) in dialog
-		client.verifyAccount(this.state.dialogData.account, code).then(() => {
+		let promise = client.verifyAccount(this.state.dialogData.account, code).then(() => {
 			this.dismissDialog();
 		});
+		this.setDialogLoading(promise);
 	}
 
 	handleAddNetworkClick() {
@@ -1632,6 +1645,7 @@ export default class App extends Component {
 
 		let dialog = null;
 		let dialogData = this.state.dialogData || {};
+		let dialogBody;
 		switch (this.state.dialog) {
 		case "network":
 			let isNew = !dialogData.id;
@@ -1670,18 +1684,33 @@ export default class App extends Component {
 			`;
 			break;
 		case "register":
+			if (dialogData.loading) {
+				dialogBody = html`<p>Creating account…</p>`;
+			} else {
+				dialogBody = html`
+					<${RegisterForm} emailRequired=${dialogData.emailRequired} onSubmit=${this.handleRegisterSubmit}/>
+				`;
+			}
 			dialog = html`
 				<${Dialog} title="Register a new ${getServerName(activeServer, activeBouncerNetwork, isBouncer)} account" onDismiss=${this.dismissDialog}>
-					<${RegisterForm} emailRequired=${dialogData.emailRequired} onSubmit=${this.handleRegisterSubmit}/>
+					${dialogBody}
 				</>
 			`;
 			break;
 		case "verify":
+			if (dialogData.loading) {
+				dialogBody = html`<p>Verifying account…</p>`;
+			} else {
+				dialogBody = html`
+					<${VerifyForm} account=${dialogData.account} message=${dialogData.message} onSubmit=${this.handleVerifySubmit}/>
+				`;
+			}
 			dialog = html`
 				<${Dialog} title="Verify ${getServerName(activeServer, activeBouncerNetwork, isBouncer)} account" onDismiss=${this.dismissDialog}>
-					<${VerifyForm} account=${dialogData.account} message=${dialogData.message} onSubmit=${this.handleVerifySubmit}/>
+					${dialogBody}
 				</>
 			`;
+			break;
 		}
 
 		let error = null;
