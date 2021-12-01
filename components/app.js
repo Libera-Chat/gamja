@@ -48,6 +48,15 @@ const configPromise = fetch("./config.json")
 
 const CHATHISTORY_MAX_SIZE = 4000;
 
+function isProduction() {
+	// NODE_ENV is set by the Parcel build system
+	try {
+		return process.env.NODE_ENV === "production";
+	} catch (err) {
+		return false;
+	}
+}
+
 function parseQueryString() {
 	let query = window.location.search.substring(1);
 	let params = {};
@@ -162,6 +171,7 @@ export default class App extends Component {
 			memberList: false,
 		},
 	};
+	debug = !isProduction();
 	config = { ...baseConfig };
 	clients = new Map();
 	endOfHistory = new Map();
@@ -278,6 +288,9 @@ export default class App extends Component {
 		}
 		if (typeof queryParams.open === "string") {
 			this.autoOpenURL = irc.parseURL(queryParams.open);
+		}
+		if (queryParams.debug === "1") {
+			this.debug = true;
 		}
 
 		if (window.location.hash) {
@@ -579,6 +592,8 @@ export default class App extends Component {
 		this.setState({ connectParams: params });
 
 		let client = new Client(fillConnectParams(params));
+		client.debug = this.debug;
+
 		this.clients.set(serverID, client);
 		this.setServerState(serverID, { status: client.status });
 
