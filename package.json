@@ -1,5 +1,6 @@
 {
   "name": "gamja",
+  "type": "module",
   "dependencies": {
     "htm": "^3.0.4",
     "linkifyjs": "^3.0.2",
@@ -8,11 +9,13 @@
   "devDependencies": {
     "@parcel/packager-raw-url": "^2.0.0",
     "@parcel/transformer-webmanifest": "^2.0.0",
-    "http-server": "^14.0.0",
-    "parcel": "^2.0.0"
+    "node-static": "^0.7.11",
+    "parcel": "^2.0.0",
+    "split": "^1.0.1",
+    "ws": "^8.3.0"
   },
   "scripts": {
-    "start": "http-server .",
+    "start": "node ./dev-server.js",
     "build": "parcel build"
   },
   "private": true,

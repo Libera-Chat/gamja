@@ -61,17 +61,11 @@ server doesn't send PINGs, you can set the `server.ping` option in
 
 ### Development server
 
-Any HTTP server capable of serving static files can be used. For instance:
-
-    python -m http.server
-
-If your IRC WebSocket server is started on port 8080, you can head over to
-`http://localhost:8000/?server=ws://localhost:8080` to connect to the server.
-
-Alternatively, the gamja development dependencies also include an HTTP server:
+If you don't have an IRC WebSocket server at hand, gamja's development server
+can be used. For instance, to run gamja on Libera Chat:
 
     npm install --include=dev
-    npm start
+    npm start -- irc.libera.chat
 
 ### Production build
 
