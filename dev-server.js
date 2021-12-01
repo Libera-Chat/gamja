@@ -6,14 +6,31 @@ import { WebSocketServer } from "ws";
 
 const WS_BAD_GATEWAY = 1014;
 
+const usage = `usage: [options...] [host]
+
+Starts an HTTP server delivering static files. If [host] is specified, the
+server will proxy WebSocket connections to the specified remote IRC server.
+
+Options:
+  -p <port>  Listening port (default: 8080)
+  -h         Show help message
+`;
+
 let localPort = 8080;
 let remoteHost;
 let remotePort = 6697;
 
 let args = process.argv.slice(2);
-if (args[0] === "-p") {
-	localPort = parseInt(args[1], 10);
-	args = args.slice(2);
+while (args.length > 0 && args[0].startsWith("-")) {
+	switch (args[0]) {
+	case "-p":
+		localPort = parseInt(args[1], 10);
+		args = args.slice(2);
+		break;
+	default:
+		console.log(usage);
+		process.exit(args[0] === "-h" ? 0 : 1);
+	}
 }
 remoteHost = args[0];
 

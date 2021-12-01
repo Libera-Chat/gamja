@@ -67,6 +67,8 @@ can be used. For instance, to run gamja on Libera Chat:
     npm install --include=dev
     npm start -- irc.libera.chat
 
+See `npm start -- -h` for a list of options.
+
 ### Production build
 
 Optionally, [Parcel] can be used to build a minified version of gamja.
