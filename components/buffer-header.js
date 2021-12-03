@@ -134,13 +134,13 @@ export default function BufferHeader(props) {
 			description = linkify(stripANSI(props.buffer.topic), props.onChannelClick);
 		}
 		if (props.buffer.joined) {
-			actions = html`
+			actions.push(html`
 				<button
 					key="part"
 					class="danger"
 					onClick=${handleCloseClick}
 				>Leave</button>
-			`;
+			`);
 		} else {
 			if (fullyConnected) {
 				actions.push(html`
@@ -150,13 +150,13 @@ export default function BufferHeader(props) {
 					>Join</button>
 				`);
 			}
-			actions = html`
+			actions.push(html`
 				<button
 					key="part"
 					class="danger"
 					onClick=${handleCloseClick}
 				>Close</button>
-			`;
+			`);
 		}
 		break;
 	case BufferType.NICK:
