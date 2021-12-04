@@ -318,7 +318,7 @@ export default class App extends Component {
 	}
 
 	showError(msg) {
-		this.setState({ error: msg });
+		this.setState({ error: String(msg) });
 		lastErrorID++;
 		return lastErrorID;
 	}
@@ -1119,7 +1119,9 @@ export default class App extends Component {
 			this.switchBuffer({ server: serverID });
 		} else if (client.isChannel(target)) {
 			this.switchToChannel = target;
-			client.send({ command: "JOIN", params: [target] });
+			client.join(target).catch((err) => {
+				this.showError(err);
+			});
 		} else {
 			this.whoUserBuffer(target, serverID);
 			this.createBuffer(serverID, target);
