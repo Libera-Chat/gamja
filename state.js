@@ -463,7 +463,10 @@ export const State = {
 			return updateBuffer(channel, (buf) => {
 				let members = new irc.CaseMapMap(buf.members);
 				members.delete(nick);
-				return { members };
+
+				let joined = buf.joined && !client.isMyNick(nick);
+
+				return { members, joined };
 			});
 		case "QUIT":
 			buffers = new Map(state.buffers);
