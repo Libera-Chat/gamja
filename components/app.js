@@ -317,8 +317,21 @@ export default class App extends Component {
 		}
 	}
 
-	showError(msg) {
-		this.setState({ error: String(msg) });
+	showError(err) {
+		console.error("App error: ", err);
+
+		let text;
+		if (err instanceof Error) {
+			let l = [];
+			while (err) {
+				l.push(err.message);
+				err = err.cause;
+			}
+			text = l.join(": ");
+		} else {
+			text = String(err);
+		}
+		this.setState({ error: text });
 		lastErrorID++;
 		return lastErrorID;
 	}
