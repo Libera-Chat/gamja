@@ -1634,6 +1634,7 @@ export default class App extends Component {
 						onChannelClick=${this.handleChannelClick}
 						onClose=${() => this.close(activeBuffer)}
 						onJoin=${() => this.handleJoinClick(activeBuffer)}
+						onReconnect=${() => this.reconnect()}
 						onAddNetwork=${this.handleAddNetworkClick}
 						onManageNetwork=${() => this.handleManageNetworkClick(activeBuffer.server)}
 					/>

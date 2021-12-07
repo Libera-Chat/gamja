@@ -21,23 +21,6 @@ function NickStatus(props) {
 }
 
 export default function BufferHeader(props) {
-	function handleCloseClick(event) {
-		event.preventDefault();
-		props.onClose();
-	}
-	function handleJoinClick(event) {
-		event.preventDefault();
-		props.onJoin();
-	}
-	function handleAddNetworkClick(event) {
-		event.preventDefault();
-		props.onAddNetwork();
-	}
-	function handleManageNetworkClick(event) {
-		event.preventDefault();
-		props.onManageNetwork();
-	}
-
 	let fullyConnected = props.server.status === ServerStatus.REGISTERED;
 	if (props.bouncerNetwork) {
 		fullyConnected = fullyConnected && props.bouncerNetwork.state === "connected";
@@ -82,8 +65,14 @@ export default function BufferHeader(props) {
 		let joinButton = html`
 			<button
 				key="join"
-				onClick=${handleJoinClick}
+				onClick=${props.onJoin}
 			>Join channel</button>
+		`;
+		let reconnectButton = html`
+			<button
+				key="reconect"
+				onClick=${props.onReconnect}
+			>Reconnect</button>
 		`;
 
 		if (props.server.isBouncer) {
@@ -95,7 +84,7 @@ export default function BufferHeader(props) {
 					actions.push(html`
 						<button
 							key="manage"
-							onClick=${handleManageNetworkClick}
+							onClick=${props.onManageNetwork}
 						>Manage network</button>
 					`);
 				}
@@ -104,27 +93,31 @@ export default function BufferHeader(props) {
 					actions.push(html`
 						<button
 							key="add"
-							onClick=${handleAddNetworkClick}
+							onClick=${props.onAddNetwork}
 						>Add network</button>
 					`);
+				} else if (props.server.status === ServerStatus.DISCONNECTED) {
+					actions.push(reconnectButton);
 				}
 				actions.push(html`
 					<button
 						key="disconnect"
 						class="danger"
-						onClick=${handleCloseClick}
+						onClick=${props.onClose}
 					>Disconnect</button>
 				`);
 			}
 		} else {
 			if (fullyConnected) {
 				actions.push(joinButton);
+			} else if (props.server.status === ServerStatus.DISCONNECTED) {
+				actions.push(reconnectButton);
 			}
 			actions.push(html`
 				<button
 					key="disconnect"
 					class="danger"
-					onClick=${handleCloseClick}
+					onClick=${props.onClose}
 				>Disconnect</button>
 			`);
 		}
@@ -138,7 +131,7 @@ export default function BufferHeader(props) {
 				<button
 					key="part"
 					class="danger"
-					onClick=${handleCloseClick}
+					onClick=${props.onClose}
 				>Leave</button>
 			`);
 		} else {
@@ -146,7 +139,7 @@ export default function BufferHeader(props) {
 				actions.push(html`
 					<button
 						key="join"
-						onClick=${handleJoinClick}
+						onClick=${props.onJoin}
 					>Join</button>
 				`);
 			}
@@ -154,7 +147,7 @@ export default function BufferHeader(props) {
 				<button
 					key="part"
 					class="danger"
-					onClick=${handleCloseClick}
+					onClick=${props.onClose}
 				>Close</button>
 			`);
 		}
@@ -213,7 +206,7 @@ export default function BufferHeader(props) {
 			<button
 				key="close"
 				class="danger"
-				onClick=${handleCloseClick}
+				onClick=${props.onClose}
 			>Close</button>
 		`;
 		break;
