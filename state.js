@@ -64,7 +64,7 @@ export function getMessageURL(buf, msg) {
 }
 
 export function getServerName(server, bouncerNetwork, isBouncer) {
-	let netName = server.isupport.get("NETWORK");
+	let netName = server.name;
 
 	if (bouncerNetwork && bouncerNetwork.name && bouncerNetwork.name !== bouncerNetwork.host) {
 		// User has picked a custom name for the network, use that
@@ -118,7 +118,7 @@ function compareBuffers(a, b) {
 }
 
 function updateMembership(membership, letter, add, client) {
-	let prefix = client.isupport.get("PREFIX") || "";
+	let prefix = client.isupport.prefix();
 
 	let prefixPrivs = new Map(irc.parseMembershipModes(prefix).map((membership, i) => {
 		return [membership.prefix, i];
@@ -231,7 +231,7 @@ export const State = {
 			let cm = irc.CaseMapping.RFC1459;
 			let server = state.servers.get(serverID);
 			if (server) {
-				cm = irc.CaseMapping.byName(server.isupport.get("CASEMAPPING")) || cm;
+				cm = server.cm;
 			}
 
 			let nameCM = cm(name);
@@ -252,12 +252,16 @@ export const State = {
 		let servers = new Map(state.servers);
 		servers.set(id, {
 			id,
+			name: null, // from ISUPPORT NETWORK
 			status: ServerStatus.DISCONNECTED,
-			isupport: new Map(),
+			cm: irc.CaseMapping.RFC1459,
 			users: new irc.CaseMapMap(null, irc.CaseMapping.RFC1459),
 			account: null,
 			supportsSASLPlain: false,
 			supportsAccountRegistration: false,
+			reliableUserAccounts: false,
+			statusMsg: null, // from ISUPPORT STATUSMSG
+			bouncerNetID: null,
 		});
 		return [id, { servers }];
 	},
@@ -343,8 +347,12 @@ export const State = {
 				buffers,
 				...updateServer((server) => {
 					return {
-						isupport: new Map(client.isupport),
+						name: client.isupport.network(),
+						cm: client.cm,
 						users: new irc.CaseMapMap(server.users, client.cm),
+						reliableUserAccounts: client.isupport.monitor() > 0 && client.isupport.whox(),
+						statusMsg: client.isupport.statusMsg(),
+						bouncerNetID: client.isupport.bouncerNetID,
 					};
 				}),
 			};
@@ -550,7 +558,7 @@ export const State = {
 				return; // TODO: handle user mode changes too
 			}
 
-			let prefix = client.isupport.get("PREFIX") || "";
+			let prefix = client.prefix();
 			let prefixByMode = new Map(irc.parseMembershipModes(prefix).map((membership) => {
 				return [membership.mode, membership.prefix];
 			}));

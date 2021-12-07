@@ -125,7 +125,7 @@ class LogLine extends Component {
 			}
 
 			let status = null;
-			let allowedPrefixes = server.isupport.get("STATUSMSG");
+			let allowedPrefixes = server.statusMsg;
 			if (target !== buf.name && allowedPrefixes) {
 				let parts = irc.parseTargetPrefix(target, allowedPrefixes);
 				if (parts.name === buf.name) {
@@ -487,8 +487,8 @@ class ProtocolHandlerNagger extends Component {
 
 function AccountNagger({ server, onAuthClick, onRegisterClick }) {
 	let accDesc = "an account on this server";
-	if (server.isupport.has("NETWORK")) {
-		accDesc = "a " + server.isupport.get("NETWORK") + " account";
+	if (server.name) {
+		accDesc = "a " + server.name + " account";
 	}
 
 	function handleAuthClick(event) {
@@ -564,13 +564,13 @@ export default class Buffer extends Component {
 
 		let server = this.props.server;
 		let bouncerNetwork = this.props.bouncerNetwork;
-		let serverName = server.isupport.get("NETWORK");
+		let serverName = server.name;
 
 		let children = [];
 		if (buf.type == BufferType.SERVER) {
 			children.push(html`<${NotificationNagger}/>`);
 		}
-		if (buf.type == BufferType.SERVER && this.props.isBouncer && !server.isupport.has("BOUNCER_NETID")) {
+		if (buf.type == BufferType.SERVER && this.props.isBouncer && !server.bouncerNetID) {
 			children.push(html`<${ProtocolHandlerNagger} bouncerName=${serverName}/>`);
 		}
 		if (buf.type == BufferType.SERVER && server.status == ServerStatus.REGISTERED && server.supportsSASLPlain && !server.account) {

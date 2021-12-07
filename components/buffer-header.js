@@ -87,7 +87,7 @@ export default function BufferHeader(props) {
 		`;
 
 		if (props.isBouncer) {
-			if (props.server.isupport.get("BOUNCER_NETID")) {
+			if (props.server.bouncerNetID) {
 				if (fullyConnected) {
 					actions.push(joinButton);
 				}
@@ -186,7 +186,7 @@ export default function BufferHeader(props) {
 					item = `authenticated as ${props.user.account}`;
 				}
 				details.push(html`<abbr title=${desc}>${item}</abbr>`);
-			} else if (props.server.isupport.has("MONITOR") && props.server.isupport.has("WHOX")) {
+			} else if (props.server.reliableUserAccounts) {
 				// If the server supports MONITOR and WHOX, we can faithfully
 				// keep user.account up-to-date for user queries
 				let desc = "This user has not been verified and is not logged in.";

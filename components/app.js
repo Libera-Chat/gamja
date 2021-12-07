@@ -718,7 +718,7 @@ export default class App extends Component {
 				target = SERVER_BUFFER;
 			}
 
-			let allowedPrefixes = client.isupport.get("STATUSMSG");
+			let allowedPrefixes = client.isupport.statusMsg();
 			if (allowedPrefixes) {
 				let parts = irc.parseTargetPrefix(target, allowedPrefixes);
 				if (client.isChannel(parts.name)) {
@@ -890,7 +890,7 @@ export default class App extends Component {
 
 			// Auto-join channels given at connect-time
 			let server = this.state.servers.get(serverID);
-			let bouncerNetID = server.isupport.get("BOUNCER_NETID");
+			let bouncerNetID = server.bouncerNetID;
 			let bouncerNetwork = null;
 			if (bouncerNetID) {
 				bouncerNetwork = this.state.bouncerNetworks.get(bouncerNetID);
@@ -936,7 +936,7 @@ export default class App extends Component {
 				break; // We're only interested in network updates
 			}
 
-			if (client.isupport.has("BOUNCER_NETID")) {
+			if (client.isupport.bouncerNetID()) {
 				// This can happen if the user has specified a network to bind
 				// to via other means, e.g. "<username>/<network>".
 				break;
@@ -1081,7 +1081,7 @@ export default class App extends Component {
 			}
 
 			for (let [id, server] of this.state.servers) {
-				if (server.isupport.get("BOUNCER_NETID") === bouncerNetID) {
+				if (server.bouncerNetID === bouncerNetID) {
 					serverID = id;
 					break;
 				}
@@ -1529,7 +1529,7 @@ export default class App extends Component {
 
 	handleManageNetworkClick(serverID) {
 		let server = this.state.servers.get(serverID);
-		let bouncerNetID = server.isupport.get("BOUNCER_NETID");
+		let bouncerNetID = server.bouncerNetID;
 		let bouncerNetwork = this.state.bouncerNetworks.get(bouncerNetID);
 		this.openDialog("network", {
 			id: bouncerNetID,
@@ -1599,7 +1599,7 @@ export default class App extends Component {
 			let activeClient = this.clients.get(activeBuffer.server);
 			isBouncer = activeClient && activeClient.enabledCaps["soju.im/bouncer-networks"];
 
-			let bouncerNetID = activeServer.isupport.get("BOUNCER_NETID");
+			let bouncerNetID = activeServer.bouncerNetID;
 			if (bouncerNetID) {
 				activeBouncerNetwork = this.state.bouncerNetworks.get(bouncerNetID);
 			}
