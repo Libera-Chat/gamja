@@ -570,7 +570,7 @@ export default class Buffer extends Component {
 		if (buf.type == BufferType.SERVER) {
 			children.push(html`<${NotificationNagger}/>`);
 		}
-		if (buf.type == BufferType.SERVER && this.props.isBouncer && !server.bouncerNetID) {
+		if (buf.type == BufferType.SERVER && server.isBouncer && !server.bouncerNetID) {
 			children.push(html`<${ProtocolHandlerNagger} bouncerName=${serverName}/>`);
 		}
 		if (buf.type == BufferType.SERVER && server.status == ServerStatus.REGISTERED && server.supportsSASLPlain && !server.account) {

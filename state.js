@@ -63,7 +63,7 @@ export function getMessageURL(buf, msg) {
 	}
 }
 
-export function getServerName(server, bouncerNetwork, isBouncer) {
+export function getServerName(server, bouncerNetwork) {
 	let netName = server.name;
 
 	if (bouncerNetwork && bouncerNetwork.name && bouncerNetwork.name !== bouncerNetwork.host) {
@@ -78,7 +78,7 @@ export function getServerName(server, bouncerNetwork, isBouncer) {
 
 	if (bouncerNetwork) {
 		return bouncerNetwork.name || bouncerNetwork.host || "server";
-	} else if (isBouncer) {
+	} else if (server.isBouncer) {
 		return "bouncer";
 	} else {
 		return "server";
@@ -261,6 +261,7 @@ export const State = {
 			supportsAccountRegistration: false,
 			reliableUserAccounts: false,
 			statusMsg: null, // from ISUPPORT STATUSMSG
+			isBouncer: false,
 			bouncerNetID: null,
 		});
 		return [id, { servers }];
@@ -360,6 +361,7 @@ export const State = {
 			return updateServer({
 				supportsSASLPlain: client.supportsSASL("PLAIN"),
 				supportsAccountRegistration: !!client.enabledCaps["draft/account-registration"],
+				isBouncer: !!client.enabledCaps["soju.im/bouncer-networks"],
 			});
 		case irc.RPL_LOGGEDIN:
 			return updateServer({ account: msg.params[2] });

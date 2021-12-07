@@ -1591,13 +1591,9 @@ export default class App extends Component {
 		}
 
 		let activeBuffer = null, activeServer = null, activeBouncerNetwork = null;
-		let isBouncer = false;
 		if (this.state.buffers.get(this.state.activeBuffer)) {
 			activeBuffer = this.state.buffers.get(this.state.activeBuffer);
 			activeServer = this.state.servers.get(activeBuffer.server);
-
-			let activeClient = this.clients.get(activeBuffer.server);
-			isBouncer = activeClient && activeClient.enabledCaps["soju.im/bouncer-networks"];
 
 			let bouncerNetID = activeServer.bouncerNetID;
 			if (bouncerNetID) {
@@ -1634,7 +1630,6 @@ export default class App extends Component {
 						buffer=${activeBuffer}
 						server=${activeServer}
 						user=${activeUser}
-						isBouncer=${isBouncer}
 						bouncerNetwork=${activeBouncerNetwork}
 						onChannelClick=${this.handleChannelClick}
 						onClose=${() => this.close(activeBuffer)}
@@ -1716,7 +1711,7 @@ export default class App extends Component {
 				`;
 			}
 			dialog = html`
-				<${Dialog} title="Login to ${getServerName(activeServer, activeBouncerNetwork, isBouncer)}" onDismiss=${this.dismissDialog}>
+				<${Dialog} title="Login to ${getServerName(activeServer, activeBouncerNetwork)}" onDismiss=${this.dismissDialog}>
 					${dialogBody}
 				</>
 			`;
@@ -1730,7 +1725,7 @@ export default class App extends Component {
 				`;
 			}
 			dialog = html`
-				<${Dialog} title="Register a new ${getServerName(activeServer, activeBouncerNetwork, isBouncer)} account" onDismiss=${this.dismissDialog}>
+				<${Dialog} title="Register a new ${getServerName(activeServer, activeBouncerNetwork)} account" onDismiss=${this.dismissDialog}>
 					${dialogBody}
 				</>
 			`;
@@ -1744,7 +1739,7 @@ export default class App extends Component {
 				`;
 			}
 			dialog = html`
-				<${Dialog} title="Verify ${getServerName(activeServer, activeBouncerNetwork, isBouncer)} account" onDismiss=${this.dismissDialog}>
+				<${Dialog} title="Verify ${getServerName(activeServer, activeBouncerNetwork)} account" onDismiss=${this.dismissDialog}>
 					${dialogBody}
 				</>
 			`;
@@ -1779,7 +1774,6 @@ export default class App extends Component {
 					buffers=${this.state.buffers}
 					servers=${this.state.servers}
 					bouncerNetworks=${this.state.bouncerNetworks}
-					isBouncer=${isBouncer}
 					activeBuffer=${this.state.activeBuffer}
 					onBufferClick=${this.handleBufferListClick}
 					onBufferClose=${this.handleBufferListClose}
@@ -1803,7 +1797,6 @@ export default class App extends Component {
 					<${Buffer}
 						buffer=${activeBuffer}
 						server=${activeServer}
-						isBouncer=${isBouncer}
 						bouncerNetwork=${activeBouncerNetwork}
 						onChannelClick=${this.handleChannelClick}
 						onNickClick=${this.handleNickClick}

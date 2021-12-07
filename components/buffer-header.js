@@ -86,7 +86,7 @@ export default function BufferHeader(props) {
 			>Join channel</button>
 		`;
 
-		if (props.isBouncer) {
+		if (props.server.isBouncer) {
 			if (props.server.bouncerNetID) {
 				if (fullyConnected) {
 					actions.push(joinButton);
@@ -221,7 +221,7 @@ export default function BufferHeader(props) {
 
 	let name = props.buffer.name;
 	if (props.buffer.type == BufferType.SERVER) {
-		name = getServerName(props.server, props.bouncerNetwork, props.isBouncer);
+		name = getServerName(props.server, props.bouncerNetwork);
 	}
 
 	return html`
