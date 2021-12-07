@@ -353,7 +353,7 @@ export const State = {
 						users: new irc.CaseMapMap(server.users, client.cm),
 						reliableUserAccounts: client.isupport.monitor() > 0 && client.isupport.whox(),
 						statusMsg: client.isupport.statusMsg(),
-						bouncerNetID: client.isupport.bouncerNetID,
+						bouncerNetID: client.isupport.bouncerNetID(),
 					};
 				}),
 			};
