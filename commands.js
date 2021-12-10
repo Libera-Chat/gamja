@@ -322,10 +322,11 @@ export default {
 		execute: (app, args) => {
 			let newRealname = args.join(" ");
 			let client = getActiveClient(app);
-			if (!client.enabledCaps["setname"]) {
+			if (!client.caps.enabled.has("setname")) {
 				throw new Error("Server doesn't support changing the realname");
 			}
 			client.send({ command: "SETNAME", params: [newRealname] });
+			// TODO: save to local storage
 		},
 	},
 	"stats": {

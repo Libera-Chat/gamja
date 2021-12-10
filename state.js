@@ -360,8 +360,8 @@ export const State = {
 		case "CAP":
 			return updateServer({
 				supportsSASLPlain: client.supportsSASL("PLAIN"),
-				supportsAccountRegistration: !!client.enabledCaps["draft/account-registration"],
-				isBouncer: !!client.enabledCaps["soju.im/bouncer-networks"],
+				supportsAccountRegistration: client.caps.enabled.has("draft/account-registration"),
+				isBouncer: client.caps.enabled.has("soju.im/bouncer-networks"),
 			});
 		case irc.RPL_LOGGEDIN:
 			return updateServer({ account: msg.params[2] });

@@ -364,7 +364,7 @@ export default class App extends Component {
 		let client = this.clients.get(serverID);
 
 		let stored = this.bufferStore.get({ name, server: client.params });
-		if (client.enabledCaps["draft/chathistory"] && stored) {
+		if (client.caps.enabled.has("draft/chathistory") && stored) {
 			this.setBufferState({ server: serverID, name }, { unread: stored.unread });
 		}
 		if (!stored) {
@@ -855,7 +855,7 @@ export default class App extends Component {
 		switch (msg.command) {
 		case irc.RPL_WELCOME:
 			let lastReceipt = this.latestReceipt(ReceiptType.DELIVERED);
-			if (lastReceipt && lastReceipt.time && client.enabledCaps["draft/chathistory"] && (!client.enabledCaps["soju.im/bouncer-networks"] || client.params.bouncerNetwork)) {
+			if (lastReceipt && lastReceipt.time && client.caps.enabled.has("draft/chathistory") && (!client.caps.enabled.has("soju.im/bouncer-networks") || client.params.bouncerNetwork)) {
 				let now = irc.formatDate(new Date());
 				client.fetchHistoryTargets(now, lastReceipt.time).then((targets) => {
 					targets.forEach((target) => {
@@ -878,7 +878,7 @@ export default class App extends Component {
 				}
 
 				if (client.isChannel(buf.name)) {
-					if (client.enabledCaps["soju.im/bouncer-networks"]) {
+					if (client.caps.enabled.has("soju.im/bouncer-networks")) {
 						continue;
 					}
 					join.push(buf.name);
@@ -1068,7 +1068,7 @@ export default class App extends Component {
 			if (!bouncerNetID) {
 				// Open dialog to create network if bouncer
 				let client = this.clients.values().next().value;
-				if (!client || !client.enabledCaps["soju.im/bouncer-networks"]) {
+				if (!client || !client.caps.enabled.has("soju.im/bouncer-networks")) {
 					return false;
 				}
 
@@ -1171,7 +1171,7 @@ export default class App extends Component {
 				return { buffers, activeBuffer };
 			});
 
-			let disconnectAll = client && !client.params.bouncerNetwork && client.enabledCaps["soju.im/bouncer-networks"];
+			let disconnectAll = client && !client.params.bouncerNetwork && client.caps.enabled.has("soju.im/bouncer-networks");
 
 			this.disconnect(buf.server);
 
@@ -1255,7 +1255,7 @@ export default class App extends Component {
 		let msg = { command: "PRIVMSG", params: [target, text] };
 		client.send(msg);
 
-		if (!client.enabledCaps["echo-message"]) {
+		if (!client.caps.enabled.has("echo-message")) {
 			msg.prefix = { name: client.nick };
 			this.addMessage(serverID, target, msg);
 		}
@@ -1395,7 +1395,7 @@ export default class App extends Component {
 
 		let client = this.clients.get(buf.server);
 
-		if (!client || !client.enabledCaps["draft/chathistory"] || !client.enabledCaps["server-time"]) {
+		if (!client || !client.caps.enabled.has("draft/chathistory") || !client.caps.enabled.has("server-time")) {
 			return;
 		}
 		if (this.endOfHistory.get(buf.id)) {
@@ -1413,7 +1413,7 @@ export default class App extends Component {
 		this.endOfHistory.set(buf.id, true);
 
 		let limit = 100;
-		if (client.enabledCaps["draft/event-playback"]) {
+		if (client.caps.enabled.has("draft/event-playback")) {
 			limit = 200;
 		}
 
