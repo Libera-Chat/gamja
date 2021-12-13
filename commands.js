@@ -93,6 +93,17 @@ function givemode(app, args, mode) {
 }
 
 export default {
+	"away": {
+		usage: "[message]",
+		description: "Set away message",
+		execute: (app, args) => {
+			const params = []
+			if (args.length) {
+				params.push(args.join(" "));
+			}
+			getActiveClient(app).send({command: "AWAY", params});
+		},
+	},
 	"ban": {
 		usage: "[nick]",
 		description: "Ban a user from the channel, or display the current ban list",
