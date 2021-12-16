@@ -560,7 +560,7 @@ export const State = {
 				return; // TODO: handle user mode changes too
 			}
 
-			let prefix = client.prefix();
+			let prefix = client.isupport.prefix();
 			let prefixByMode = new Map(irc.parseMembershipModes(prefix).map((membership) => {
 				return [membership.mode, membership.prefix];
 			}));
