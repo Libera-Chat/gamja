@@ -143,7 +143,7 @@ export default class Composer extends Component {
 			return;
 		}
 
-		if (this.props.readOnly && event.key !== "/") {
+		if (this.props.readOnly || (this.props.commandOnly && event.key !== "/")) {
 			return;
 		}
 
@@ -201,6 +201,11 @@ export default class Composer extends Component {
 			className = "read-only";
 		}
 
+		let placeholder = "Type a message";
+		if (this.props.commandOnly) {
+			placeholder = "Type a command (see /help)";
+		}
+
 		return html`
 			<form
 				id="composer"
@@ -214,7 +219,7 @@ export default class Composer extends Component {
 					ref=${this.textInput}
 					value=${this.state.text}
 					autocomplete="off"
-					placeholder="Type a message"
+					placeholder=${placeholder}
 					enterkeyhint="send"
 					onKeyDown=${this.handleInputKeyDown}
 				/>

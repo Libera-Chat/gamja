@@ -1759,11 +1759,13 @@ export default class App extends Component {
 		}
 
 		let composerReadOnly = false;
-		if (activeBuffer && activeBuffer.type === BufferType.SERVER) {
-			composerReadOnly = true;
-		}
 		if (activeServer && activeServer.status !== ServerStatus.REGISTERED) {
 			composerReadOnly = true;
+		}
+
+		let commandOnly = false
+		if (activeBuffer && activeBuffer.type === BufferType.SERVER) {
+			commandOnly = true
 		}
 
 		return html`
@@ -1813,6 +1815,7 @@ export default class App extends Component {
 				readOnly=${composerReadOnly}
 				onSubmit=${this.handleComposerSubmit}
 				autocomplete=${this.autocomplete}
+				commandOnly=${commandOnly}
 			/>
 			${dialog}
 			${error}
