@@ -202,6 +202,9 @@ button.danger:hover {
 	padding: 5px 10px;
 	grid-row: 2;
 	grid-column: 1;
+	max-height: 20vh;
+	overflow-y: auto;
+	word-break: break-word;
 }
 
 #buffer-header .actions {
