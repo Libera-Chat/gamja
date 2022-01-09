@@ -393,7 +393,7 @@ export default {
 		execute: (app, args) => givemode(app, args, "+v"),
 	},
 	"who": {
-		usage: "[<mask> [o]]",
+		usage: "<mask>",
 		description: "Retrieve a list of users",
 		execute: (app, args) => {
 			getActiveClient(app).send({ command: "WHO", params: args });
