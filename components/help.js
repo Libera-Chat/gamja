@@ -40,13 +40,13 @@ function CommandsHelp() {
 	let l = Object.keys(commands).map((name) => {
 		let cmd = commands[name];
 
-		let usage = "/" + name;
+		let usage = [html`<strong>/${name}</strong>`];
 		if (cmd.usage) {
-			usage += " " + cmd.usage;
+			usage.push(" " + cmd.usage);
 		}
 
 		return html`
-			<dt><strong><code>${usage}</code></strong></dt>
+			<dt><code>${usage}</code></dt>
 			<dd>${cmd.description}</dd>
 		`;
 	});
