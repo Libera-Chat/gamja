@@ -85,12 +85,8 @@ class LogLine extends Component {
 			`;
 		}
 		function createChannel(channel) {
-			function onClick(event) {
-				event.preventDefault();
-				onChannelClick(channel);
-			}
 			return html`
-				<a href=${getChannelURL(channel)} onClick=${onClick}>
+				<a href=${getChannelURL(channel)} onClick=${onChannelClick}>
 					${channel}
 				</a>
 			`;
