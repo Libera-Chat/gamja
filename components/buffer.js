@@ -527,10 +527,7 @@ class DateSeparator extends Component {
 
 	render() {
 		let date = this.props.date;
-		let YYYY = date.getFullYear().toString().padStart(4, "0");
-		let MM = (date.getMonth() + 1).toString().padStart(2, "0");
-		let DD = date.getDate().toString().padStart(2, "0");
-		let text = `${YYYY}-${MM}-${DD}`;
+		let text = date.toLocaleDateString([], { year: "numeric", month: "2-digit", day: "2-digit" });
 		return html`
 			<div class="separator date-separator">
 				${text}
