@@ -66,7 +66,7 @@ const join = {
 };
 
 const kick = {
-	usage: "<nick>",
+	usage: "<nick> [comment]",
 	description: "Remove a user from the channel",
 	execute: (app, args) => {
 		let nick = args[0];
