@@ -54,14 +54,18 @@ function markServerBufferUnread(app) {
 }
 
 const join = {
-	usage: "<name>",
+	usage: "<name> [password]",
 	description: "Join a channel",
 	execute: (app, args) => {
 		let channel = args[0];
 		if (!channel) {
 			throw new Error("Missing channel name");
 		}
-		app.open(channel);
+		if (args.length > 1) {
+			app.open(channel, null, args[1]);
+		} else {
+			app.open(channel);
+		}
 	},
 };
 

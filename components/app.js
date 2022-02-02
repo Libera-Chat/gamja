@@ -1122,7 +1122,7 @@ export default class App extends Component {
 		client.monitor(target);
 	}
 
-	open(target, serverID) {
+	open(target, serverID, password) {
 		if (!serverID) {
 			serverID = State.getActiveServerID(this.state);
 		}
@@ -1132,7 +1132,7 @@ export default class App extends Component {
 			this.switchBuffer({ server: serverID });
 		} else if (client.isChannel(target)) {
 			this.switchToChannel = target;
-			client.join(target).catch((err) => {
+			client.join(target, password).catch((err) => {
 				this.showError(err);
 			});
 		} else {
