@@ -44,9 +44,8 @@ export default function BufferList(props) {
 		let server = props.servers.get(buf.server);
 
 		let bouncerNetwork = null;
-		let bouncerNetID = server.bouncerNetID;
-		if (bouncerNetID) {
-			bouncerNetwork = props.bouncerNetworks.get(bouncerNetID);
+		if (server.bouncerNetID) {
+			bouncerNetwork = props.bouncerNetworks.get(server.bouncerNetID);
 		}
 
 		return html`
