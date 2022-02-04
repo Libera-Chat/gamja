@@ -159,6 +159,7 @@ export default class App extends Component {
 			saslExternal: false,
 			autoconnect: false,
 			autojoin: [],
+			ping: 0,
 		},
 		connectForm: true,
 		loading: true,
@@ -252,6 +253,9 @@ export default class App extends Component {
 			}
 			if (config.server.auth === "external") {
 				connectParams.saslExternal = true;
+			}
+			if (typeof config.server.ping === "number") {
+				connectParams.ping = config.server.ping;
 			}
 		}
 
@@ -651,10 +655,6 @@ export default class App extends Component {
 
 		if (params.autojoin.length > 0) {
 			this.switchToChannel = params.autojoin[0];
-		}
-
-		if (this.config.server && typeof this.config.server.ping !== "undefined") {
-			client.setPingInterval(this.config.server.ping);
 		}
 	}
 
