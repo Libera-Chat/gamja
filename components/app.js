@@ -160,7 +160,6 @@ export default class App extends Component {
 			autoconnect: false,
 			autojoin: [],
 		},
-		bouncerNetworks: new Map(),
 		connectForm: true,
 		loading: true,
 		dialog: null,
@@ -950,16 +949,12 @@ export default class App extends Component {
 
 			let isNew = false;
 			this.setState((state) => {
-				let bouncerNetworks = new Map(state.bouncerNetworks);
 				if (!attrs) {
-					bouncerNetworks.delete(id);
+					return State.deleteBouncerNetwork(state, id);
 				} else {
-					let prev = bouncerNetworks.get(id);
-					isNew = prev === undefined;
-					attrs = { ...prev, ...attrs };
-					bouncerNetworks.set(id, attrs);
+					isNew = !state.bouncerNetworks.has(id);
+					return State.storeBouncerNetwork(state, id, attrs);
 				}
-				return { bouncerNetworks };
 			}, () => {
 				if (!attrs) {
 					let serverID = this.serverFromBouncerNetwork(id);

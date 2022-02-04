@@ -172,6 +172,7 @@ export const State = {
 			servers: new Map(),
 			buffers: new Map(),
 			activeBuffer: null,
+			bouncerNetworks: new Map(),
 		};
 	},
 	updateServer(state, id, updater) {
@@ -301,6 +302,19 @@ export const State = {
 		bufferList = bufferList.sort(compareBuffers);
 		let buffers = new Map(bufferList.map((buf) => [buf.id, buf]));
 		return [id, { buffers }];
+	},
+	storeBouncerNetwork(state, id, attrs) {
+		let bouncerNetworks = new Map(state.bouncerNetworks);
+		bouncerNetworks.set(id, {
+			...bouncerNetworks.get(id),
+			...attrs,
+		});
+		return { bouncerNetworks };
+	},
+	deleteBouncerNetwork(state, id) {
+		let bouncerNetworks = new Map(state.bouncerNetworks);
+		bouncerNetworks.delete(id);
+		return { bouncerNetworks };
 	},
 	handleMessage(state, msg, serverID, client) {
 		function updateServer(updater) {
