@@ -24,5 +24,8 @@
       "source": "index.html",
       "publicUrl": "."
     }
+  },
+  "engines": {
+    "node": ">=14.13.0"
   }
 }
