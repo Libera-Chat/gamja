@@ -25,18 +25,6 @@ class Item {
 export const autoconnect = new Item("autoconnect");
 export const naggedProtocolHandler = new Item("naggedProtocolHandler");
 
-const rawReceipts = new Item("receipts");
-
-export const receipts = {
-	load() {
-		let v = rawReceipts.load();
-		return new Map(Object.entries(v || {}));
-	},
-	put(m) {
-		rawReceipts.put(Object.fromEntries(m));
-	},
-};
-
 function debounce(f, delay) {
 	let timeout = null;
 	return (...args) => {
@@ -85,14 +73,33 @@ export class Buffer {
 	put(buf) {
 		let key = this.key(buf);
 
-		let prev = this.m.get(key);
-		if (prev && prev.unread === buf.unread) {
+		let updated = !this.m.has(key);
+		let prev = this.m.get(key) || {};
+
+		let unread = prev.unread;
+		if (buf.unread !== undefined && buf.unread !== prev.unread) {
+			unread = buf.unread;
+			updated = true;
+		}
+
+		let receipts = { ...prev.receipts };
+		if (buf.receipts) {
+			Object.keys(buf.receipts).forEach((k) => {
+				if (!receipts[k] || receipts[k].time <= buf.receipts[k].time) {
+					receipts[k] = buf.receipts[k];
+					updated = true;
+				}
+			});
+		}
+
+		if (!updated) {
 			return;
 		}
 
 		this.m.set(this.key(buf), {
 			name: buf.name,
-			unread: buf.unread,
+			unread,
+			receipts,
 			server: {
 				url: buf.server.url,
 				nick: buf.server.nick,
