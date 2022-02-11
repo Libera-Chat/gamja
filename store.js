@@ -1,3 +1,5 @@
+import { ReceiptType } from "./state.js";
+
 const PREFIX = "gamja_";
 
 class Item {
@@ -90,6 +92,10 @@ export class Buffer {
 					updated = true;
 				}
 			});
+			if (receipts[ReceiptType.DELIVERED] < receipts[ReceiptType.READ]) {
+				receipts[ReceiptType.DELIVERED] = receipts[ReceiptType.READ];
+				updated = true;
+			}
 		}
 
 		if (!updated) {
