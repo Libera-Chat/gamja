@@ -586,7 +586,7 @@ export default class App extends Component {
 			}
 
 			// Don't show unread marker for my own messages
-			if (client.isMyNick(msg.prefix.name)) {
+			if (client.isMyNick(msg.prefix.name) && (!prevReadReceipt || prevReadReceipt.time < msg.tags.time)) {
 				prevReadReceipt = { time: msg.tags.time };
 			}
 
