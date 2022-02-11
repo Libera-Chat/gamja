@@ -143,8 +143,6 @@ function receiptFromMessage(msg) {
 	return { time: msg.tags.time };
 }
 
-let lastErrorID = 0;
-
 function getReceipt(stored, type) {
 	if (!stored || !stored.receipts) {
 		return null;
@@ -169,6 +167,8 @@ function getLatestReceipt(bufferStore, server, type) {
 	}
 	return last;
 }
+
+let lastErrorID = 0;
 
 export default class App extends Component {
 	state = {
