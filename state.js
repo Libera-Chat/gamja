@@ -85,6 +85,19 @@ export function getServerName(server, bouncerNetwork) {
 	}
 }
 
+export function isMessageBeforeReceipt(msg, receipt) {
+	if (!receipt) {
+		return false;
+	}
+	if (!msg.tags.time) {
+		throw new Error("Missing time message tag");
+	}
+	if (!receipt.time) {
+		throw new Error("Missing receipt time");
+	}
+	return msg.tags.time <= receipt.time;
+}
+
 function updateState(state, updater) {
 	let updated;
 	if (typeof updater === "function") {

@@ -2,7 +2,7 @@ import { html, Component } from "../lib/index.js";
 import linkify from "../lib/linkify.js";
 import * as irc from "../lib/irc.js";
 import { strip as stripANSI } from "../lib/ansi.js";
-import { BufferType, ServerStatus, getNickURL, getChannelURL, getMessageURL } from "../state.js";
+import { BufferType, ServerStatus, getNickURL, getChannelURL, getMessageURL, isMessageBeforeReceipt } from "../state.js";
 import * as store from "../store.js";
 import Membership from "./membership.js";
 
@@ -633,7 +633,7 @@ export default class Buffer extends Component {
 		buf.messages.forEach((msg) => {
 			let sep = [];
 
-			if (!hasUnreadSeparator && buf.type != BufferType.SERVER && buf.prevReadReceipt && msg.tags.time > buf.prevReadReceipt.time) {
+			if (!hasUnreadSeparator && buf.type != BufferType.SERVER && !isMessageBeforeReceipt(msg, buf.prevReadReceipt)) {
 				sep.push(html`<${UnreadSeparator} key="unread"/>`);
 				hasUnreadSeparator = true;
 			}

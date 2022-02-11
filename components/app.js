@@ -16,7 +16,7 @@ import ScrollManager from "./scroll-manager.js";
 import Dialog from "./dialog.js";
 import { html, Component, createRef } from "../lib/index.js";
 import { strip as stripANSI } from "../lib/ansi.js";
-import { SERVER_BUFFER, BufferType, ReceiptType, ServerStatus, Unread, State, getServerName } from "../state.js";
+import { SERVER_BUFFER, BufferType, ReceiptType, ServerStatus, Unread, State, getServerName, isMessageBeforeReceipt } from "../state.js";
 import commands from "../commands.js";
 import { setup as setupKeybindings } from "../keybindings.js";
 import * as store from "../store.js";
@@ -463,7 +463,7 @@ export default class App extends Component {
 
 	hasReceipt(target, type, msg) {
 		let receipt = this.getReceipt(target, type);
-		return receipt && msg.tags.time <= receipt.time;
+		return isMessageBeforeReceipt(msg, receipt);
 	}
 
 	setReceipt(target, type, msg) {
@@ -596,7 +596,7 @@ export default class App extends Component {
 			}
 
 			// Don't show unread marker for my own messages
-			if (client.isMyNick(msg.prefix.name) && (!prevReadReceipt || prevReadReceipt.time < msg.tags.time)) {
+			if (client.isMyNick(msg.prefix.name) && !isMessageBeforeReceipt(msg, prevReadReceipt)) {
 				prevReadReceipt = receiptFromMessage(msg);
 			}
 
