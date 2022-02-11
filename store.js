@@ -37,6 +37,17 @@ export const receipts = {
 	},
 };
 
+function debounce(f, delay) {
+	let timeout = null;
+	return (...args) => {
+		clearTimeout(timeout);
+		timeout = setTimeout(() => {
+			timeout = null;
+			f(...args);
+		}, delay);
+	};
+}
+
 export class Buffer {
 	raw = new Item("buffers");
 	m = null;
@@ -44,6 +55,8 @@ export class Buffer {
 	constructor() {
 		let obj = this.raw.load();
 		this.m = new Map(Object.entries(obj || {}));
+
+		this.save = debounce(this.save.bind(this), 500);
 	}
 
 	key(buf) {
