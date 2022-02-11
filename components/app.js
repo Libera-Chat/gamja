@@ -1031,11 +1031,14 @@ export default class App extends Component {
 				break;
 			}
 			let readReceipt = { time: bound.replace("timestamp=", "") };
-			this.bufferStore.put({
+			let updated = this.bufferStore.put({
 				name: target,
 				server: client.params,
 				receipts: { [ReceiptType.READ]: readReceipt },
 			});
+			if (!updated) {
+				break;
+			}
 			for (let notif of this.messageNotifications) {
 				if (client.cm(notif.data.bufferName) !== client.cm(target)) {
 					continue;
@@ -1045,10 +1048,6 @@ export default class App extends Component {
 				}
 			}
 			this.setBufferState({ server: serverID, name: target }, (buf) => {
-				if (buf.prevReadReceipt && buf.prevReadReceipt.time >= readReceipt.time) {
-					return;
-				}
-
 				// Re-compute unread status
 				let unread = Unread.NONE;
 				for (let i = buf.messages.length - 1; i >= 0; i--) {
@@ -1068,7 +1067,7 @@ export default class App extends Component {
 					unread = Unread.MESSAGE;
 				}
 
-				return { prevReadReceipt: readReceipt, unread };
+				return { unread };
 			});
 			break;
 		default:
