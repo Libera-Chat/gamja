@@ -1022,6 +1022,14 @@ export default class App extends Component {
 				server: client.params,
 				receipts: { [ReceiptType.READ]: readReceipt },
 			});
+			for (let notif of this.messageNotifications) {
+				if (client.cm(notif.data.bufferName) !== client.cm(target)) {
+					continue;
+				}
+				if (isMessageBeforeReceipt(notif.data.message, readReceipt)) {
+					notif.close();
+				}
+			}
 			this.setBufferState({ server: serverID, name: target }, (buf) => {
 				if (buf.prevReadReceipt && buf.prevReadReceipt.time >= readReceipt.time) {
 					return;
