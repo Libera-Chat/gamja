@@ -879,11 +879,19 @@ export default class App extends Component {
 		switch (msg.command) {
 		case irc.RPL_WELCOME:
 			let lastReceipt = getLatestReceipt(this.bufferStore, client.params, ReceiptType.DELIVERED);
-			if (lastReceipt && lastReceipt.time && client.caps.enabled.has("draft/chathistory") && (!client.caps.enabled.has("soju.im/bouncer-networks") || client.params.bouncerNetwork)) {
+			if (lastReceipt && client.caps.enabled.has("draft/chathistory") && (!client.caps.enabled.has("soju.im/bouncer-networks") || client.params.bouncerNetwork)) {
 				let now = irc.formatDate(new Date());
 				client.fetchHistoryTargets(now, lastReceipt.time).then((targets) => {
 					targets.forEach((target) => {
+						// Maybe we've just received a READ update from the
+						// server, avoid over-fetching history
 						let from = lastReceipt;
+						let stored = this.bufferStore.get({ name: target.name, server: client.params });
+						let readReceipt = getReceipt(stored, ReceiptType.READ);
+						if (readReceipt && readReceipt.time > from.time) {
+							from = readReceipt;
+						}
+
 						let to = { time: msg.tags.time || now };
 						this.fetchBacklog(client, target.name, from, to);
 					});
