@@ -87,7 +87,7 @@ export class Buffer {
 		let receipts = { ...prev.receipts };
 		if (buf.receipts) {
 			Object.keys(buf.receipts).forEach((k) => {
-				if (!receipts[k] || receipts[k].time <= buf.receipts[k].time) {
+				if (!receipts[k] || receipts[k].time < buf.receipts[k].time) {
 					receipts[k] = buf.receipts[k];
 					updated = true;
 				}
