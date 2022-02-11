@@ -201,6 +201,7 @@ export default class App extends Component {
 	 * confirmation for security reasons.
 	 */
 	autoOpenURL = null;
+	messageNotifications = new Set();
 
 	constructor(props) {
 		super(props);
@@ -450,8 +451,15 @@ export default class App extends Component {
 				this.buffer.current.focus();
 			}
 
+			let client = this.clients.get(buf.server);
+
+			for (let notif of this.messageNotifications) {
+				if (client.cm(notif.data.bufferName) === client.cm(buf.name)) {
+					notif.close();
+				}
+			}
+
 			if (buf.messages.length > 0) {
-				let client = this.clients.get(buf.server);
 				let lastMsg = buf.messages[buf.messages.length - 1];
 				let stored = {
 					name: buf.name,
@@ -523,12 +531,17 @@ export default class App extends Component {
 					body: stripANSI(text),
 					requireInteraction: true,
 					tag: "msg,server=" + serverID + ",from=" + msg.prefix.name + ",to=" + bufName,
+					data: { bufferName: bufName, message: msg },
 				});
 				if (notif) {
 					notif.addEventListener("click", () => {
 						// TODO: scroll to message
 						this.switchBuffer({ server: serverID, name: bufName });
 					});
+					notif.addEventListener("close", () => {
+						this.messageNotifications.delete(notif);
+					});
+					this.messageNotifications.add(notif);
 				}
 			}
 		}
