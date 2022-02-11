@@ -144,6 +144,16 @@ function showNotification(title, options) {
 	}
 }
 
+function receiptFromMessage(msg) {
+	// At this point all messages are supposed to have a time tag.
+	// App.addMessage ensures this is the case even if the server doesn't
+	// support server-time.
+	if (!msg.tags.time) {
+		throw new Error("Missing time message tag");
+	}
+	return { time: msg.tags.time };
+}
+
 let lastErrorID = 0;
 
 export default class App extends Component {
@@ -464,7 +474,7 @@ export default class App extends Component {
 		// TODO: this doesn't trigger a redraw
 		this.receipts.set(target, {
 			...this.receipts.get(target),
-			[type]: { time: msg.tags.time },
+			[type]: receiptFromMessage(msg),
 		});
 		this.saveReceipts();
 	}
@@ -587,7 +597,7 @@ export default class App extends Component {
 
 			// Don't show unread marker for my own messages
 			if (client.isMyNick(msg.prefix.name) && (!prevReadReceipt || prevReadReceipt.time < msg.tags.time)) {
-				prevReadReceipt = { time: msg.tags.time };
+				prevReadReceipt = receiptFromMessage(msg);
 			}
 
 			this.bufferStore.put({
