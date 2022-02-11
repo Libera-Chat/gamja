@@ -145,6 +145,13 @@ function receiptFromMessage(msg) {
 
 let lastErrorID = 0;
 
+function getReceipt(stored, type) {
+	if (!stored || !stored.receipts) {
+		return null;
+	}
+	return stored.receipts[ReceiptType.READ];
+}
+
 function getLatestReceipt(bufferStore, server, type) {
 	let buffers = bufferStore.list(server);
 	let last = null;
@@ -434,7 +441,7 @@ export default class App extends Component {
 
 			let client = this.clients.get(buf.server);
 			let stored = this.bufferStore.get({ name: buf.name, server: client.params });
-			let prevReadReceipt = stored && stored.receipts ? stored.receipts[ReceiptType.READ] : null;
+			let prevReadReceipt = getReceipt(stored, ReceiptType.READ);
 			// TODO: only mark as read if user scrolled at the bottom
 			let update = State.updateBuffer(state, buf.id, {
 				unread: Unread.NONE,
@@ -493,12 +500,11 @@ export default class App extends Component {
 			msg.tags.time = irc.formatDate(new Date());
 		}
 
-		let isDelivered = false, isRead = false;
 		let stored = this.bufferStore.get({ name: bufName, server: client.params });
-		if (stored) {
-			isDelivered = isMessageBeforeReceipt(msg, stored.receipts[ReceiptType.DELIVERED]);
-			isRead = isMessageBeforeReceipt(msg, stored.receipts[ReceiptType.READ]);
-		}
+		let deliveryReceipt = getReceipt(stored, ReceiptType.DELIVERED);
+		let readReceipt = getReceipt(stored, ReceiptType.READ);
+		let isDelivered = isMessageBeforeReceipt(msg, deliveryReceipt);
+		let isRead = isMessageBeforeReceipt(msg, readReceipt);
 
 		// TODO: messages coming from infinite scroll shouldn't trigger notifications
 
