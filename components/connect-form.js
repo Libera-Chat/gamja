@@ -210,7 +210,7 @@ export default class ConnectForm extends Component {
 					<label>
 						Server password:<br/>
 						<input
-							type="text"
+							type="password"
 							name="pass"
 							value=${this.state.pass}
 							disabled=${disabled}
