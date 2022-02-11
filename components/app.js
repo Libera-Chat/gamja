@@ -402,18 +402,19 @@ export default class App extends Component {
 			if (!buf) {
 				return;
 			}
-			return { activeBuffer: buf.id };
+
+			let prevReadReceipt = this.getReceipt(buf.name, ReceiptType.READ);
+			// TODO: only mark as read if user scrolled at the bottom
+			let update = State.updateBuffer(state, buf.id, {
+				unread: Unread.NONE,
+				prevReadReceipt,
+			});
+
+			return { ...update, activeBuffer: buf.id };
 		}, () => {
 			if (!buf) {
 				return;
 			}
-
-			let prevReadReceipt = this.getReceipt(buf.name, ReceiptType.READ);
-			// TODO: only mark as read if user scrolled at the bottom
-			this.setBufferState(buf.id, {
-				unread: Unread.NONE,
-				prevReadReceipt,
-			});
 
 			if (this.buffer.current) {
 				this.buffer.current.focus();
