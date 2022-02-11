@@ -120,7 +120,7 @@ function fillConnectParams(params) {
 
 function showNotification(title, options) {
 	if (!window.Notification || Notification.permission !== "granted") {
-		return new EventTarget();
+		return null;
 	}
 
 	// This can still fail due to:
@@ -129,7 +129,7 @@ function showNotification(title, options) {
 		return new Notification(title, options);
 	} catch (err) {
 		console.error("Failed to show notification: ", err);
-		return new EventTarget();
+		return null;
 	}
 }
 
@@ -524,10 +524,12 @@ export default class App extends Component {
 					requireInteraction: true,
 					tag: "msg,server=" + serverID + ",from=" + msg.prefix.name + ",to=" + bufName,
 				});
-				notif.addEventListener("click", () => {
-					// TODO: scroll to message
-					this.switchBuffer({ server: serverID, name: bufName });
-				});
+				if (notif) {
+					notif.addEventListener("click", () => {
+						// TODO: scroll to message
+						this.switchBuffer({ server: serverID, name: bufName });
+					});
+				}
 			}
 		}
 		if (msg.command === "INVITE" && client.isMyNick(msg.params[0])) {
@@ -543,22 +545,24 @@ export default class App extends Component {
 					title: "Accept",
 				}],
 			});
-			notif.addEventListener("click", (event) => {
-				if (event.action === "accept") {
-					let stored = {
-						name: bufName,
-						server: client.params,
-						receipts: { [ReceiptType.READ]: receiptFromMessage(msg) },
-					};
-					if (this.bufferStore.put(stored)) {
-						this.sendReadReceipt(client, stored);
+			if (notif) {
+				notif.addEventListener("click", (event) => {
+					if (event.action === "accept") {
+						let stored = {
+							name: bufName,
+							server: client.params,
+							receipts: { [ReceiptType.READ]: receiptFromMessage(msg) },
+						};
+						if (this.bufferStore.put(stored)) {
+							this.sendReadReceipt(client, stored);
+						}
+						this.open(channel, serverID);
+					} else {
+						// TODO: scroll to message
+						this.switchBuffer({ server: serverID, name: bufName });
 					}
-					this.open(channel, serverID);
-				} else {
-					// TODO: scroll to message
-					this.switchBuffer({ server: serverID, name: bufName });
-				}
-			});
+				});
+			}
 		}
 
 		// Open a new buffer if the message doesn't come from me or is a
