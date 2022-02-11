@@ -409,6 +409,20 @@ export default class App extends Component {
 		return id;
 	}
 
+	sendReadReceipt(client, storedBuffer) {
+		if (!client.caps.enabled.has("soju.im/read")) {
+			return;
+		}
+		let readReceipt = storedBuffer.receipts[ReceiptType.READ];
+		if (storedBuffer.name === "*" || !readReceipt) {
+			return;
+		}
+		client.send({
+			command: "READ",
+			params: [storedBuffer.name, "timestamp="+readReceipt.time],
+		});
+	}
+
 	switchBuffer(id) {
 		let buf;
 		this.setState((state) => {
@@ -439,12 +453,15 @@ export default class App extends Component {
 			if (buf.messages.length > 0) {
 				let client = this.clients.get(buf.server);
 				let lastMsg = buf.messages[buf.messages.length - 1];
-				this.bufferStore.put({
+				let stored = {
 					name: buf.name,
 					server: client.params,
 					unread: Unread.NONE,
 					receipts: { [ReceiptType.READ]: receiptFromMessage(lastMsg) },
-				});
+				};
+				if (this.bufferStore.put(stored)) {
+					this.sendReadReceipt(client, stored);
+				}
 			}
 
 			let server = this.state.servers.get(buf.server);
@@ -528,11 +545,14 @@ export default class App extends Component {
 			});
 			notif.addEventListener("click", (event) => {
 				if (event.action === "accept") {
-					this.bufferStore.put({
+					let stored = {
 						name: bufName,
 						server: client.params,
 						receipts: { [ReceiptType.READ]: receiptFromMessage(msg) },
-					});
+					};
+					if (this.bufferStore.put(stored)) {
+						this.sendReadReceipt(client, stored);
+					}
 					this.open(channel, serverID);
 				} else {
 					// TODO: scroll to message
@@ -566,12 +586,15 @@ export default class App extends Component {
 				prevReadReceipt = receiptFromMessage(msg);
 			}
 
-			this.bufferStore.put({
+			let stored = {
 				name: buf.name,
 				server: client.params,
 				unread,
 				receipts,
-			});
+			};
+			if (this.bufferStore.put(stored)) {
+				this.sendReadReceipt(client, stored);
+			}
 			return { unread, prevReadReceipt };
 		});
 	}
@@ -807,6 +830,7 @@ export default class App extends Component {
 		case "CHATHISTORY":
 		case "ACK":
 		case "BOUNCER":
+		case "READ":
 			// Ignore these
 			return [];
 		default:
@@ -969,6 +993,45 @@ export default class App extends Component {
 				this.autoOpenURL = null;
 			}
 			break;
+		case "READ":
+			target = msg.params[0];
+			let bound = msg.params[1];
+			if (!client.isMyNick(msg.prefix.name) || bound === "*" || !bound.startsWith("timestamp=")) {
+				break;
+			}
+			let readReceipt = { time: bound.replace("timestamp=", "") };
+			this.bufferStore.put({
+				name: target,
+				server: client.params,
+				receipts: { [ReceiptType.READ]: readReceipt },
+			});
+			this.setBufferState({ server: serverID, name: target }, (buf) => {
+				if (buf.prevReadReceipt && buf.prevReadReceipt.time >= readReceipt.time) {
+					return;
+				}
+
+				// Re-compute unread status
+				let unread = Unread.NONE;
+				for (let i = buf.messages.length - 1; i >= 0; i--) {
+					let msg = buf.messages[i];
+					if (msg.command !== "PRIVMSG" && msg.command !== "NOTICE") {
+						continue;
+					}
+					if (isMessageBeforeReceipt(msg, readReceipt)) {
+						break;
+					}
+
+					if (msg.isHighlight || client.isMyNick(buf.name)) {
+						unread = Unread.HIGHLIGHT;
+						break;
+					}
+
+					unread = Unread.MESSAGE;
+				}
+
+				return { prevReadReceipt: readReceipt, unread };
+			});
+			break;
 		default:
 			if (irc.isError(msg.command) && msg.command != irc.ERR_NOMOTD) {
 				let description = msg.params[msg.params.length - 1];
@@ -1083,6 +1146,13 @@ export default class App extends Component {
 			fields: ["flags", "hostname", "nick", "realname", "username", "account"],
 		});
 		client.monitor(target);
+
+		if (client.caps.enabled.has("soju.im/read")) {
+			client.send({
+				command: "READ",
+				params: [target],
+			});
+		}
 	}
 
 	open(target, serverID, password) {

@@ -99,7 +99,7 @@ export class Buffer {
 		}
 
 		if (!updated) {
-			return;
+			return false;
 		}
 
 		this.m.set(this.key(buf), {
@@ -114,6 +114,7 @@ export class Buffer {
 		});
 
 		this.save();
+		return true;
 	}
 
 	delete(buf) {
