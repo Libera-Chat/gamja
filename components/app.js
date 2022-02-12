@@ -16,7 +16,7 @@ import ScrollManager from "./scroll-manager.js";
 import Dialog from "./dialog.js";
 import { html, Component, createRef } from "../lib/index.js";
 import { strip as stripANSI } from "../lib/ansi.js";
-import { SERVER_BUFFER, BufferType, ReceiptType, ServerStatus, Unread, State, getServerName, isMessageBeforeReceipt } from "../state.js";
+import { SERVER_BUFFER, BufferType, ReceiptType, ServerStatus, Unread, State, getServerName, receiptFromMessage, isMessageBeforeReceipt } from "../state.js";
 import commands from "../commands.js";
 import { setup as setupKeybindings } from "../keybindings.js";
 import * as store from "../store.js";
@@ -131,16 +131,6 @@ function showNotification(title, options) {
 		console.error("Failed to show notification: ", err);
 		return null;
 	}
-}
-
-function receiptFromMessage(msg) {
-	// At this point all messages are supposed to have a time tag.
-	// App.addMessage ensures this is the case even if the server doesn't
-	// support server-time.
-	if (!msg.tags.time) {
-		throw new Error("Missing time message tag");
-	}
-	return { time: msg.tags.time };
 }
 
 function getReceipt(stored, type) {

@@ -1,4 +1,4 @@
-import { ReceiptType, Unread, BufferType, SERVER_BUFFER } from "./state.js";
+import { ReceiptType, Unread, BufferType, SERVER_BUFFER, receiptFromMessage } from "./state.js";
 
 function getSiblingBuffer(buffers, bufID, delta) {
 	let bufList = Array.from(buffers.values());
@@ -19,22 +19,24 @@ export const keybindings = [
 			app.setState((state) => {
 				let buffers = new Map();
 				state.buffers.forEach((buf) => {
-					if (buf.messages.length > 0) {
-						let lastMsg = buf.messages[buf.messages.length - 1];
-						app.setReceipt(buf.name, ReceiptType.READ, lastMsg);
-					}
-
 					buffers.set(buf.id, {
 						...buf,
 						unread: Unread.NONE,
 						prevReadReceipt: null,
 					});
 
+					let receipts = {};
+					if (buf.messages.length > 0) {
+						let lastMsg = buf.messages[buf.messages.length - 1];
+						receipts[ReceiptType.READ] = receiptFromMessage(lastMsg);
+					}
+
 					let client = app.clients.get(buf.server);
 					app.bufferStore.put({
 						name: buf.name,
 						server: client.params,
 						unread: Unread.NONE,
+						receipts,
 					});
 				});
 				return { buffers };
