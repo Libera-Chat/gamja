@@ -95,6 +95,19 @@ export function receiptFromMessage(msg) {
 	return { time: msg.tags.time };
 }
 
+export function isReceiptBefore(a, b) {
+	if (!b) {
+		return false;
+	}
+	if (!a) {
+		return true;
+	}
+	if (!a.time || !b.time) {
+		throw new Error("Missing receipt time");
+	}
+	return a.time <= b.time;
+}
+
 export function isMessageBeforeReceipt(msg, receipt) {
 	if (!receipt) {
 		return false;

@@ -16,7 +16,7 @@ import ScrollManager from "./scroll-manager.js";
 import Dialog from "./dialog.js";
 import { html, Component, createRef } from "../lib/index.js";
 import { strip as stripANSI } from "../lib/ansi.js";
-import { SERVER_BUFFER, BufferType, ReceiptType, ServerStatus, Unread, State, getServerName, receiptFromMessage, isMessageBeforeReceipt } from "../state.js";
+import { SERVER_BUFFER, BufferType, ReceiptType, ServerStatus, Unread, State, getServerName, receiptFromMessage, isReceiptBefore, isMessageBeforeReceipt } from "../state.js";
 import commands from "../commands.js";
 import { setup as setupKeybindings } from "../keybindings.js";
 import * as store from "../store.js";
@@ -144,14 +144,11 @@ function getLatestReceipt(bufferStore, server, type) {
 	let buffers = bufferStore.list(server);
 	let last = null;
 	for (let buf of buffers) {
-		if (!buf.receipts || buf.name === "*") {
+		if (buf.name === "*") {
 			continue;
 		}
-		let receipt = buf.receipts[type];
-		if (!receipt) {
-			continue;
-		}
-		if (!last || receipt.time > last.time) {
+		let receipt = getReceipt(buf, type);
+		if (isReceiptBefore(last, receipt)) {
 			last = receipt;
 		}
 	}
@@ -878,7 +875,7 @@ export default class App extends Component {
 						let from = lastReceipt;
 						let stored = this.bufferStore.get({ name: target.name, server: client.params });
 						let readReceipt = getReceipt(stored, ReceiptType.READ);
-						if (readReceipt && readReceipt.time > from.time) {
+						if (isReceiptBefore(from, readReceipt)) {
 							from = readReceipt;
 						}
 
