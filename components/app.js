@@ -1018,12 +1018,8 @@ export default class App extends Component {
 				break;
 			}
 			let readReceipt = { time: bound.replace("timestamp=", "") };
-			let updated = this.bufferStore.put({
-				name: target,
-				server: client.params,
-				receipts: { [ReceiptType.READ]: readReceipt },
-			});
-			if (!updated) {
+			let stored = this.bufferStore.get({ name: target, server: client.params });
+			if (isReceiptBefore(readReceipt, getReceipt(stored, ReceiptType.READ))) {
 				break;
 			}
 			for (let notif of this.messageNotifications) {
@@ -1053,6 +1049,13 @@ export default class App extends Component {
 
 					unread = Unread.MESSAGE;
 				}
+
+				this.bufferStore.put({
+					name: target,
+					server: client.params,
+					unread,
+					receipts: { [ReceiptType.READ]: readReceipt },
+				});
 
 				return { unread };
 			});
