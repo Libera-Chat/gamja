@@ -865,34 +865,7 @@ export default class App extends Component {
 		let target, channel;
 		switch (msg.command) {
 		case irc.RPL_WELCOME:
-			let lastReceipt = getLatestReceipt(this.bufferStore, client.params, ReceiptType.DELIVERED);
-			if (lastReceipt && client.caps.enabled.has("draft/chathistory") && (!client.caps.enabled.has("soju.im/bouncer-networks") || client.params.bouncerNetwork)) {
-				let now = irc.formatDate(new Date());
-				client.fetchHistoryTargets(now, lastReceipt.time).then((targets) => {
-					targets.forEach((target) => {
-						let from = lastReceipt;
-
-						// Maybe we've just received a READ update from the
-						// server, avoid over-fetching history
-						let stored = this.bufferStore.get({ name: target.name, server: client.params });
-						let readReceipt = getReceipt(stored, ReceiptType.READ);
-						if (isReceiptBefore(from, readReceipt)) {
-							from = readReceipt;
-						}
-
-						// If we already have messages stored for the target,
-						// fetch all messages we've missed
-						let buf = State.getBuffer(this.state, { server: serverID, name: target.name });
-						if (buf && buf.messages.length > 0) {
-							let lastMsg = buf.messages[buf.messages.length - 1];
-							from = receiptFromMessage(lastMsg);
-						}
-
-						let to = { time: msg.tags.time || now };
-						this.fetchBacklog(client, target.name, from, to);
-					});
-				});
-			}
+			this.fetchBacklog(serverID);
 			break;
 		case irc.RPL_ENDOFMOTD:
 		case irc.ERR_NOMOTD:
@@ -1081,6 +1054,50 @@ export default class App extends Component {
 		});
 	}
 
+	fetchBacklog(serverID) {
+		let client = this.clients.get(serverID);
+		if (!client.caps.enabled.has("draft/chathistory")) {
+			return;
+		}
+		if (client.caps.enabled.has("soju.im/bouncer-networks") && !client.params.bouncerNetwork) {
+			return;
+		}
+
+		let lastReceipt = getLatestReceipt(this.bufferStore, client.params, ReceiptType.DELIVERED);
+		if (!lastReceipt) {
+			return;
+		}
+
+		let now = irc.formatDate(new Date());
+		client.fetchHistoryTargets(now, lastReceipt.time).then((targets) => {
+			targets.forEach((target) => {
+				let from = lastReceipt;
+				let to = { time: now };
+
+				// Maybe we've just received a READ update from the
+				// server, avoid over-fetching history
+				let stored = this.bufferStore.get({ name: target.name, server: client.params });
+				let readReceipt = getReceipt(stored, ReceiptType.READ);
+				if (isReceiptBefore(from, readReceipt)) {
+					from = readReceipt;
+				}
+
+				// If we already have messages stored for the target,
+				// fetch all messages we've missed
+				let buf = State.getBuffer(this.state, { server: serverID, name: target.name });
+				if (buf && buf.messages.length > 0) {
+					let lastMsg = buf.messages[buf.messages.length - 1];
+					from = receiptFromMessage(lastMsg);
+				}
+
+				client.fetchHistoryBetween(target.name, from, to, CHATHISTORY_MAX_SIZE).catch((err) => {
+					console.error("Failed to fetch backlog for '" + target.name + "': ", err);
+					this.showError("Failed to fetch backlog for '" + target.name + "'");
+				});
+			});
+		});
+	}
+
 	handleConnectSubmit(connectParams) {
 		this.dismissError();
 
@@ -1167,13 +1184,6 @@ export default class App extends Component {
 
 	handleNickClick(nick) {
 		this.open(nick);
-	}
-
-	fetchBacklog(client, target, after, before) {
-		client.fetchHistoryBetween(target, after, before, CHATHISTORY_MAX_SIZE).catch((err) => {
-			console.error("Failed to fetch backlog for '" + target + "': ", err);
-			this.showError("Failed to fetch backlog for '" + target + "'");
-		});
 	}
 
 	whoUserBuffer(target, serverID) {
