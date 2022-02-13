@@ -870,13 +870,22 @@ export default class App extends Component {
 				let now = irc.formatDate(new Date());
 				client.fetchHistoryTargets(now, lastReceipt.time).then((targets) => {
 					targets.forEach((target) => {
+						let from = lastReceipt;
+
 						// Maybe we've just received a READ update from the
 						// server, avoid over-fetching history
-						let from = lastReceipt;
 						let stored = this.bufferStore.get({ name: target.name, server: client.params });
 						let readReceipt = getReceipt(stored, ReceiptType.READ);
 						if (isReceiptBefore(from, readReceipt)) {
 							from = readReceipt;
+						}
+
+						// If we already have messages stored for the target,
+						// fetch all messages we've missed
+						let buf = State.getBuffer(this.state, { server: serverID, name: target.name });
+						if (buf && buf.messages.length > 0) {
+							let lastMsg = buf.messages[buf.messages.length - 1];
+							from = receiptFromMessage(lastMsg);
 						}
 
 						let to = { time: msg.tags.time || now };
