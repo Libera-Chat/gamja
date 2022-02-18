@@ -46,7 +46,14 @@ export class Buffer {
 		let obj = this.raw.load();
 		this.m = new Map(Object.entries(obj || {}));
 
-		this.save = debounce(this.save.bind(this), 500);
+		let saveImmediately = this.save.bind(this);
+		this.save = debounce(saveImmediately, 500);
+
+		document.addEventListener("visibilitychange", () => {
+			if (document.visibilityState === "hidden") {
+				saveImmediately();
+			}
+		});
 	}
 
 	key(buf) {
