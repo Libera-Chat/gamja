@@ -11,12 +11,13 @@ import NetworkForm from "./network-form.js";
 import AuthForm from "./auth-form.js";
 import RegisterForm from "./register-form.js";
 import VerifyForm from "./verify-form.js";
+import SettingsForm from "./settings-form.js";
 import Composer from "./composer.js";
 import ScrollManager from "./scroll-manager.js";
 import Dialog from "./dialog.js";
 import { html, Component, createRef } from "../lib/index.js";
 import { strip as stripANSI } from "../lib/ansi.js";
-import { SERVER_BUFFER, BufferType, ReceiptType, ServerStatus, Unread, State, getServerName, receiptFromMessage, isReceiptBefore, isMessageBeforeReceipt } from "../state.js";
+import { SERVER_BUFFER, BufferType, ReceiptType, ServerStatus, Unread, BufferEventsDisplayMode, State, getServerName, receiptFromMessage, isReceiptBefore, isMessageBeforeReceipt } from "../state.js";
 import commands from "../commands.js";
 import { setup as setupKeybindings } from "../keybindings.js";
 import * as store from "../store.js";
@@ -221,6 +222,13 @@ export default class App extends Component {
 		this.handleRegisterSubmit = this.handleRegisterSubmit.bind(this);
 		this.handleVerifyClick = this.handleVerifyClick.bind(this);
 		this.handleVerifySubmit = this.handleVerifySubmit.bind(this);
+		this.handleOpenSettingsClick = this.handleOpenSettingsClick.bind(this);
+		this.handleSettingsChange = this.handleSettingsChange.bind(this);
+
+		this.state.settings = {
+			...this.state.settings,
+			...store.settings.load(),
+		};
 
 		this.bufferStore = new store.Buffer();
 
@@ -632,7 +640,10 @@ export default class App extends Component {
 		});
 		this.setState({ connectParams: params });
 
-		let client = new Client(fillConnectParams(params));
+		let client = new Client({
+			...fillConnectParams(params),
+			eventPlayback: this.state.settings.bufferEvents !== BufferEventsDisplayMode.HIDE,
+		});
 		client.debug = this.debug;
 
 		this.clients.set(serverID, client);
@@ -1321,6 +1332,10 @@ export default class App extends Component {
 		}
 	}
 
+	disconnectAll() {
+		this.close(this.state.buffers.keys().next().value);
+	}
+
 	executeCommand(s) {
 		let parts = s.split(" ");
 		let name = parts[0].toLowerCase().slice(1);
@@ -1681,6 +1696,15 @@ export default class App extends Component {
 		this.dismissDialog();
 	}
 
+	handleOpenSettingsClick() {
+		this.openDialog("settings");
+	}
+
+	handleSettingsChange(settings) {
+		store.settings.put(settings);
+		this.setState({ settings });
+	}
+
 	componentDidMount() {
 		this.baseTitle = document.title;
 		setupKeybindings(this);
@@ -1742,6 +1766,7 @@ export default class App extends Component {
 						onReconnect=${() => this.reconnect()}
 						onAddNetwork=${this.handleAddNetworkClick}
 						onManageNetwork=${() => this.handleManageNetworkClick(activeBuffer.server)}
+						onOpenSettings=${this.handleOpenSettingsClick}
 					/>
 				</section>
 			`;
@@ -1850,6 +1875,18 @@ export default class App extends Component {
 				</>
 			`;
 			break;
+		case "settings":
+			dialog = html`
+				<${Dialog} title="Settings" onDismiss=${this.dismissDialog}>
+					<${SettingsForm}
+						settings=${this.state.settings}
+						onChange=${this.handleSettingsChange}
+						onDisconnect=${() => this.disconnectAll()}
+						onClose=${() => this.dismissDialog()}
+					/>
+				</>
+			`;
+			break;
 		}
 
 		let error = null;
@@ -1906,6 +1943,7 @@ export default class App extends Component {
 						buffer=${activeBuffer}
 						server=${activeServer}
 						bouncerNetwork=${activeBouncerNetwork}
+						settings=${this.state.settings}
 						onChannelClick=${this.handleChannelClick}
 						onNickClick=${this.handleNickClick}
 						onAuthClick=${() => this.handleAuthClick(activeBuffer.server)}

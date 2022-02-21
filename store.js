@@ -26,6 +26,7 @@ class Item {
 
 export const autoconnect = new Item("autoconnect");
 export const naggedProtocolHandler = new Item("naggedProtocolHandler");
+export const settings = new Item("settings");
 
 function debounce(f, delay) {
 	let timeout = null;

@@ -74,6 +74,12 @@ export default function BufferHeader(props) {
 				onClick=${props.onReconnect}
 			>Reconnect</button>
 		`;
+		let settingsButton = html`
+			<button
+				key="settings"
+				onClick="${props.onOpenSettings}"
+			>Settings</button>
+		`;
 
 		if (props.server.isBouncer) {
 			if (props.server.bouncerNetID) {
@@ -99,27 +105,16 @@ export default function BufferHeader(props) {
 				} else if (props.server.status === ServerStatus.DISCONNECTED) {
 					actions.push(reconnectButton);
 				}
-				actions.push(html`
-					<button
-						key="disconnect"
-						class="danger"
-						onClick=${props.onClose}
-					>Disconnect</button>
-				`);
+				actions.push(settingsButton);
 			}
 		} else {
 			if (fullyConnected) {
 				actions.push(joinButton);
+				actions.push(settingsButton);
 			} else if (props.server.status === ServerStatus.DISCONNECTED) {
 				actions.push(reconnectButton);
 			}
-			actions.push(html`
-				<button
-					key="disconnect"
-					class="danger"
-					onClick=${props.onClose}
-				>Disconnect</button>
-			`);
+			actions.push(settingsButton);
 		}
 		break;
 	case BufferType.CHANNEL:

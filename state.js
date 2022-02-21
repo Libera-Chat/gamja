@@ -34,6 +34,12 @@ export const ReceiptType = {
 	READ: "read",
 };
 
+export const BufferEventsDisplayMode = {
+	FOLD: "fold",
+	EXPAND: "expand",
+	HIDE: "hide",
+};
+
 export function getNickURL(nick) {
 	return "irc:///" + encodeURIComponent(nick) + ",isuser";
 }
@@ -209,6 +215,9 @@ export const State = {
 			buffers: new Map(),
 			activeBuffer: null,
 			bouncerNetworks: new Map(),
+			settings: {
+				bufferEvents: BufferEventsDisplayMode.FOLD,
+			},
 		};
 	},
 	updateServer(state, id, updater) {

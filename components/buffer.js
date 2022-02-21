@@ -2,7 +2,7 @@ import { html, Component } from "../lib/index.js";
 import linkify from "../lib/linkify.js";
 import * as irc from "../lib/irc.js";
 import { strip as stripANSI } from "../lib/ansi.js";
-import { BufferType, ServerStatus, getNickURL, getChannelURL, getMessageURL, isMessageBeforeReceipt } from "../state.js";
+import { BufferType, ServerStatus, BufferEventsDisplayMode, getNickURL, getChannelURL, getMessageURL, isMessageBeforeReceipt } from "../state.js";
 import * as store from "../store.js";
 import Membership from "./membership.js";
 
@@ -546,7 +546,8 @@ function sameDate(d1, d2) {
 
 export default class Buffer extends Component {
 	shouldComponentUpdate(nextProps) {
-		return this.props.buffer !== nextProps.buffer;
+		return this.props.buffer !== nextProps.buffer ||
+			this.props.settings !== nextProps.settings;
 	}
 
 	render() {
@@ -557,6 +558,7 @@ export default class Buffer extends Component {
 
 		let server = this.props.server;
 		let bouncerNetwork = this.props.bouncerNetwork;
+		let settings = this.props.settings;
 		let serverName = server.name;
 
 		let children = [];
@@ -633,6 +635,10 @@ export default class Buffer extends Component {
 		buf.messages.forEach((msg) => {
 			let sep = [];
 
+			if (settings.bufferEvents === BufferEventsDisplayMode.HIDE && canFoldMessage(msg)) {
+				return;
+			}
+
 			if (!hasUnreadSeparator && buf.type != BufferType.SERVER && !isMessageBeforeReceipt(msg, buf.prevReadReceipt)) {
 				sep.push(html`<${UnreadSeparator} key="unread"/>`);
 				hasUnreadSeparator = true;
@@ -651,7 +657,7 @@ export default class Buffer extends Component {
 			}
 
 			// TODO: consider checking the time difference too
-			if (canFoldMessage(msg)) {
+			if (settings.bufferEvents === BufferEventsDisplayMode.FOLD && canFoldMessage(msg)) {
 				foldMessages.push(msg);
 				return;
 			}
