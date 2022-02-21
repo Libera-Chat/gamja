@@ -1840,9 +1840,9 @@ export default class App extends Component {
 			composerReadOnly = true;
 		}
 
-		let commandOnly = false
+		let commandOnly = false;
 		if (activeBuffer && activeBuffer.type === BufferType.SERVER) {
-			commandOnly = true
+			commandOnly = true;
 		}
 
 		return html`
