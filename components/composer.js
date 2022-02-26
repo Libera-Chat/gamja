@@ -167,7 +167,7 @@ export default class Composer extends Component {
 			return;
 		}
 
-		let text = event.clipboardData.getData('text');
+		let text = event.clipboardData.getData("text");
 
 		event.preventDefault();
 		event.stopImmediatePropagation();

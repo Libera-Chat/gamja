@@ -60,11 +60,11 @@ function isProduction() {
 function parseQueryString() {
 	let query = window.location.search.substring(1);
 	let params = {};
-	query.split('&').forEach((s) => {
+	query.split("&").forEach((s) => {
 		if (!s) {
 			return;
 		}
-		let pair = s.split('=');
+		let pair = s.split("=");
 		params[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || "");
 	});
 	return params;

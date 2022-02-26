@@ -138,7 +138,7 @@ export default class ConnectForm extends Component {
 						name="autojoin"
 						checked=${this.state.autojoin}
 					/>
-					Auto-join channel${s} <strong>${channels.join(', ')}</strong>
+					Auto-join channel${s} <strong>${channels.join(", ")}</strong>
 				</label>
 				<br/><br/>
 			`;
