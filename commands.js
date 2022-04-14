@@ -83,6 +83,22 @@ const kick = {
 	},
 };
 
+const ban = {
+	usage: "[nick]",
+	description: "Ban a user from the channel, or display the current ban list",
+	execute: (app, args) => {
+		if (args.length == 0) {
+			let activeChannel = getActiveChannel(app);
+			getActiveClient(app).send({
+				command: "MODE",
+				params: [activeChannel, "+b"],
+			});
+		} else {
+			return setUserHostMode(app, args, "+b");
+		}
+	},
+};
+
 function givemode(app, args, mode) {
 	// TODO: Handle several users at once
 	let nick = args[0];
@@ -108,21 +124,7 @@ export default {
 			getActiveClient(app).send({command: "AWAY", params});
 		},
 	},
-	"ban": {
-		usage: "[nick]",
-		description: "Ban a user from the channel, or display the current ban list",
-		execute: (app, args) => {
-			if (args.length == 0) {
-				let activeChannel = getActiveChannel(app);
-				getActiveClient(app).send({
-					command: "MODE",
-					params: [activeChannel, "+b"],
-				});
-			} else {
-				return setUserHostMode(app, args, "+b");
-			}
-		},
-	},
+	"ban": ban,
 	"buffer": {
 		usage: "<name>",
 		description: "Switch to a buffer",
