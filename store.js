@@ -57,11 +57,12 @@ export class Buffer {
 	}
 
 	key(buf) {
+		// TODO: use case-mapping here somehow
 		return JSON.stringify({
-			name: buf.name,
+			name: buf.name.toLowerCase(),
 			server: {
 				url: buf.server.url,
-				nick: buf.server.nick,
+				nick: buf.server.nick.toLowerCase(),
 				bouncerNetwork: buf.server.bouncerNetwork,
 			},
 		});
