@@ -196,6 +196,7 @@ export default class App extends Component {
 	 */
 	autoOpenURL = null;
 	messageNotifications = new Set();
+	baseTitle = null;
 
 	constructor(props) {
 		super(props);
@@ -469,6 +470,12 @@ export default class App extends Component {
 			let server = this.state.servers.get(buf.server);
 			if (buf.type === BufferType.NICK && !server.users.has(buf.name)) {
 				this.whoUserBuffer(buf.name, buf.server);
+			}
+
+			if (buf.type !== BufferType.SERVER) {
+				document.title = buf.name + ' · ' + this.baseTitle;
+			} else {
+				document.title = this.baseTitle;
 			}
 		});
 	}
@@ -1666,7 +1673,12 @@ export default class App extends Component {
 	}
 
 	componentDidMount() {
+		this.baseTitle = document.title;
 		setupKeybindings(this);
+	}
+
+	componentWillUnmount() {
+		document.title = this.baseTitle;
 	}
 
 	render() {
