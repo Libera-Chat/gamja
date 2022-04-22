@@ -851,14 +851,11 @@ export default class App extends Component {
 	handleMessage(serverID, msg) {
 		let client = this.clients.get(serverID);
 
-		let destBuffers = this.routeMessage(serverID, msg);
-
 		if (irc.findBatchByType(msg, "chathistory")) {
-			destBuffers.forEach((bufName) => {
-				this.addMessage(serverID, bufName, msg);
-			});
-			return;
+			return; // Handled by the caller
 		}
+
+		let destBuffers = this.routeMessage(serverID, msg);
 
 		this.setState((state) => State.handleMessage(state, msg, serverID, client));
 
@@ -1090,7 +1087,14 @@ export default class App extends Component {
 					from = receiptFromMessage(lastMsg);
 				}
 
-				client.fetchHistoryBetween(target.name, from, to, CHATHISTORY_MAX_SIZE).catch((err) => {
+				client.fetchHistoryBetween(target.name, from, to, CHATHISTORY_MAX_SIZE).then((result) => {
+					for (let msg of result.messages) {
+						let destBuffers = this.routeMessage(serverID, msg);
+						for (let bufName of destBuffers) {
+							this.addMessage(serverID, target.name, msg);
+						}
+					}
+				}).catch((err) => {
 					console.error("Failed to fetch backlog for '" + target.name + "': ", err);
 					this.showError("Failed to fetch backlog for '" + target.name + "'");
 				});
@@ -1496,6 +1500,9 @@ export default class App extends Component {
 
 		client.fetchHistoryBefore(buf.name, before, limit).then((result) => {
 			this.endOfHistory.set(buf.id, !result.more);
+			for (let msg of result.messages) {
+				this.addMessage(buf.server, buf.name, msg);
+			}
 		});
 	}
 
