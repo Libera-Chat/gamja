@@ -34,6 +34,9 @@ export default class ScrollManager extends Component {
 
 	restoreScrollPosition() {
 		let target = this.props.target.current;
+		if (!target.firstChild) {
+			return;
+		}
 
 		let stickToKey = store.get(this.props.scrollKey);
 		if (!stickToKey) {
