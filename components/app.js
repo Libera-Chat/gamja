@@ -745,7 +745,12 @@ export default class App extends Component {
 				if (client.cm(msg.prefix.name) === client.cm(client.serverPrefix.name)) {
 					target = SERVER_BUFFER;
 				} else {
-					target = msg.prefix.name;
+					let context = msg.tags['+draft/channel-context'];
+					if (context && client.isChannel(context) && State.getBuffer(this.state, { server: serverID, name: context })) {
+						target = context;
+					} else {
+						target = msg.prefix.name;
+					}
 				}
 			}
 			if (msg.command === "NOTICE" && !State.getBuffer(this.state, { server: serverID, name: target })) {
