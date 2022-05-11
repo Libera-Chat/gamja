@@ -1298,7 +1298,9 @@ export default class App extends Component {
 			}
 			// fallthrough
 		case BufferType.NICK:
-			this.switchBuffer({ name: SERVER_BUFFER });
+			if (this.state.activeBuffer === buf.id) {
+				this.switchBuffer({ name: SERVER_BUFFER });
+			}
 			this.setState((state) => {
 				let buffers = new Map(state.buffers);
 				buffers.delete(buf.id);
