@@ -1302,7 +1302,7 @@ export default class App extends Component {
 	}
 
 	executeCommand(s) {
-		let parts = s.split(" ");
+		let parts = s.split(/ +/);
 		let name = parts[0].toLowerCase().slice(1);
 		let args = parts.slice(1);
 
