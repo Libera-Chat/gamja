@@ -454,6 +454,10 @@ export const State = {
 			if (who.flags !== undefined) {
 				who.away = who.flags.indexOf("G") >= 0; // H for here, G for gone
 				who.operator = who.flags.indexOf("*") >= 0;
+				let botFlag = client.isupport.bot();
+				if (botFlag) {
+					who.bot = who.flags.indexOf(botFlag) >= 0;
+				}
 				delete who.flags;
 			}
 

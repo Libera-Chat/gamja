@@ -189,6 +189,10 @@ export default function BufferHeader(props) {
 				let desc = "This user is a server operator, they have administrator privileges.";
 				details.push(html`<abbr title=${desc}>server operator</abbr>`);
 			}
+			if (props.user.bot) {
+				let desc = "This user is an automated bot.";
+				details.push(html`<abbr title=${desc}>bot</abbr>`);
+			}
 			details = details.map((item, i) => {
 				if (i === 0) {
 					return item;
