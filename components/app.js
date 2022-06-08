@@ -617,6 +617,13 @@ export default class App extends Component {
 	}
 
 	connect(params) {
+		// Merge our previous connection params so that config options such as
+		// the ping interval are applied
+		params = {
+			...this.state.connectParams,
+			...params,
+		};
+
 		let serverID = null;
 		this.setState((state) => {
 			let update;
