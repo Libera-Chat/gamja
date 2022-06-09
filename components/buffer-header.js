@@ -44,6 +44,9 @@ export default function BufferHeader(props) {
 				switch (props.bouncerNetwork.state) {
 				case "disconnected":
 					description = "Bouncer disconnected from network";
+					if (props.bouncerNetwork.error) {
+						description += ": " + props.bouncerNetwork.error;
+					}
 					break;
 				case "connecting":
 					description = "Bouncer connecting to network...";
