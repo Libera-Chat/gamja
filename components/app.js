@@ -414,17 +414,14 @@ export default class App extends Component {
 	}
 
 	sendReadReceipt(client, storedBuffer) {
-		if (!client.caps.enabled.has("soju.im/read")) {
+		if (!client.supportsReadMarker()) {
 			return;
 		}
 		let readReceipt = storedBuffer.receipts[ReceiptType.READ];
 		if (storedBuffer.name === "*" || !readReceipt) {
 			return;
 		}
-		client.send({
-			command: "READ",
-			params: [storedBuffer.name, "timestamp="+readReceipt.time],
-		});
+		client.setReadMarker(storedBuffer.name, readReceipt.time);
 	}
 
 	switchBuffer(id) {
@@ -870,6 +867,7 @@ export default class App extends Component {
 		case "CHATHISTORY":
 		case "ACK":
 		case "BOUNCER":
+		case "MARKREAD":
 		case "READ":
 			// Ignore these
 			return [];
@@ -1020,6 +1018,7 @@ export default class App extends Component {
 				this.autoOpenURL = null;
 			}
 			break;
+		case "MARKREAD":
 		case "READ":
 			target = msg.params[0];
 			let bound = msg.params[1];
@@ -1228,11 +1227,8 @@ export default class App extends Component {
 		});
 		client.monitor(target);
 
-		if (client.caps.enabled.has("soju.im/read")) {
-			client.send({
-				command: "READ",
-				params: [target],
-			});
+		if (client.supportsReadMarker()) {
+			client.fetchReadMarker(target);
 		}
 	}
 
