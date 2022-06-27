@@ -1697,7 +1697,15 @@ export default class App extends Component {
 	}
 
 	handleOpenSettingsClick() {
-		this.openDialog("settings");
+		let showProtocolHandler = false;
+		for (let [id, client] of this.clients) {
+			if (client.caps.enabled.has("soju.im/bouncer-networks")) {
+				showProtocolHandler = true;
+				break;
+			}
+		}
+
+		this.openDialog("settings", { showProtocolHandler });
 	}
 
 	handleSettingsChange(settings) {
@@ -1880,6 +1888,7 @@ export default class App extends Component {
 				<${Dialog} title="Settings" onDismiss=${this.dismissDialog}>
 					<${SettingsForm}
 						settings=${this.state.settings}
+						showProtocolHandler=${dialogData.showProtocolHandler}
 						onChange=${this.handleSettingsChange}
 						onDisconnect=${() => this.disconnectAll()}
 						onClose=${() => this.dismissDialog()}

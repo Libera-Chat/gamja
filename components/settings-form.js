@@ -26,7 +26,35 @@ export default class SettingsForm extends Component {
 		this.props.onClose();
 	}
 
+	registerProtocol() {
+		let url = window.location.origin + window.location.pathname + "?open=%s";
+		try {
+			navigator.registerProtocolHandler("irc", url);
+			navigator.registerProtocolHandler("ircs", url);
+		} catch (err) {
+			console.error("Failed to register protocol handler: ", err);
+		}
+	}
+
 	render() {
+		let protocolHandler = null;
+		if (this.props.showProtocolHandler) {
+			protocolHandler = html`
+				<div class="protocol-handler">
+					<div class="left">
+						Set gamja as your default IRC client for this browser.
+						IRC links will be automatically opened here.
+					</div>
+					<div class="right">
+						<button type="button" onClick=${() => this.registerProtocol()}>
+							Enable
+						</button>
+					</div>
+				</div>
+				<br/><br/>
+			`;
+		}
+
 		return html`
 			<form onChange=${this.handleChange} onSubmit=${this.handleSubmit}>
 				<label>
@@ -69,6 +97,8 @@ export default class SettingsForm extends Component {
 					Hide chat events
 				</label>
 				<br/><br/>
+
+				${protocolHandler}
 
 				<button type="button" class="danger" onClick=${() => this.props.onDisconnect()}>
 					Disconnect

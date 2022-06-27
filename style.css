@@ -533,6 +533,14 @@ details summary[role="button"] {
 	overflow: auto; /* hack to clear floating elements */
 }
 
+.dialog .protocol-handler {
+	display: flex;
+	flex-direction: row;
+}
+.dialog .protocol-handler .left {
+	flex-grow: 1;
+}
+
 kbd {
 	background-color: #f0f0f0;
 	border: 1px solid #bfbfbf;
