@@ -1,6 +1,6 @@
 import * as irc from "./lib/irc.js";
 import Client from "./lib/client.js";
-import { createContext } from "../lib/index.js";
+import { createContext } from "./lib/index.js";
 
 export const SERVER_BUFFER = "*";
 
