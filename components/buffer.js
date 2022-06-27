@@ -2,7 +2,7 @@ import { html, Component } from "../lib/index.js";
 import linkify from "../lib/linkify.js";
 import * as irc from "../lib/irc.js";
 import { strip as stripANSI } from "../lib/ansi.js";
-import { BufferType, ServerStatus, BufferEventsDisplayMode, getNickURL, getChannelURL, getMessageURL, isMessageBeforeReceipt } from "../state.js";
+import { BufferType, ServerStatus, BufferEventsDisplayMode, getNickURL, getChannelURL, getMessageURL, isMessageBeforeReceipt, SettingsContext } from "../state.js";
 import * as store from "../store.js";
 import Membership from "./membership.js";
 
@@ -27,15 +27,22 @@ function Nick(props) {
 	`;
 }
 
-function Timestamp({ date, url }) {
+function _Timestamp({ date, url, showSeconds }) {
 	if (!date) {
-		return html`<spam class="timestamp">--:--:--</span>`;
+		let timestamp = "--:--";
+		if (showSeconds) {
+			timestamp += ":--";
+		}
+		return html`<spam class="timestamp">${timestamp}</span>`;
 	}
 
 	let hh = date.getHours().toString().padStart(2, "0");
 	let mm = date.getMinutes().toString().padStart(2, "0");
-	let ss = date.getSeconds().toString().padStart(2, "0");
-	let timestamp = `${hh}:${mm}:${ss}`;
+	let timestamp = `${hh}:${mm}`;
+	if (showSeconds) {
+		let ss = date.getSeconds().toString().padStart(2, "0");
+		timestamp += ":" + ss;
+	}
 	return html`
 		<a
 			href=${url}
@@ -45,6 +52,16 @@ function Timestamp({ date, url }) {
 		>
 			${timestamp}
 		</a>
+	`;
+}
+
+function Timestamp(props) {
+	return html`
+		<${SettingsContext.Consumer}>
+			${(settings) => html`
+				<${_Timestamp} ...${props} showSeconds=${settings.secondsInTimestamps}/>
+			`}
+		</>
 	`;
 }
 

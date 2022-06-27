@@ -17,7 +17,7 @@ import ScrollManager from "./scroll-manager.js";
 import Dialog from "./dialog.js";
 import { html, Component, createRef } from "../lib/index.js";
 import { strip as stripANSI } from "../lib/ansi.js";
-import { SERVER_BUFFER, BufferType, ReceiptType, ServerStatus, Unread, BufferEventsDisplayMode, State, getServerName, receiptFromMessage, isReceiptBefore, isMessageBeforeReceipt } from "../state.js";
+import { SERVER_BUFFER, BufferType, ReceiptType, ServerStatus, Unread, BufferEventsDisplayMode, State, getServerName, receiptFromMessage, isReceiptBefore, isMessageBeforeReceipt, SettingsContext } from "../state.js";
 import commands from "../commands.js";
 import { setup as setupKeybindings } from "../keybindings.js";
 import * as store from "../store.js";
@@ -1910,7 +1910,7 @@ export default class App extends Component {
 			commandOnly = true;
 		}
 
-		return html`
+		let app = html`
 			<section
 					id="buffer-list"
 					class=${this.state.openPanels.bufferList ? "expand" : ""}
@@ -1962,6 +1962,12 @@ export default class App extends Component {
 			/>
 			${dialog}
 			${error}
+		`;
+
+		return html`
+			<${SettingsContext.Provider} value=${this.state.settings}>
+				${app}
+			</>
 		`;
 	}
 }

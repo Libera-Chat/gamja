@@ -1,5 +1,6 @@
 import * as irc from "./lib/irc.js";
 import Client from "./lib/client.js";
+import { createContext } from "../lib/index.js";
 
 export const SERVER_BUFFER = "*";
 
@@ -39,6 +40,8 @@ export const BufferEventsDisplayMode = {
 	EXPAND: "expand",
 	HIDE: "hide",
 };
+
+export const SettingsContext = createContext("settings");
 
 export function getNickURL(nick) {
 	return "irc:///" + encodeURIComponent(nick) + ",isuser";
@@ -216,6 +219,7 @@ export const State = {
 			activeBuffer: null,
 			bouncerNetworks: new Map(),
 			settings: {
+				secondsInTimestamps: true,
 				bufferEvents: BufferEventsDisplayMode.FOLD,
 			},
 		};

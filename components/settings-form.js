@@ -6,6 +6,7 @@ export default class SettingsForm extends Component {
 	constructor(props) {
 		super(props);
 
+		this.state.secondsInTimestamps = props.settings.secondsInTimestamps;
 		this.state.bufferEvents = props.settings.bufferEvents;
 
 		this.handleChange = this.handleChange.bind(this);
@@ -28,6 +29,16 @@ export default class SettingsForm extends Component {
 	render() {
 		return html`
 			<form onChange=${this.handleChange} onSubmit=${this.handleSubmit}>
+				<label>
+					<input
+						type="checkbox"
+						name="secondsInTimestamps"
+						checked=${this.state.secondsInTimestamps}
+					/>
+					Show seconds in time indicator
+				</label>
+				<br/><br/>
+
 				<label>
 					<input
 						type="radio"
