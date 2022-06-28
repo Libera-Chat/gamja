@@ -146,6 +146,10 @@ class LogLine extends Component {
 				}
 			}
 
+			if (msg.tags["+draft/channel-context"]) {
+				content = html`<em>(only visible to you)</em> ${content}`;
+			}
+
 			if (msg.isHighlight) {
 				lineClass += " highlight";
 			}
