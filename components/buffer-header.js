@@ -113,7 +113,6 @@ export default function BufferHeader(props) {
 		} else {
 			if (fullyConnected) {
 				actions.push(joinButton);
-				actions.push(settingsButton);
 			} else if (props.server.status === ServerStatus.DISCONNECTED) {
 				actions.push(reconnectButton);
 			}
