@@ -352,6 +352,8 @@ form input[type="url"],
 form input[type="email"] {
 	box-sizing: border-box;
 	width: 100%;
+	font-family: inherit;
+	font-size: inherit;
 }
 
 a {
