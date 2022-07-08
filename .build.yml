@@ -16,4 +16,4 @@ tasks:
     [ "$(git rev-parse HEAD)" = "$(git rev-parse origin/master)" ] || complete-build
     rsync --rsh="ssh -o StrictHostKeyChecking=no" -rP \
       --delete --exclude=config.json \
-      . deploy@emersion.fr:/srv/http/gamja
+      . deploy@kyouko.emersion.fr:/srv/http/gamja
