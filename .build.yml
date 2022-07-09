@@ -5,7 +5,7 @@ packages:
 sources:
 - https://git.sr.ht/~emersion/gamja
 secrets:
-- 5874ac5a-905e-4596-a117-fed1401c60ce # deploy SSH key
+- 77c7956b-003e-44f7-bb5c-2944b2047654 # deploy SSH key
 tasks:
 - setup: |
     cd gamja
@@ -16,4 +16,4 @@ tasks:
     [ "$(git rev-parse HEAD)" = "$(git rev-parse origin/master)" ] || complete-build
     rsync --rsh="ssh -o StrictHostKeyChecking=no" -rP \
       --delete --exclude=config.json \
-      . deploy@kyouko.emersion.fr:/srv/http/gamja
+      . deploy@sheeta.emersion.fr:/srv/http/gamja
