@@ -750,8 +750,19 @@ export default class App extends Component {
 					}
 				}
 			}
-			if (msg.command === "NOTICE" && !State.getBuffer(this.state, { server: serverID, name: target })) {
-				// Don't open a new buffer if this is just a NOTICE
+
+			// Don't open a new buffer if this is just a NOTICE or a garbage
+			// CTCP message
+			let openNewBuffer = true;
+			if (msg.command !== "PRIVMSG") {
+				openNewBuffer = false;
+			} else {
+				let ctcp = irc.parseCTCP(msg);
+				if (ctcp && ctcp.command !== "ACTION") {
+					openNewBuffer = false;
+				}
+			}
+			if (!openNewBuffer && !State.getBuffer(this.state, { server: serverID, name: target })) {
 				target = SERVER_BUFFER;
 			}
 
