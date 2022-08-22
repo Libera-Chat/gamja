@@ -865,6 +865,7 @@ export default class App extends Component {
 		case irc.RPL_MONONLINE:
 		case irc.RPL_MONOFFLINE:
 		case irc.RPL_SASLSUCCESS:
+		case irc.RPL_CHANNEL_URL:
 		case "AWAY":
 		case "SETNAME":
 		case "CHGHOST":
