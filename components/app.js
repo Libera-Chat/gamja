@@ -1132,7 +1132,7 @@ export default class App extends Component {
 					for (let msg of result.messages) {
 						let destBuffers = this.routeMessage(serverID, msg);
 						for (let bufName of destBuffers) {
-							this.addMessage(serverID, target.name, msg);
+							this.addMessage(serverID, bufName, msg);
 						}
 					}
 				}).catch((err) => {
