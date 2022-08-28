@@ -1928,8 +1928,12 @@ export default class App extends Component {
 		}
 
 		let commandOnly = false;
+		let privmsgMaxLen;
 		if (activeBuffer && activeBuffer.type === BufferType.SERVER) {
 			commandOnly = true;
+		} else if (activeBuffer) {
+			let client = this.clients.get(activeBuffer.server);
+			privmsgMaxLen = irc.getMaxPrivmsgLen(client.isupport, client.nick, activeBuffer.name);
 		}
 
 		let app = html`
@@ -1981,6 +1985,7 @@ export default class App extends Component {
 				onSubmit=${this.handleComposerSubmit}
 				autocomplete=${this.autocomplete}
 				commandOnly=${commandOnly}
+				maxLen=${privmsgMaxLen}
 			/>
 			${dialog}
 			${error}

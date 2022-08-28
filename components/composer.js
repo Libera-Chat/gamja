@@ -222,6 +222,7 @@ export default class Composer extends Component {
 					placeholder=${placeholder}
 					enterkeyhint="send"
 					onKeyDown=${this.handleInputKeyDown}
+					maxlength=${this.props.maxLen}
 				/>
 			</form>
 		`;
