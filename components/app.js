@@ -880,7 +880,6 @@ export default class App extends Component {
 		case "ACK":
 		case "BOUNCER":
 		case "MARKREAD":
-		case "READ":
 			// Ignore these
 			return [];
 		default:
@@ -1031,7 +1030,6 @@ export default class App extends Component {
 			}
 			break;
 		case "MARKREAD":
-		case "READ":
 			target = msg.params[0];
 			let bound = msg.params[1];
 			if (bound === "*" || !bound.startsWith("timestamp=")) {
