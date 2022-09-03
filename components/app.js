@@ -1034,7 +1034,7 @@ export default class App extends Component {
 		case "READ":
 			target = msg.params[0];
 			let bound = msg.params[1];
-			if (!client.isMyNick(msg.prefix.name) || bound === "*" || !bound.startsWith("timestamp=")) {
+			if (bound === "*" || !bound.startsWith("timestamp=")) {
 				break;
 			}
 			let readReceipt = { time: bound.replace("timestamp=", "") };
