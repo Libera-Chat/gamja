@@ -1128,6 +1128,12 @@ export default class App extends Component {
 					from = receiptFromMessage(lastMsg);
 				}
 
+				// Query read marker if this is a user (ie, we haven't received
+				// the read marker as part of a JOIN burst)
+				if (client.supportsReadMarker() && client.isNick(target.name)) {
+					client.fetchReadMarker(target.name);
+				}
+
 				client.fetchHistoryBetween(target.name, from, to, CHATHISTORY_MAX_SIZE).then((result) => {
 					for (let msg of result.messages) {
 						let destBuffers = this.routeMessage(serverID, msg);
