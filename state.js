@@ -157,7 +157,7 @@ function compareBuffers(a, b) {
 		return isServerBuffer(b) ? 1 : -1;
 	}
 	if (a.name != b.name) {
-		return a.name > b.name ? 1 : -1;
+		return a.name.localeCompare(b.name);
 	}
 	return 0;
 }

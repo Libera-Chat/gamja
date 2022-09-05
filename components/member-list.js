@@ -101,7 +101,7 @@ function sortMembers(a, b) {
 		return i - j;
 	}
 
-	return nickA < nickB ? -1 : 1;
+	return nickA.localeCompare(nickB);
 }
 
 export default class MemberList extends Component {
