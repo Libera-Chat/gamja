@@ -158,6 +158,9 @@ button.danger:hover {
 	color: white;
 	background-color: var(--gray);
 }
+#buffer-list li.error a {
+	color: red;
+}
 #buffer-list li.unread-message a {
 	color: #b37400;
 }
