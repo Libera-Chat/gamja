@@ -157,6 +157,7 @@ export default class ConnectForm extends Component {
 						disabled=${disabled}
 						ref=${this.nickInput}
 						required
+						autofocus
 					/>
 				</label>
 				<br/><br/>
