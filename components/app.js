@@ -1,5 +1,6 @@
 import * as irc from "../lib/irc.js";
 import Client from "../lib/client.js";
+import * as oauth2 from "../lib/oauth2.js";
 import Buffer from "./buffer.js";
 import BufferList from "./buffer-list.js";
 import BufferHeader from "./buffer-header.js";
@@ -249,7 +250,7 @@ export default class App extends Component {
 	 * - Default server URL constructed from the current URL location (this is
 	 *   done in fillConnectParams)
 	 */
-	handleConfig(config) {
+	async handleConfig(config) {
 		let connectParams = { ...this.state.connectParams };
 
 		if (typeof config.server.url === "string") {
@@ -276,6 +277,10 @@ export default class App extends Component {
 		if (connectParams.autoconnect && config.server.auth === "mandatory") {
 			console.error("Error in config.json: cannot set server.autoconnect = true and server.auth = \"mandatory\"");
 			connectParams.autoconnect = false;
+		}
+		if (config.server.auth === "oauth2" && (!config.oauth2 || !config.oauth2.url || !config.oauth2.client_id)) {
+			console.error("Error in config.json: server.auth = \"oauth2\" requires oauth2 settings");
+			config.server.auth = null;
 		}
 
 		let autoconnect = store.autoconnect.load();
@@ -329,6 +334,40 @@ export default class App extends Component {
 			connectParams.nick = connectParams.nick.replace("*", placeholder);
 		}
 
+		if (config.server.auth === "oauth2" && !connectParams.saslOauthBearer) {
+			if (queryParams.error) {
+				console.error("OAuth 2.0 authorization failed: ", queryParams.error);
+				this.showError("Authentication failed: " + (queryParams.error_description || queryParams.error));
+				return;
+			}
+
+			if (!queryParams.code) {
+				this.redirectOauth2Authorize();
+				return;
+			}
+
+			// Strip code from query params, to prevent page refreshes from
+			// trying to exchange the code again
+			let url = new URL(window.location.toString());
+			url.searchParams.delete("code");
+			url.searchParams.delete("state");
+			window.history.replaceState(null, "", url.toString());
+
+			let saslOauthBearer;
+			try {
+				saslOauthBearer = await this.exchangeOauth2Code(queryParams.code);
+			} catch (err) {
+				this.showError(err);
+				return;
+			}
+
+			connectParams.saslOauthBearer = saslOauthBearer;
+
+			if (saslOauthBearer.username && !connectParams.nick) {
+				connectParams.nick = saslOauthBearer.username;
+			}
+		}
+
 		if (autojoin.length > 0) {
 			if (connectParams.autoconnect) {
 				// Ask the user whether they want to join that new channel.
@@ -345,6 +384,59 @@ export default class App extends Component {
 			this.setState({ connectForm: false });
 			this.connect(connectParams);
 		}
+	}
+
+	async redirectOauth2Authorize() {
+		let serverMetadata;
+		try {
+			serverMetadata = await oauth2.fetchServerMetadata(this.config.oauth2.url);
+		} catch (err) {
+			console.error("Failed to fetch OAuth 2.0 server metadata:", err);
+			this.showError("Failed to fetch OAuth 2.0 server metadata");
+		}
+
+		oauth2.redirectAuthorize({
+			serverMetadata,
+			clientId: this.config.oauth2.client_id,
+			redirectUri: window.location.toString(),
+			scope: this.config.oauth2.scope,
+		});
+	}
+
+	async exchangeOauth2Code(code) {
+		let serverMetadata = await oauth2.fetchServerMetadata(this.config.oauth2.url);
+
+		let redirectUri = new URL(window.location.toString());
+		redirectUri.searchParams.delete("code");
+		redirectUri.searchParams.delete("state");
+
+		let data = await oauth2.exchangeCode({
+			serverMetadata,
+			redirectUri: redirectUri.toString(),
+			code,
+			clientId: this.config.oauth2.client_id,
+			clientSecret: this.config.oauth2.client_secret,
+		});
+
+		// TODO: handle expires_in/refresh_token
+		let token = data.access_token;
+
+		let username = null;
+		if (serverMetadata.introspection_endpoint) {
+			try {
+				let data = await oauth2.introspectToken({
+					serverMetadata,
+					token,
+					clientId: this.config.oauth2.client_id,
+					clientSecret: this.config.oauth2.client_secret,
+				});
+				username = data.username;
+			} catch (err) {
+				console.warn("Failed to introspect OAuth 2.0 token:", err);
+			}
+		}
+
+		return { token, username };
 	}
 
 	showError(err) {

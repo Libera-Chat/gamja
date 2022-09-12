@@ -63,6 +63,8 @@ export default class ConnectForm extends Component {
 			};
 		} else if (this.props.auth === "external") {
 			params.saslExternal = true;
+		} else if (this.props.auth === "oauth2") {
+			params.saslOauthBearer = this.props.params.saslOauthBearer;
 		}
 
 		if (this.state.autojoin) {
@@ -110,7 +112,7 @@ export default class ConnectForm extends Component {
 		}
 
 		let auth = null;
-		if (this.props.auth !== "disabled" && this.props.auth !== "external") {
+		if (this.props.auth !== "disabled" && this.props.auth !== "external" && this.props.auth !== "oauth2") {
 			auth = html`
 				<label>
 					Password:<br/>
