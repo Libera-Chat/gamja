@@ -275,6 +275,11 @@ export default class App extends Component {
 			if (typeof config.server.ping === "number") {
 				connectParams.ping = config.server.ping;
 			}
+
+			if (connectParams.autoconnect && config.server.auth === "mandatory") {
+				console.error("Error in config.json: cannot set server.autoconnect = true and server.auth = \"mandatory\"");
+				connectParams.autoconnect = false;
+			}
 		}
 
 		let autoconnect = store.autoconnect.load();
