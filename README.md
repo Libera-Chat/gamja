@@ -106,7 +106,8 @@ gamja default settings can be set using a `config.json` file at the root:
 		// require it, "disabled" to never ask for a password, or "external" to
 		// use SASL EXTERNAL. Defaults to "optional".
 		"auth": "optional",
-		// Default nickname (string).
+		// Default nickname (string). If it contains a "*" character, it will
+		// be replaced with a random string.
 		"nick": "asdf",
 		// Don't display the login UI, immediately connect to the server
 		// (boolean).

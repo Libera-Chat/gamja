@@ -323,6 +323,14 @@ export default class App extends Component {
 
 		this.config = config;
 
+		if (!connectParams.nick && connectParams.autoconnect) {
+			connectParams.nick = "user-*";
+		}
+		if (connectParams.nick && connectParams.nick.includes("*")) {
+			let placeholder = Math.random().toString(36).substr(2, 7);
+			connectParams.nick = connectParams.nick.replace("*", placeholder);
+		}
+
 		if (autojoin.length > 0) {
 			if (connectParams.autoconnect) {
 				// Ask the user whether they want to join that new channel.
