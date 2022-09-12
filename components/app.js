@@ -250,8 +250,6 @@ export default class App extends Component {
 	 *   done in fillConnectParams)
 	 */
 	handleConfig(config) {
-		this.setState({ loading: false });
-
 		let connectParams = { ...this.state.connectParams };
 
 		if (typeof config.server.url === "string") {
@@ -341,7 +339,7 @@ export default class App extends Component {
 			}
 		}
 
-		this.setState({ connectParams: connectParams });
+		this.setState({ loading: false, connectParams: connectParams });
 
 		if (connectParams.autoconnect) {
 			this.setState({ connectForm: false });
