@@ -1752,7 +1752,11 @@ export default class App extends Component {
 
 	render() {
 		if (this.state.loading) {
-			return html`<section id="connect"></section>`;
+			let error = null;
+			if (this.state.error) {
+				error = html`<form><p class="error-text">${this.state.error}</p></form>`;
+			}
+			return html`<section id="connect">${error}</section>`;
 		}
 
 		let activeBuffer = null, activeServer = null, activeBouncerNetwork = null;
