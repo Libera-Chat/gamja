@@ -254,32 +254,30 @@ export default class App extends Component {
 
 		let connectParams = { ...this.state.connectParams };
 
-		if (config.server) {
-			if (typeof config.server.url === "string") {
-				connectParams.url = config.server.url;
-			}
-			if (Array.isArray(config.server.autojoin)) {
-				connectParams.autojoin = config.server.autojoin;
-			} else if (typeof config.server.autojoin === "string") {
-				connectParams.autojoin = [config.server.autojoin];
-			}
-			if (typeof config.server.nick === "string") {
-				connectParams.nick = config.server.nick;
-			}
-			if (typeof config.server.autoconnect === "boolean") {
-				connectParams.autoconnect = config.server.autoconnect;
-			}
-			if (config.server.auth === "external") {
-				connectParams.saslExternal = true;
-			}
-			if (typeof config.server.ping === "number") {
-				connectParams.ping = config.server.ping;
-			}
+		if (typeof config.server.url === "string") {
+			connectParams.url = config.server.url;
+		}
+		if (Array.isArray(config.server.autojoin)) {
+			connectParams.autojoin = config.server.autojoin;
+		} else if (typeof config.server.autojoin === "string") {
+			connectParams.autojoin = [config.server.autojoin];
+		}
+		if (typeof config.server.nick === "string") {
+			connectParams.nick = config.server.nick;
+		}
+		if (typeof config.server.autoconnect === "boolean") {
+			connectParams.autoconnect = config.server.autoconnect;
+		}
+		if (config.server.auth === "external") {
+			connectParams.saslExternal = true;
+		}
+		if (typeof config.server.ping === "number") {
+			connectParams.ping = config.server.ping;
+		}
 
-			if (connectParams.autoconnect && config.server.auth === "mandatory") {
-				console.error("Error in config.json: cannot set server.autoconnect = true and server.auth = \"mandatory\"");
-				connectParams.autoconnect = false;
-			}
+		if (connectParams.autoconnect && config.server.auth === "mandatory") {
+			console.error("Error in config.json: cannot set server.autoconnect = true and server.auth = \"mandatory\"");
+			connectParams.autoconnect = false;
 		}
 
 		let autoconnect = store.autoconnect.load();
