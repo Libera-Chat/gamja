@@ -1373,9 +1373,7 @@ export default class App extends Component {
 			this.switchBuffer({ server: serverID });
 		} else if (client.isChannel(target)) {
 			this.switchToChannel = target;
-			client.join(target, password).then(() => {
-				this.whoChannelBuffer(target, serverID);
-			}).catch((err) => {
+			client.join(target, password).catch((err) => {
 				this.showError(err);
 			});
 		} else {
