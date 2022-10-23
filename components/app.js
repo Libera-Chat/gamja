@@ -578,6 +578,10 @@ export default class App extends Component {
 				this.whoUserBuffer(buf.name, buf.server);
 			}
 
+			if (buf.type === BufferType.CHANNEL && !buf.hasInitialWho) {
+				this.whoChannelBuffer(buf.name, buf.server);
+			}
+
 			if (buf.type !== BufferType.SERVER) {
 				document.title = buf.name + ' · ' + this.baseTitle;
 			} else {
@@ -1349,6 +1353,16 @@ export default class App extends Component {
 		}
 	}
 
+	whoChannelBuffer(target, serverID) {
+		let client = this.clients.get(serverID);
+
+		client.who(target, {
+			fields: ["flags", "hostname", "nick", "realname", "username", "account"],
+		}).then(() => {
+			this.setBufferState({ name: target, server: serverID }, { hasInitialWho: true });
+		});
+	}
+
 	open(target, serverID, password) {
 		if (!serverID) {
 			serverID = State.getActiveServerID(this.state);
@@ -1359,7 +1373,9 @@ export default class App extends Component {
 			this.switchBuffer({ server: serverID });
 		} else if (client.isChannel(target)) {
 			this.switchToChannel = target;
-			client.join(target, password).catch((err) => {
+			client.join(target, password).then(() => {
+				this.whoChannelBuffer(target, serverID);
+			}).catch((err) => {
 				this.showError(err);
 			});
 		} else {

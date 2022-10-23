@@ -343,6 +343,7 @@ export const State = {
 			serverInfo: null, // if server
 			joined: false, // if channel
 			topic: null, // if channel
+			hasInitialWho: false, // if channel
 			members: new irc.CaseMapMap(null, client.cm), // if channel
 			messages: [],
 			unread: Unread.NONE,
