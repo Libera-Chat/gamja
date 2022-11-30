@@ -598,9 +598,6 @@ export default class App extends Component {
 		// operators and can contain important information.
 		msg.isHighlight = irc.isHighlight(msg, client.nick, client.cm) || irc.isServerBroadcast(msg);
 
-		if (!msg.tags) {
-			msg.tags = {};
-		}
 		if (!msg.tags.time) {
 			msg.tags.time = irc.formatDate(new Date());
 		}
