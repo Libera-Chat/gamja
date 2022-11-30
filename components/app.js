@@ -225,6 +225,7 @@ export default class App extends Component {
 		this.handleVerifySubmit = this.handleVerifySubmit.bind(this);
 		this.handleOpenSettingsClick = this.handleOpenSettingsClick.bind(this);
 		this.handleSettingsChange = this.handleSettingsChange.bind(this);
+		this.handleSettingsDisconnect = this.handleSettingsDisconnect.bind(this);
 
 		this.state.settings = {
 			...this.state.settings,
@@ -1845,6 +1846,11 @@ export default class App extends Component {
 		this.setState({ settings });
 	}
 
+	handleSettingsDisconnect() {
+		this.dismissDialog();
+		this.disconnectAll();
+	}
+
 	componentDidMount() {
 		this.baseTitle = document.title;
 		setupKeybindings(this);
@@ -2026,8 +2032,8 @@ export default class App extends Component {
 						settings=${this.state.settings}
 						showProtocolHandler=${dialogData.showProtocolHandler}
 						onChange=${this.handleSettingsChange}
-						onDisconnect=${() => this.disconnectAll()}
-						onClose=${() => this.dismissDialog()}
+						onDisconnect=${this.handleSettingsDisconnect}
+						onClose=${this.dismissDialog}
 					/>
 				</>
 			`;
