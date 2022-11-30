@@ -1414,6 +1414,7 @@ export default class App extends Component {
 			});
 
 			let disconnectAll = client && !client.params.bouncerNetwork && client.caps.enabled.has("soju.im/bouncer-networks");
+			let isFirstServer = this.state.servers.keys().next().value === buf.server;
 
 			this.disconnect(buf.server);
 
@@ -1439,7 +1440,7 @@ export default class App extends Component {
 			}
 
 			// TODO: only clear autoconnect if this server is stored there
-			if (buf.server == 1) {
+			if (isFirstServer) {
 				store.autoconnect.put(null);
 			}
 			break;
