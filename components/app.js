@@ -591,24 +591,35 @@ export default class App extends Component {
 		});
 	}
 
-	addMessage(serverID, bufName, msg) {
-		let client = this.clients.get(serverID);
-
+	prepareChatMessage(serverID, msg) {
 		// Treat server-wide broadcasts as highlights. They're sent by server
 		// operators and can contain important information.
-		msg.isHighlight = irc.isHighlight(msg, client.nick, client.cm) || irc.isServerBroadcast(msg);
+		if (msg.isHighlight === undefined) {
+			let client = this.clients.get(serverID);
+			msg.isHighlight = irc.isHighlight(msg, client.nick, client.cm) || irc.isServerBroadcast(msg);
+		}
 
 		if (!msg.tags.time) {
 			msg.tags.time = irc.formatDate(new Date());
 		}
+	}
+
+	addChatMessage(serverID, bufName, msg) {
+		this.prepareChatMessage(serverID, msg);
+		let bufID = { server: serverID, name: bufName };
+		this.setState((state) => State.addMessage(state, msg, bufID));
+	}
+
+	handleChatMessage(serverID, bufName, msg) {
+		let client = this.clients.get(serverID);
+
+		this.prepareChatMessage(serverID, msg);
 
 		let stored = this.bufferStore.get({ name: bufName, server: client.params });
 		let deliveryReceipt = getReceipt(stored, ReceiptType.DELIVERED);
 		let readReceipt = getReceipt(stored, ReceiptType.READ);
 		let isDelivered = isMessageBeforeReceipt(msg, deliveryReceipt);
 		let isRead = isMessageBeforeReceipt(msg, readReceipt);
-
-		// TODO: messages coming from infinite scroll shouldn't trigger notifications
 
 		if (client.isMyNick(msg.prefix.name)) {
 			isRead = true;
@@ -1189,7 +1200,7 @@ export default class App extends Component {
 		}
 
 		destBuffers.forEach((bufName) => {
-			this.addMessage(serverID, bufName, msg);
+			this.handleChatMessage(serverID, bufName, msg);
 		});
 	}
 
@@ -1239,7 +1250,7 @@ export default class App extends Component {
 					for (let msg of result.messages) {
 						let destBuffers = this.routeMessage(serverID, msg);
 						for (let bufName of destBuffers) {
-							this.addMessage(serverID, bufName, msg);
+							this.handleChatMessage(serverID, bufName, msg);
 						}
 					}
 				}).catch((err) => {
@@ -1500,7 +1511,7 @@ export default class App extends Component {
 
 		if (!client.caps.enabled.has("echo-message")) {
 			msg.prefix = { name: client.nick };
-			this.addMessage(serverID, target, msg);
+			this.handleChatMessage(serverID, target, msg);
 		}
 	}
 
@@ -1662,8 +1673,31 @@ export default class App extends Component {
 
 		client.fetchHistoryBefore(buf.name, before, limit).then((result) => {
 			this.endOfHistory.set(buf.id, !result.more);
+
+			if (result.messages.length > 0) {
+				let msg = result.messages[result.messages.length - 1];
+				let receipts = { [ReceiptType.DELIVERED]: receiptFromMessage(msg) };
+				if (this.state.activeBuffer === buf.id) {
+					receipts[ReceiptType.READ] = receiptFromMessage(msg);
+				}
+				let stored = {
+					name: buf.name,
+					server: client.params,
+					receipts,
+				};
+				if (this.bufferStore.put(stored)) {
+					this.sendReadReceipt(client, stored);
+				}
+				this.setBufferState(buf, ({ prevReadReceipt }) => {
+					if (!isMessageBeforeReceipt(msg, prevReadReceipt)) {
+						prevReadReceipt = receiptFromMessage(msg);
+					}
+					return { prevReadReceipt };
+				});
+			}
+
 			for (let msg of result.messages) {
-				this.addMessage(buf.server, buf.name, msg);
+				this.addChatMessage(buf.server, buf.name, msg);
 			}
 		});
 	}
