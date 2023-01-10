@@ -17,7 +17,7 @@ export default class ConnectForm extends Component {
 	constructor(props) {
 		super(props);
 
-		this.handleChange = this.handleChange.bind(this);
+		this.handleInput = this.handleInput.bind(this);
 		this.handleSubmit = this.handleSubmit.bind(this);
 
 		if (props.params) {
@@ -32,7 +32,7 @@ export default class ConnectForm extends Component {
 		}
 	}
 
-	handleChange(event) {
+	handleInput(event) {
 		let target = event.target;
 		let value = target.type == "checkbox" ? target.checked : target.value;
 		this.setState({ [target.name]: value });
@@ -147,7 +147,7 @@ export default class ConnectForm extends Component {
 		}
 
 		return html`
-			<form onChange=${this.handleChange} onSubmit=${this.handleSubmit}>
+			<form onInput=${this.handleInput} onSubmit=${this.handleSubmit}>
 				<h2>Connect to IRC</h2>
 
 				<label>

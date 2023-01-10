@@ -9,11 +9,11 @@ export default class RegisterForm extends Component {
 	constructor(props) {
 		super(props);
 
-		this.handleChange = this.handleChange.bind(this);
+		this.handleInput = this.handleInput.bind(this);
 		this.handleSubmit = this.handleSubmit.bind(this);
 	}
 
-	handleChange(event) {
+	handleInput(event) {
 		let target = event.target;
 		let value = target.type == "checkbox" ? target.checked : target.value;
 		this.setState({ [target.name]: value });
@@ -27,7 +27,7 @@ export default class RegisterForm extends Component {
 
 	render() {
 		return html`
-			<form onChange=${this.handleChange} onSubmit=${this.handleSubmit}>
+			<form onInput=${this.handleInput} onSubmit=${this.handleSubmit}>
 				<p>Your account <strong>${this.props.account}</strong> has been created, but a verification code is required to complete the registration.</p>
 
 				<p>${linkify(this.props.message)}</p>

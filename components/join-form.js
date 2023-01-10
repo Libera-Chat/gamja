@@ -8,7 +8,7 @@ export default class JoinForm extends Component {
 	constructor(props) {
 		super(props);
 
-		this.handleChange = this.handleChange.bind(this);
+		this.handleInput = this.handleInput.bind(this);
 		this.handleSubmit = this.handleSubmit.bind(this);
 
 		if (props.channel) {
@@ -16,7 +16,7 @@ export default class JoinForm extends Component {
 		}
 	}
 
-	handleChange(event) {
+	handleInput(event) {
 		let target = event.target;
 		let value = target.type == "checkbox" ? target.checked : target.value;
 		this.setState({ [target.name]: value });
@@ -34,7 +34,7 @@ export default class JoinForm extends Component {
 
 	render() {
 		return html`
-			<form onChange=${this.handleChange} onSubmit=${this.handleSubmit}>
+			<form onInput=${this.handleInput} onSubmit=${this.handleSubmit}>
 				<label>
 					Channel:<br/>
 					<input type="text" name="channel" value=${this.state.channel} autofocus required/>

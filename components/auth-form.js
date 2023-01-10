@@ -9,7 +9,7 @@ export default class NetworkForm extends Component {
 	constructor(props) {
 		super(props);
 
-		this.handleChange = this.handleChange.bind(this);
+		this.handleInput = this.handleInput.bind(this);
 		this.handleSubmit = this.handleSubmit.bind(this);
 
 		if (props.username) {
@@ -17,7 +17,7 @@ export default class NetworkForm extends Component {
 		}
 	}
 
-	handleChange(event) {
+	handleInput(event) {
 		let target = event.target;
 		let value = target.type == "checkbox" ? target.checked : target.value;
 		this.setState({ [target.name]: value });
@@ -31,7 +31,7 @@ export default class NetworkForm extends Component {
 
 	render() {
 		return html`
-			<form onChange=${this.handleChange} onSubmit=${this.handleSubmit}>
+			<form onInput=${this.handleInput} onSubmit=${this.handleSubmit}>
 				<label>
 					Username:<br/>
 					<input type="username" name="username" value=${this.state.username} required/>

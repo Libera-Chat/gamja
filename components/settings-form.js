@@ -9,11 +9,11 @@ export default class SettingsForm extends Component {
 		this.state.secondsInTimestamps = props.settings.secondsInTimestamps;
 		this.state.bufferEvents = props.settings.bufferEvents;
 
-		this.handleChange = this.handleChange.bind(this);
+		this.handleInput = this.handleInput.bind(this);
 		this.handleSubmit = this.handleSubmit.bind(this);
 	}
 
-	handleChange(event) {
+	handleInput(event) {
 		let target = event.target;
 		let value = target.type == "checkbox" ? target.checked : target.value;
 		this.setState({ [target.name]: value }, () => {
@@ -56,7 +56,7 @@ export default class SettingsForm extends Component {
 		}
 
 		return html`
-			<form onChange=${this.handleChange} onSubmit=${this.handleSubmit}>
+			<form onInput=${this.handleInput} onSubmit=${this.handleSubmit}>
 				<label>
 					<input
 						type="checkbox"

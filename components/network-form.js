@@ -22,7 +22,7 @@ export default class NetworkForm extends Component {
 
 		this.prevParams = { ...defaultParams };
 
-		this.handleChange = this.handleChange.bind(this);
+		this.handleInput = this.handleInput.bind(this);
 		this.handleSubmit = this.handleSubmit.bind(this);
 
 		if (props.params) {
@@ -35,7 +35,7 @@ export default class NetworkForm extends Component {
 		}
 	}
 
-	handleChange(event) {
+	handleInput(event) {
 		let target = event.target;
 		let value = target.type == "checkbox" ? target.checked : target.value;
 		this.setState({ [target.name]: value });
@@ -85,7 +85,7 @@ export default class NetworkForm extends Component {
 		}
 
 		return html`
-			<form onChange=${this.handleChange} onSubmit=${this.handleSubmit}>
+			<form onInput=${this.handleInput} onSubmit=${this.handleSubmit}>
 				<label>
 					Hostname:<br/>
 					<input type="text" name="host" value=${this.state.host} autofocus required/>
