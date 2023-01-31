@@ -118,8 +118,14 @@ export default class Composer extends Component {
 
 	handleWindowKeyDown(event) {
 		// If an <input> or <button> is focused, ignore.
-		if (document.activeElement !== document.body && document.activeElement.tagName !== "SECTION") {
-			return;
+		if (document.activeElement && document.activeElement !== document.body) {
+			switch (document.activeElement.tagName.toLowerCase()) {
+			case "section":
+			case "a":
+				break;
+			default:
+				return;
+			}
 		}
 
 		// If a modifier is pressed, reserve for key bindings.
