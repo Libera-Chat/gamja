@@ -394,6 +394,7 @@ export default class App extends Component {
 		} catch (err) {
 			console.error("Failed to fetch OAuth 2.0 server metadata:", err);
 			this.showError("Failed to fetch OAuth 2.0 server metadata");
+			return;
 		}
 
 		oauth2.redirectAuthorize({
