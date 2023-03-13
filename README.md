@@ -97,7 +97,7 @@ gamja default settings can be set using a `config.json` file at the root:
 {
 	// IRC server settings.
 	"server": {
-		// WebSocket URL or path to connect to (string).
+		// WebSocket URL or path to connect to (string). Defaults to "/socket".
 		"url": "wss://irc.example.org",
 		// Channel(s) to auto-join (string or array of strings).
 		"autojoin": "#gamja",
