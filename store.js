@@ -130,12 +130,18 @@ export class Buffer {
 	}
 
 	list(server) {
+		// Some gamja versions would store the same buffer multiple times
+		let names = new Set();
 		let buffers = [];
 		for (const buf of this.m.values()) {
 			if (buf.server.bouncerNetwork !== server.bouncerNetwork) {
 				continue;
 			}
+			if (names.has(buf.name)) {
+				continue;
+			}
 			buffers.push(buf);
+			names.add(buf.name);
 		}
 		return buffers;
 	}
