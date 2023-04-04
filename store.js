@@ -148,7 +148,7 @@ export class Buffer {
 
 	clear(server) {
 		if (server) {
-			for (const buf of this.m.values()) {
+			for (const buf of this.list(server)) {
 				this.m.delete(this.key(buf));
 			}
 		} else {
