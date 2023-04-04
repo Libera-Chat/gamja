@@ -62,8 +62,6 @@ export class Buffer {
 		return JSON.stringify({
 			name: buf.name.toLowerCase(),
 			server: {
-				url: buf.server.url,
-				nick: buf.server.nick.toLowerCase(),
 				bouncerNetwork: buf.server.bouncerNetwork,
 			},
 		});
@@ -118,8 +116,6 @@ export class Buffer {
 			unread,
 			receipts,
 			server: {
-				url: buf.server.url,
-				nick: buf.server.nick,
 				bouncerNetwork: buf.server.bouncerNetwork,
 			},
 		});
@@ -136,7 +132,7 @@ export class Buffer {
 	list(server) {
 		let buffers = [];
 		for (const buf of this.m.values()) {
-			if (buf.server.url !== server.url || buf.server.nick !== server.nick || buf.server.bouncerNetwork !== server.bouncerNetwork) {
+			if (buf.server.bouncerNetwork !== server.bouncerNetwork) {
 				continue;
 			}
 			buffers.push(buf);
