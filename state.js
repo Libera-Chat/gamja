@@ -453,29 +453,34 @@ export const State = {
 				return { members };
 			});
 			break;
-		case irc.RPL_WHOREPLY:
-		case irc.RPL_WHOSPCRPL:
-			who = client.parseWhoReply(msg);
-
-			if (who.flags !== undefined) {
-				who.away = who.flags.indexOf("G") >= 0; // H for here, G for gone
-				who.operator = who.flags.indexOf("*") >= 0;
-				let botFlag = client.isupport.bot();
-				if (botFlag) {
-					who.bot = who.flags.indexOf(botFlag) >= 0;
-				}
-				delete who.flags;
-			}
-
-			who.offline = false;
-
-			return updateUser(who.nick, who);
 		case irc.RPL_ENDOFWHO:
 			target = msg.params[1];
 			if (msg.list.length == 0 && !client.isChannel(target) && target.indexOf("*") < 0) {
 				// Not a channel nor a mask, likely a nick
 				return updateUser(target, (user) => {
 					return { offline: true };
+				});
+			} else {
+				return updateServer((server) => {
+					let users = new irc.CaseMapMap(server.users);
+					for (let reply of msg.list) {
+						let who = client.parseWhoReply(reply);
+
+						if (who.flags !== undefined) {
+							who.away = who.flags.indexOf("G") >= 0; // H for here, G for gone
+							who.operator = who.flags.indexOf("*") >= 0;
+							let botFlag = client.isupport.bot();
+							if (botFlag) {
+								who.bot = who.flags.indexOf(botFlag) >= 0;
+							}
+							delete who.flags;
+						}
+
+						who.offline = false;
+
+						users.set(who.nick, who);
+					}
+					return { users };
 				});
 			}
 			break;
