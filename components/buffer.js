@@ -2,7 +2,7 @@ import { html, Component } from "../lib/index.js";
 import linkify from "../lib/linkify.js";
 import * as irc from "../lib/irc.js";
 import { strip as stripANSI } from "../lib/ansi.js";
-import { BufferType, ServerStatus, BufferEventsDisplayMode, getNickURL, getChannelURL, getMessageURL, isMessageBeforeReceipt, SettingsContext } from "../state.js";
+import { BufferType, ServerStatus, BufferEventsDisplayMode, getMessageURL, isMessageBeforeReceipt, SettingsContext } from "../state.js";
 import * as store from "../store.js";
 import Membership from "./membership.js";
 
@@ -23,7 +23,7 @@ function Nick(props) {
 
 	let colorIndex = djb2(props.nick) % 16 + 1;
 	return html`
-		<a href=${getNickURL(props.nick)} class="nick nick-${colorIndex}" onClick=${handleClick}>${props.nick}</a>
+		<a href=${irc.formatURL({ entity: props.nick })} class="nick nick-${colorIndex}" onClick=${handleClick}>${props.nick}</a>
 	`;
 }
 
@@ -103,7 +103,7 @@ class LogLine extends Component {
 		}
 		function createChannel(channel) {
 			return html`
-				<a href=${getChannelURL(channel)} onClick=${onChannelClick}>
+				<a href=${irc.formatURL({ entity: channel })} onClick=${onChannelClick}>
 					${channel}
 				</a>
 			`;

@@ -1,5 +1,4 @@
 import { html, Component } from "../lib/index.js";
-import { getNickURL } from "../state.js";
 import { strip as stripANSI } from "../lib/ansi.js";
 import Membership from "./membership.js";
 import * as irc from "../lib/irc.js";
@@ -73,7 +72,7 @@ class MemberItem extends Component {
 		return html`
 			<li>
 				<a
-					href=${getNickURL(this.props.nick)}
+					href=${irc.formatURL({ entity: this.props.nick, enttype: "user" })}
 					class=${classes.join(" ")}
 					title=${title}
 					onClick=${this.handleClick}
