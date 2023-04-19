@@ -1373,10 +1373,18 @@ export default class App extends Component {
 	async whoChannelBuffer(target, serverID) {
 		let client = this.clients.get(serverID);
 
-		await client.who(target, {
-			fields: ["flags", "hostname", "nick", "realname", "username", "account"],
-		});
+		// Prevent multiple WHO commands for the same channel in parallel
 		this.setBufferState({ name: target, server: serverID }, { hasInitialWho: true });
+
+		let hasInitialWho = false;
+		try {
+			await client.who(target, {
+				fields: ["flags", "hostname", "nick", "realname", "username", "account"],
+			});
+			hasInitialWho = true;
+		} finally {
+			this.setBufferState({ name: target, server: serverID }, { hasInitialWho });
+		}
 	}
 
 	open(target, serverID, password) {
