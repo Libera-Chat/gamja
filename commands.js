@@ -25,21 +25,20 @@ function getActiveChannel(app) {
 	return activeBuffer.name;
 }
 
-function setUserHostMode(app, args, mode) {
+async function setUserHostMode(app, args, mode) {
 	let nick = args[0];
 	if (!nick) {
 		throw new Error("Missing nick");
 	}
 	let activeChannel = getActiveChannel(app);
 	let client = getActiveClient(app);
-	client.whois(nick).then((whois) => {
-		const info = whois[irc.RPL_WHOISUSER].params;
-		const user = info[2];
-		const host = info[3];
-		client.send({
-			command: "MODE",
-			params: [activeChannel, mode, `*!${user}@${host}`],
-		});
+	let whois = await client.whois(nick);
+	const info = whois[irc.RPL_WHOISUSER].params;
+	const user = info[2];
+	const host = info[3];
+	client.send({
+		command: "MODE",
+		params: [activeChannel, mode, `*!${user}@${host}`],
 	});
 }
 

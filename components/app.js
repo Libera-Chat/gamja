@@ -1209,7 +1209,7 @@ export default class App extends Component {
 		});
 	}
 
-	fetchBacklog(serverID) {
+	async fetchBacklog(serverID) {
 		let client = this.clients.get(serverID);
 		if (!client.caps.enabled.has("draft/chathistory")) {
 			return;
@@ -1224,45 +1224,48 @@ export default class App extends Component {
 		}
 
 		let now = irc.formatDate(new Date());
-		client.fetchHistoryTargets(now, lastReceipt.time).then((targets) => {
-			targets.forEach((target) => {
-				let from = lastReceipt;
-				let to = { time: now };
+		let targets = await client.fetchHistoryTargets(now, lastReceipt.time);
+		targets.forEach(async (target) => {
+			let from = lastReceipt;
+			let to = { time: now };
 
-				// Maybe we've just received a READ update from the
-				// server, avoid over-fetching history
-				let stored = this.bufferStore.get({ name: target.name, server: client.params });
-				let readReceipt = getReceipt(stored, ReceiptType.READ);
-				if (isReceiptBefore(from, readReceipt)) {
-					from = readReceipt;
+			// Maybe we've just received a READ update from the
+			// server, avoid over-fetching history
+			let stored = this.bufferStore.get({ name: target.name, server: client.params });
+			let readReceipt = getReceipt(stored, ReceiptType.READ);
+			if (isReceiptBefore(from, readReceipt)) {
+				from = readReceipt;
+			}
+
+			// If we already have messages stored for the target,
+			// fetch all messages we've missed
+			let buf = State.getBuffer(this.state, { server: serverID, name: target.name });
+			if (buf && buf.messages.length > 0) {
+				let lastMsg = buf.messages[buf.messages.length - 1];
+				from = receiptFromMessage(lastMsg);
+			}
+
+			// Query read marker if this is a user (ie, we haven't received
+			// the read marker as part of a JOIN burst)
+			if (client.supportsReadMarker() && client.isNick(target.name)) {
+				client.fetchReadMarker(target.name);
+			}
+
+			let result;
+			try {
+				result = await client.fetchHistoryBetween(target.name, from, to, CHATHISTORY_MAX_SIZE);
+			} catch (err) {
+				console.error("Failed to fetch backlog for '" + target.name + "': ", err);
+				this.showError("Failed to fetch backlog for '" + target.name + "'");
+				return;
+			}
+
+			for (let msg of result.messages) {
+				let destBuffers = this.routeMessage(serverID, msg);
+				for (let bufName of destBuffers) {
+					this.handleChatMessage(serverID, bufName, msg);
 				}
-
-				// If we already have messages stored for the target,
-				// fetch all messages we've missed
-				let buf = State.getBuffer(this.state, { server: serverID, name: target.name });
-				if (buf && buf.messages.length > 0) {
-					let lastMsg = buf.messages[buf.messages.length - 1];
-					from = receiptFromMessage(lastMsg);
-				}
-
-				// Query read marker if this is a user (ie, we haven't received
-				// the read marker as part of a JOIN burst)
-				if (client.supportsReadMarker() && client.isNick(target.name)) {
-					client.fetchReadMarker(target.name);
-				}
-
-				client.fetchHistoryBetween(target.name, from, to, CHATHISTORY_MAX_SIZE).then((result) => {
-					for (let msg of result.messages) {
-						let destBuffers = this.routeMessage(serverID, msg);
-						for (let bufName of destBuffers) {
-							this.handleChatMessage(serverID, bufName, msg);
-						}
-					}
-				}).catch((err) => {
-					console.error("Failed to fetch backlog for '" + target.name + "': ", err);
-					this.showError("Failed to fetch backlog for '" + target.name + "'");
-				});
-			});
+			}
 		});
 	}
 
@@ -1367,14 +1370,13 @@ export default class App extends Component {
 		}
 	}
 
-	whoChannelBuffer(target, serverID) {
+	async whoChannelBuffer(target, serverID) {
 		let client = this.clients.get(serverID);
 
-		client.who(target, {
+		await client.who(target, {
 			fields: ["flags", "hostname", "nick", "realname", "username", "account"],
-		}).then(() => {
-			this.setBufferState({ name: target, server: serverID }, { hasInitialWho: true });
 		});
+		this.setBufferState({ name: target, server: serverID }, { hasInitialWho: true });
 	}
 
 	open(target, serverID, password) {
@@ -1646,7 +1648,7 @@ export default class App extends Component {
 		this.openDialog("help");
 	}
 
-	handleBufferScrollTop() {
+	async handleBufferScrollTop() {
 		let buf = this.state.buffers.get(this.state.activeBuffer);
 		if (!buf || buf.type == BufferType.SERVER) {
 			return;
@@ -1676,35 +1678,34 @@ export default class App extends Component {
 			limit = 200;
 		}
 
-		client.fetchHistoryBefore(buf.name, before, limit).then((result) => {
-			this.endOfHistory.set(buf.id, !result.more);
+		let result = await client.fetchHistoryBefore(buf.name, before, limit);
+		this.endOfHistory.set(buf.id, !result.more);
 
-			if (result.messages.length > 0) {
-				let msg = result.messages[result.messages.length - 1];
-				let receipts = { [ReceiptType.DELIVERED]: receiptFromMessage(msg) };
-				if (this.state.activeBuffer === buf.id) {
-					receipts[ReceiptType.READ] = receiptFromMessage(msg);
-				}
-				let stored = {
-					name: buf.name,
-					server: client.params,
-					receipts,
-				};
-				if (this.bufferStore.put(stored)) {
-					this.sendReadReceipt(client, stored);
-				}
-				this.setBufferState(buf, ({ prevReadReceipt }) => {
-					if (!isMessageBeforeReceipt(msg, prevReadReceipt)) {
-						prevReadReceipt = receiptFromMessage(msg);
-					}
-					return { prevReadReceipt };
-				});
+		if (result.messages.length > 0) {
+			let msg = result.messages[result.messages.length - 1];
+			let receipts = { [ReceiptType.DELIVERED]: receiptFromMessage(msg) };
+			if (this.state.activeBuffer === buf.id) {
+				receipts[ReceiptType.READ] = receiptFromMessage(msg);
 			}
+			let stored = {
+				name: buf.name,
+				server: client.params,
+				receipts,
+			};
+			if (this.bufferStore.put(stored)) {
+				this.sendReadReceipt(client, stored);
+			}
+			this.setBufferState(buf, ({ prevReadReceipt }) => {
+				if (!isMessageBeforeReceipt(msg, prevReadReceipt)) {
+					prevReadReceipt = receiptFromMessage(msg);
+				}
+				return { prevReadReceipt };
+			});
+		}
 
-			for (let msg of result.messages) {
-				this.addChatMessage(buf.server, buf.name, msg);
-			}
-		});
+		for (let msg of result.messages) {
+			this.addChatMessage(buf.server, buf.name, msg);
+		}
 	}
 
 	openDialog(name, data) {
@@ -1822,12 +1823,13 @@ export default class App extends Component {
 		});
 	}
 
-	handleNetworkSubmit(attrs, autojoin) {
+	async handleNetworkSubmit(attrs, autojoin) {
 		let client = this.clients.values().next().value;
+
+		this.dismissDialog();
 
 		if (this.state.dialogData && this.state.dialogData.id) {
 			if (Object.keys(attrs).length == 0) {
-				this.dismissDialog();
 				return;
 			}
 
@@ -1837,22 +1839,19 @@ export default class App extends Component {
 			});
 		} else {
 			attrs = { ...attrs, tls: "1" };
-			client.createBouncerNetwork(attrs).then((id) => {
-				if (!autojoin) {
-					return;
-				}
+			let id = await client.createBouncerNetwork(attrs);
+			if (!autojoin) {
+				return;
+			}
 
-				// By this point, bouncer-networks-notify should've advertised
-				// the new network
-				let serverID = this.serverFromBouncerNetwork(id);
-				let client = this.clients.get(serverID);
-				client.params.autojoin = [autojoin];
+			// By this point, bouncer-networks-notify should've advertised
+			// the new network
+			let serverID = this.serverFromBouncerNetwork(id);
+			let client = this.clients.get(serverID);
+			client.params.autojoin = [autojoin];
 
-				this.switchToChannel = autojoin;
-			});
+			this.switchToChannel = autojoin;
 		}
-
-		this.dismissDialog();
 	}
 
 	handleNetworkRemove() {
