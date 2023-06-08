@@ -6,7 +6,7 @@ function KeyBindingsHelp() {
 	let l = keybindings.map((binding) => {
 		let keys = [];
 		if (binding.ctrlKey) {
-			keys.psuh("Ctrl");
+			keys.push("Ctrl");
 		}
 		if (binding.altKey) {
 			keys.push("Alt");
