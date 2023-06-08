@@ -1,4 +1,4 @@
-import { ReceiptType } from "./state.js";
+import { ReceiptType, Unread } from "./state.js";
 
 const PREFIX = "gamja_";
 
