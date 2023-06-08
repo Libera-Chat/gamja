@@ -13,6 +13,7 @@ import AuthForm from "./auth-form.js";
 import RegisterForm from "./register-form.js";
 import VerifyForm from "./verify-form.js";
 import SettingsForm from "./settings-form.js";
+import SwitcherForm from "./switcher-form.js";
 import Composer from "./composer.js";
 import ScrollManager from "./scroll-manager.js";
 import Dialog from "./dialog.js";
@@ -226,6 +227,7 @@ export default class App extends Component {
 		this.handleOpenSettingsClick = this.handleOpenSettingsClick.bind(this);
 		this.handleSettingsChange = this.handleSettingsChange.bind(this);
 		this.handleSettingsDisconnect = this.handleSettingsDisconnect.bind(this);
+		this.handleSwitchSubmit = this.handleSwitchSubmit.bind(this);
 
 		this.state.settings = {
 			...this.state.settings,
@@ -1903,6 +1905,13 @@ export default class App extends Component {
 		this.disconnectAll();
 	}
 
+	handleSwitchSubmit(buf) {
+		this.dismissDialog();
+		if (buf) {
+			this.switchBuffer(buf);
+		}
+	}
+
 	componentDidMount() {
 		this.baseTitle = document.title;
 		setupKeybindings(this);
@@ -2087,6 +2096,17 @@ export default class App extends Component {
 						onDisconnect=${this.handleSettingsDisconnect}
 						onClose=${this.dismissDialog}
 					/>
+				</>
+			`;
+			break;
+		case "switch":
+			dialog = html`
+				<${Dialog} title="Switch to a channel or user" onDismiss=${this.dismissDialog}>
+					<${SwitcherForm}
+						buffers=${this.state.buffers}
+						servers=${this.state.servers}
+						bouncerNetworks=${this.state.bouncerNetworks}
+						onSubmit=${this.handleSwitchSubmit}/>
 				</>
 			`;
 			break;

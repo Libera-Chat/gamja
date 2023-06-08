@@ -94,6 +94,14 @@ export const keybindings = [
 			}
 		},
 	},
+	{
+		key: "k",
+		ctrlKey: true,
+		description: "Switch to a buffer",
+		execute: (app) => {
+			app.openDialog("switch");
+		},
+	},
 ];
 
 export function setup(app) {
