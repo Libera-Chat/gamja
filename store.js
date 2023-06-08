@@ -85,7 +85,7 @@ export class Buffer {
 		let updated = !this.m.has(key);
 		let prev = this.m.get(key) || {};
 
-		let unread = prev.unread;
+		let unread = prev.unread || Unread.NONE;
 		if (buf.unread !== undefined && buf.unread !== prev.unread) {
 			unread = buf.unread;
 			updated = true;
@@ -107,6 +107,12 @@ export class Buffer {
 			}
 		}
 
+		let closed = prev.closed || false;
+		if (buf.closed !== undefined && buf.closed !== prev.closed) {
+			closed = buf.closed;
+			updated = true;
+		}
+
 		if (!updated) {
 			return false;
 		}
@@ -115,6 +121,7 @@ export class Buffer {
 			name: buf.name,
 			unread,
 			receipts,
+			closed,
 			server: {
 				bouncerNetwork: buf.server.bouncerNetwork,
 			},

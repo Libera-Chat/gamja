@@ -491,13 +491,12 @@ export default class App extends Component {
 		if (client.caps.enabled.has("draft/chathistory") && stored) {
 			this.setBufferState({ server: serverID, name }, { unread: stored.unread });
 		}
-		if (!stored) {
-			this.bufferStore.put({
-				name,
-				server: client.params,
-				unread: Unread.NONE,
-			});
-		}
+
+		this.bufferStore.put({
+			name,
+			server: client.params,
+			closed: false,
+		});
 	}
 
 	createBuffer(serverID, name) {
@@ -1029,7 +1028,7 @@ export default class App extends Component {
 			// Restore opened channel and user buffers
 			let join = [];
 			for (let buf of this.bufferStore.list(client.params)) {
-				if (buf.name === "*") {
+				if (buf.name === "*" || buf.closed) {
 					continue;
 				}
 
@@ -1167,9 +1166,13 @@ export default class App extends Component {
 					notif.close();
 				}
 			}
+			let unread;
+			let closed = true;
 			this.setBufferState({ server: serverID, name: target }, (buf) => {
+				closed = false;
+
 				// Re-compute unread status
-				let unread = Unread.NONE;
+				unread = Unread.NONE;
 				for (let i = buf.messages.length - 1; i >= 0; i--) {
 					let msg = buf.messages[i];
 					if (msg.command !== "PRIVMSG" && msg.command !== "NOTICE") {
@@ -1187,14 +1190,15 @@ export default class App extends Component {
 					unread = Unread.MESSAGE;
 				}
 
+				return { unread };
+			}, () => {
 				this.bufferStore.put({
 					name: target,
 					server: client.params,
 					unread,
+					closed,
 					receipts: { [ReceiptType.READ]: readReceipt },
 				});
-
-				return { unread };
 			});
 			break;
 		default:
@@ -1484,7 +1488,11 @@ export default class App extends Component {
 
 			client.unmonitor(buf.name);
 
-			this.bufferStore.delete({ name: buf.name, server: client.params });
+			this.bufferStore.put({
+				name: buf.name,
+				server: client.params,
+				closed: true,
+			});
 			break;
 		}
 	}
