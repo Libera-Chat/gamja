@@ -1,5 +1,6 @@
 import { html, Component } from "../lib/index.js";
 import { BufferType, getBufferURL, getServerName } from "../state.js";
+import * as irc from "../lib/irc.js";
 
 class SwitcherItem extends Component {
 	constructor(props) {
@@ -33,6 +34,26 @@ class SwitcherItem extends Component {
 	}
 }
 
+function matchString(s, query) {
+	return s.toLowerCase().includes(query) ? 1 : 0;
+}
+
+function matchBuffer(buf, server, query) {
+	let score = 2 * matchString(buf.name, query);
+	switch (buf.type) {
+	case BufferType.CHANNEL:
+		score += matchString(buf.topic || "", query);
+		break;
+	case BufferType.NICK:
+		let user = server.users.get(buf.name);
+		if (user && user.realname && irc.isMeaningfulRealname(user.realname, buf.name)) {
+			score += matchString(user.realname, query);
+		}
+		break;
+	}
+	return score;
+}
+
 export default class SwitcherForm extends Component {
 	state = {
 		query: "",
@@ -51,19 +72,28 @@ export default class SwitcherForm extends Component {
 		let query = this.state.query.toLowerCase();
 
 		let l = [];
+		let scores = new Map();
 		for (let buf of this.props.buffers.values()) {
 			if (buf.type === BufferType.SERVER) {
 				continue;
 			}
-			if (query !== "" && !buf.name.toLowerCase().includes(query)) {
-				continue;
+			let score = 0;
+			if (query !== "") {
+				let server = this.props.servers.get(buf.server);
+				score = matchBuffer(buf, server, query);
+				if (!score) {
+					continue;
+				}
 			}
+			scores.set(buf.id, score);
 			l.push(buf);
-			if (l.length >= 20) {
-				break;
-			}
 		}
-		return l;
+
+		l.sort((a, b) => {
+			return scores.get(b.id) - scores.get(a.id);
+		});
+
+		return l.slice(0, 20);
 	}
 
 	handleInput(event) {
