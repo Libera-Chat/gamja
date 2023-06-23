@@ -228,6 +228,7 @@ export default class App extends Component {
 		this.handleSettingsChange = this.handleSettingsChange.bind(this);
 		this.handleSettingsDisconnect = this.handleSettingsDisconnect.bind(this);
 		this.handleSwitchSubmit = this.handleSwitchSubmit.bind(this);
+		this.handleWindowFocus = this.handleWindowFocus.bind(this);
 
 		this.state.settings = {
 			...this.state.settings,
@@ -1912,13 +1913,23 @@ export default class App extends Component {
 		}
 	}
 
+	handleWindowFocus() {
+		// When the user focuses gamja, send a PING to make sure we detect any
+		// network errors ASAP
+		for (let client of this.clients.values()) {
+			client.send({ command: "PING", params: ["gamja"] });
+		}
+	}
+
 	componentDidMount() {
 		this.baseTitle = document.title;
 		setupKeybindings(this);
+		window.addEventListener("focus", this.handleWindowFocus);
 	}
 
 	componentWillUnmount() {
 		document.title = this.baseTitle;
+		window.removeEventListener("focus", this.handleWindowFocus);
 	}
 
 	render() {
