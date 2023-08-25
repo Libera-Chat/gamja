@@ -645,21 +645,12 @@ export const State = {
 				return { members };
 			});
 		case irc.RPL_MONONLINE:
-			targets = msg.params[1].split(",");
-
-			for (let target of targets) {
-				let prefix = irc.parsePrefix(target);
-				let update = updateUser(prefix.name, { offline: false });
-				state = { ...state, ...update };
-			}
-
-			return state;
 		case irc.RPL_MONOFFLINE:
 			targets = msg.params[1].split(",");
 
 			for (let target of targets) {
 				let prefix = irc.parsePrefix(target);
-				let update = updateUser(prefix.name, { offline: true });
+				let update = updateUser(prefix.name, { offline: msg.command == irc.RPL_MONOFFLINE });
 				state = { ...state, ...update };
 			}
 
