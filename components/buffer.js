@@ -267,6 +267,13 @@ class LogLine extends Component {
 			let date = new Date(parseInt(msg.params[2], 10) * 1000);
 			content = html`Channel was created on ${date.toLocaleString()}`;
 			break;
+		// MONITOR messages are only displayed in user buffers
+		case irc.RPL_MONONLINE:
+			content = html`${createNick(buf.name)} is online`;
+			break;
+		case irc.RPL_MONOFFLINE:
+			content = html`${createNick(buf.name)} is offline`;
+			break;
 		default:
 			if (irc.isError(msg.command) && msg.command != irc.ERR_NOMOTD) {
 				lineClass = "error";
@@ -653,10 +660,16 @@ export default class Buffer extends Component {
 		let hasUnreadSeparator = false;
 		let prevDate = new Date();
 		let foldMessages = [];
+		let hasMonitor = false;
 		buf.messages.forEach((msg) => {
 			let sep = [];
 
 			if (settings.bufferEvents === BufferEventsDisplayMode.HIDE && canFoldMessage(msg)) {
+				return;
+			}
+
+			if (!hasMonitor && (msg.command === irc.RPL_MONONLINE || msg.command === irc.RPL_MONOFFLINE)) {
+				hasMonitor = true;
 				return;
 			}
 

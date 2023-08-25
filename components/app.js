@@ -706,7 +706,7 @@ export default class App extends Component {
 
 		// Open a new buffer if the message doesn't come from me or is a
 		// self-message
-		if ((!client.isMyNick(msg.prefix.name) || client.isMyNick(bufName)) && (msg.command != "PART" && msg.comand != "QUIT")) {
+		if ((!client.isMyNick(msg.prefix.name) || client.isMyNick(bufName)) && (msg.command != "PART" && msg.comand != "QUIT" && msg.command != irc.RPL_MONONLINE && msg.command != irc.RPL_MONOFFLINE)) {
 			this.createBuffer(serverID, bufName);
 		}
 
@@ -916,7 +916,7 @@ export default class App extends Component {
 					if (buf.server != serverID) {
 						return;
 					}
-					if (!buf.members.has(msg.prefix.name) && client.cm(buf.name) !== client.cm(msg.prefix.name)) {
+					if (!buf.members.has(msg.prefix.name)) {
 						return;
 					}
 					affectedBuffers.push(buf.name);
@@ -972,6 +972,15 @@ export default class App extends Component {
 		case irc.RPL_INVITING:
 			channel = msg.params[2];
 			return [channel];
+		case irc.RPL_MONONLINE:
+		case irc.RPL_MONOFFLINE:
+			let targets = msg.params[1].split(",");
+			affectedBuffers = [];
+			for (let target of targets) {
+				let prefix = irc.parsePrefix(target);
+				affectedBuffers.push(prefix.name);
+			}
+			return affectedBuffers;
 		case irc.RPL_YOURHOST:
 		case irc.RPL_MYINFO:
 		case irc.RPL_ISUPPORT:
@@ -983,8 +992,6 @@ export default class App extends Component {
 		case irc.RPL_TOPICWHOTIME:
 		case irc.RPL_NAMREPLY:
 		case irc.RPL_ENDOFNAMES:
-		case irc.RPL_MONONLINE:
-		case irc.RPL_MONOFFLINE:
 		case irc.RPL_SASLSUCCESS:
 		case irc.RPL_CHANNEL_URL:
 		case "AWAY":
